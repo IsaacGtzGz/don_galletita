@@ -1,0 +1,96 @@
+﻿import aspose.pdf
+import aspose.pydrawing
+import datetime
+import decimal
+import io
+import uuid
+from typing import Iterable
+
+class DsaAlgorithmInfo(aspose.pdf.security.KeyedSignatureAlgorithmInfo):
+    '''Represents a class for the information about the DSA signature algorithm.'''
+    
+    ...
+
+class EcdsaAlgorithmInfo(aspose.pdf.security.KeyedSignatureAlgorithmInfo):
+    '''Represents a class for the information about the ECDSA signature algorithm.'''
+    
+    @property
+    def ECC_NAME(self) -> str:
+        '''Gets the name of the elliptic curve used by the ECDSA.'''
+        ...
+    
+    ...
+
+class KeyedSignatureAlgorithmInfo(aspose.pdf.security.SignatureAlgorithmInfo):
+    '''Represents a class for information about a keyed signature algorithm.'''
+    
+    @property
+    def KEY_SIZE(self) -> int:
+        '''Gets the size of the cryptographic key used by the signature algorithm.'''
+        ...
+    
+    ...
+
+class RsaAlgorithmInfo(aspose.pdf.security.KeyedSignatureAlgorithmInfo):
+    '''Represents a class for the information about the RSA signature algorithm.'''
+    
+    ...
+
+class SignatureAlgorithmInfo:
+    '''Represents a class for information about a signature algorithm, including its type,
+    cryptographic standard, and digest hash algorithm.'''
+    
+    @property
+    def signature_name(self) -> str:
+        '''Gets the name of the signature field.'''
+        ...
+    
+    @property
+    def ALGORITHM_TYPE(self) -> aspose.pdf.security.SignatureAlgorithmType:
+        '''Gets the type of the signature algorithm used for signing the PDF document.'''
+        ...
+    
+    @property
+    def CRYPTOGRAPHIC_STANDARD(self) -> aspose.pdf.security.CryptographicStandard:
+        '''Gets the cryptographic standard used for signing the PDF document.'''
+        ...
+    
+    @property
+    def DIGEST_HASH_ALGORITHM(self) -> aspose.pdf.DigestHashAlgorithm:
+        '''Gets the digest hash algorithm used for the signature.
+        For a timestamp, this is the digest hash algorithm with which the hash of the document content is signed.'''
+        ...
+    
+    ...
+
+class TimestampAlgorithmInfo(aspose.pdf.security.SignatureAlgorithmInfo):
+    '''Represents a class for the information about the timestamp signature algorithm.'''
+    
+    @property
+    def CONTENT_HASH_ALGORITHM(self) -> aspose.pdf.DigestHashAlgorithm:
+        '''Gets the hash algorithm that hashed the content of the document and then signed it using :attr:`SignatureAlgorithmInfo.DIGEST_HASH_ALGORITHM`.'''
+        ...
+    
+    ...
+
+class UnknownSignatureAlgorithmInfo(aspose.pdf.security.SignatureAlgorithmInfo):
+    '''Represents a class for the unknown signature algorithm information.'''
+    
+    ...
+
+class CryptographicStandard:
+    '''Represents the available cryptographic standards for securing PDF documents.'''
+    
+    PKCS1: CryptographicStandard
+    PKCS7: CryptographicStandard
+    RFC3161: CryptographicStandard
+
+class SignatureAlgorithmType:
+    '''Enumerates the types of signature algorithms used for digital signatures.'''
+    
+    ECDSA: SignatureAlgorithmType
+    RSA: SignatureAlgorithmType
+    DSA: SignatureAlgorithmType
+    TIMESTAMP: SignatureAlgorithmType
+    UNKNOWN: SignatureAlgorithmType
+
