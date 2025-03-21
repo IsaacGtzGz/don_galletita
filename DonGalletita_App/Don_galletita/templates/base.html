@@ -1,63 +1,67 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
-    <title>Shop Homepage - Start Bootstrap Template</title>
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{% static 'assets/favicon.ico' %}" />
-    <!-- Bootstrap icons -->
-    <link href="{% static 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css' %}" rel="stylesheet" />
-    <!-- Core theme CSS (includes Bootstrap) -->
-    <link href="{% static 'css/styles.css' %}" rel="stylesheet" />
+    <title>Inicio</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/cstyle.css' %}" />
+    <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
   </head>
   <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <div class="container px-4 px-lg-5">
-        <a class="navbar-brand" href="#!">Start Bootstrap</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}">Mi Libreria</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ml-auto">
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="#!">Home</a>
+              <a class="nav-link" href="{% url 'home' %}">Home</a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'login' %}">LOGIN</a>
-            </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Shop</a>
-              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <li>
-                  <a class="dropdown-item" href="#!">All Products</a>
+            {% if user.is_authenticated %}
+              <li class="nav-item">
+                <span class="navbar-text">Bienvenido {{ user.username }}</span>
+              </li>
+
+              {% if perms.libros_app.permiso_admin %}
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'lista_ventas' %}">Ventas</a>
                 </li>
-                <li>
-                  <hr class="dropdown-divider" />
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'lista_libros' %}">Libros</a>
                 </li>
-                <li>
-                  <a class="dropdown-item" href="#!">Popular Items</a>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'lista_editoriales' %}">Editoriales</a>
                 </li>
-                <li>
-                  <a class="dropdown-item" href="#!">New Arrivals</a>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'lista_categorias' %}">Categorias</a>
                 </li>
-              </ul>
-            </li>
+              {% endif %}
+
+              {% if perms.libros_app.permiso_cliente %}
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'historial_compras' %}">Historial de Compras</a>
+                </li>
+              {% endif %}
+
+              <li class="nav-item ml-auto">
+                <form id="logout-form" method="post" action="{% url 'logout' %}">
+                  {% csrf_token %}
+                  <button type="submit" class="nav-link">Cerrar Sesión</button>
+                </form>
+              </li>
+            {% else %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'login' %}">Iniciar Sesión</a>
+              </li>
+            {% endif %}
           </ul>
-          <form class="d-flex">
-            <button class="btn btn-outline-dark" type="submit">
-              <i class="bi-cart-fill me-1"></i>
-              Cart
-              <span class="badge bg-dark text-white ms-1 rounded-pill">0</span>
-            </button>
-          </form>
         </div>
       </div>
     </nav>
+
     {% block content %}
 
     {% endblock %}
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
   </body>
 </html>
