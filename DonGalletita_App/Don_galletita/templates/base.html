@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Don Galletita{% endblock %}</title>
+    <!-- Cargar archivos estáticos -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/detalles_cliente.css' %}">
+    <link rel="stylesheet" href="{% static 'css/cliente_list.css' %}">
+    <link rel="stylesheet" href="{% static 'css/cliente_form.css' %}">
+    <link rel="stylesheet" href="{% static 'css/cliente_confirm_delete.css' %}">
+</head>
+<body>
+    <!-- Encabezado -->
+     
+    <header>
+        <h1>Don Galletita</h1> <!-- Título a la izquierda -->
+        <nav>
+            <a href="{% url 'cliente_list' %}">Clientes</a>
+            <a href="#">Productos</a>
+            <a href="#">Ventas</a>
+            <a href="#">Proveedores</a>
+        </nav>
+    </header>
+
+    <!-- Contenido principal -->
+    <main>
+        {% block content %}
+        <!-- El contenido específico de cada página se insertará aquí -->
+        {% endblock %}
+    </main>
+
+    <!-- Pie de página -->
+    <footer>
+        <center><p>&copy; 2023 Don Galletita - Todos los derechos reservados</p></center>
+    </footer>
+</body>
+</html>
