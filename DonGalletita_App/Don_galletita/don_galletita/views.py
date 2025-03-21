@@ -28,9 +28,5 @@ def custom_500(request):
 def home(request):
     return render(request, 'home.html')
 
-def contactanos(request):
-    args = {}
-    args['domicilio'] = 'Calle Falsa 123'
-    args['telefonos'] = [477333, 477334, 477123]
-
-    return render(request, 'contactanos.html', args)
+def index(request):
+    return render(request, 'index.html')
