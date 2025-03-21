@@ -1,0 +1,21 @@
+/* Estilos específicos para cliente_confirm_delete.html */
+.delete-form {
+    background-color: #DCCFB2;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.delete-form button {
+    background-color: #D00000;
+    color: #FFFFFF;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.delete-form button:hover {
+    background-color: #A00000;
+}
