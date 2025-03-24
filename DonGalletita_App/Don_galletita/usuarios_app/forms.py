@@ -14,7 +14,6 @@ class UsuarioRegistrarForm(forms.ModelForm):
 
     def save(self, commit=True):
         usuario = super().save(commit=False)
-        usuario.contrasenia = self.cleaned_data["contrasenia"]
         if commit:
             usuario.save()
         return usuario
@@ -34,7 +33,7 @@ class UsuarioEditarForm(forms.ModelForm):
     def save(self, id, commit=True):
         usuario = models.Usuario.objects.filter(usuario_id=id).first()
         usuario.nombre_usuario = self.cleaned_data["nombre_usuario"]
-        usuario.contrasenia = self.cleaned_data["contrasenia"]
+        usuario.set_password(self.cleaned_data["contrasenia"])
         usuario.rol = self.cleaned_data["rol"]
         usuario.estatus_user = self.cleaned_data["estatus_user"]
         if commit:
