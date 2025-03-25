@@ -1,29 +1,40 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
-
 {% block content %}
-  <link rel="stylesheet" href="{% static 'css/login_styles.css' %}" />
-  <div class="main">
-    <input type="checkbox" id="chk" aria-hidden="true" />
 
-    <div class="signup">
-      <form>
-        <label for="chk" aria-hidden="true">Sign up</label>
-        <input type="text" name="txt" placeholder="User name" required="" />
-        <input type="email" name="email" placeholder="Email" required="" />
-        <input type="number" name="broj" placeholder="BrojTelefona" required="" />
-        <input type="password" name="pswd" placeholder="Password" required="" />
-        <button>Sign up</button>
-      </form>
-    </div>
 
-    <div class="login">
-      <form>
-        <label for="chk" aria-hidden="true">Login</label>
-        <input type="email" name="email" placeholder="Email" required="" />
-        <input type="password" name="pswd" placeholder="Password" required="" />
-        <button>Login</button>
-      </form>
+  <div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <h1 class="text-center mb-4">Registro</h1>
+        <form method="POST" class="border p-4 rounded shadow-sm bg-light">
+          {% csrf_token %}
+          <div class="mb-3">
+            {{ form.as_p }}
+            <pre>{{ form }}</pre>
+
+          </div>
+
+          <!-- Mostrar errores -->
+          {% if form.errors %}
+            <div class="alert alert-danger">
+              <ul>
+                {% for field, errors in form.errors.items %}
+                  {% for error in errors %}
+                    <li>{{ error }}</li>
+                  {% endfor %}
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+
+          <!-- Botón de envío -->
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
-{% endblock %}
+
+{% endblock content %}

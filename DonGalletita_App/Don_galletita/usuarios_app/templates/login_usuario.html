@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <link rel="stylesheet" href="{% static 'css/login_styles.css' %}" />
+
+  <div class="main">
+    <div class="login">
+      <form method="POST">
+        {% csrf_token %}
+        <label for="chk" aria-hidden="true">Iniciar Sesión</label>
+
+        <!-- Nombre de usuario -->
+        <input type="text" name="username" placeholder="Nombre de usuario" required class="input"/>
+
+        <!-- Contraseña -->
+        <input type="password" name="password" placeholder="Contraseña" required class="input"/>
+
+        <button type="submit">Login</button>
+      </form>
+
+      <!-- Mostrar errores si las credenciales son incorrectas -->
+      {% if messages %}
+        <div class="alert alert-danger">
+          <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

@@ -4,7 +4,7 @@
   <head>
     <title>Inicio</title>
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/cstyle.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
     <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
   </head>
   <body>
@@ -51,7 +51,10 @@
               </li>
             {% else %}
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'login' %}">Iniciar Sesión</a>
+                <a class="nav-link" href="{% url 'crear_usuario' %}">Iniciar Sesión</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'login_usuario' %}">Login</a>
               </li>
             {% endif %}
           </ul>
