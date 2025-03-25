@@ -1,14 +1,72 @@
+/* Ajustes de tamaños de texto para coherencia */
+
+/* Encabezados principales */
+h1 {
+    font-size: 36px;
+    /* Tamaño más grande para encabezados principales */
+    font-weight: bold;
+}
+
+h2 {
+    font-size: 30px;
+    font-weight: bold;
+}
+
+h3 {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+h4 {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+h5,
+h6 {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Texto del navbar */
+.navbar .navbar-brand {
+    font-size: 22px;
+    /* Reducido para no ser más grande que los encabezados */
+}
+
+.navbar .nav-link {
+    font-size: 16px;
+    /* Tamaño coherente con el texto general */
+}
+
+/* Texto general */
+body {
+    font-size: 16px;
+    /* Tamaño base para texto general */
+}
+
+p {
+    font-size: 14px;
+    /* Tamaño ligeramente menor para párrafos */
+}
+
+/* Botones */
+.btn {
+    font-size: 16px;
+    /* Tamaño coherente con el texto general */
+}
+
 /* Please ❤ this if you like it! */
 
 
 body {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 300;
-    font-size: 15px;
-    line-height: 1.7;
-    color: #c4c3ca;
-    background-color: #1f2029;
-    overflow-x: hidden;
+    font-family: 'Helvetica World', sans-serif;
+    background-color: #FAF3E0;
+    /* Fondo cálido y suave */
+    color: #4A403A;
+    /* Texto marrón oscuro */
+    margin: 0;
+    padding: 0;
 }
 
 a {
@@ -181,8 +239,13 @@ h6 span {
     letter-spacing: 0.5px;
     outline: none;
     color: #c4c3ca;
-    background-color: #1f2029;
-    border: none;
+    background-color: #FFF8DC;
+    border: 1px solid #D4A373;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    width: 100%;
+    margin-bottom: 10px;
     -webkit-transition: all 200ms linear;
     transition: all 200ms linear;
     box-shadow: 0 4px 8px 0 rgba(21, 21, 21, .2);
@@ -190,7 +253,7 @@ h6 span {
 
 .form-style:focus,
 .form-style:active {
-    border: none;
+    border-color: #8C5A3C;
     outline: none;
     box-shadow: 0 4px 8px 0 rgba(21, 21, 21, .2);
 }
@@ -302,11 +365,6 @@ h6 span {
     box-shadow: 0 8px 24px 0 rgba(16, 39, 112, .2);
 }
 
-body {
-    background: #24282f;
-    font-family: 'Alegreya Sans';
-}
-
 .wrapper {
     padding: 15px;
 }
@@ -352,72 +410,6 @@ h2:after {
     flex-flow: row wrap;
 }
 
-.card {
-    position: relative;
-    margin: 20px;
-    width: 180px;
-    height: 270px;
-    overflow: hidden;
-    box-shadow: 0 5px 10px rgba(0, 0, 0, .8);
-    transform-origin: center top;
-    transform-style: preserve-3d;
-    transform: translateZ(0);
-    transition: .3s;
-}
-
-.card img {
-    width: 100%;
-    min-height: 100%;
-}
-
-.card figcaption {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 20px;
-    padding-bottom: 10px;
-    font-size: 20px;
-    background: none;
-    color: #fff;
-    transform: translateY(100%);
-    transition: .3s;
-}
-
-.card:after {
-    position: absolute;
-    content: '';
-    z-index: 10;
-    width: 200%;
-    height: 100%;
-    top: -90%;
-    left: -20px;
-    opacity: .1;
-    transform: rotate(45deg);
-    background: linear-gradient(to top, transparent, #fff 15%, rgba(255, 255, 255, .5));
-    transition: .3s;
-}
-
-.card:hover,
-.card:focus,
-.card:active {
-    box-shadow: 0 8px 16px 3px rgba(0, 0, 0, .6);
-    transform: translateY(-3px) scale(1.05) rotateX(15deg);
-}
-
-.card:hover figcaption,
-.card:focus figcaption,
-.card:active figcaption {
-    transform: none;
-}
-
-.card:hover:after,
-.card:focus:after,
-.card:active:after {
-    transform: rotate(25deg);
-    top: -40%;
-    opacity: .15;
-}
 
 .news {
     display: flex;
@@ -480,32 +472,33 @@ h2:after {
 .table {
     width: 100%;
     margin-bottom: 1rem;
-    color: #c4c3ca;
-    background-color: #1f2029;
+    color: #5C4033;
+    background-color: #FFF8DC;
+    /* Fondo crema */
     border-collapse: collapse;
-    border: 1px solid #343a40;
+    border: 1px solid #D4A373;
 }
 
 .table th,
 .table td {
     padding: 0.75rem;
     vertical-align: top;
-    border: 1px solid #343a40;
+    border: 1px solid #D4A373;
 }
 
 .table thead th {
     vertical-align: bottom;
-    border-bottom: 2px solid #343a40;
-    background-color: #343a40;
+    border-bottom: 2px solid #D4A373;
+    background-color: #D4A373;
     color: #fff;
 }
 
 .table tbody+tbody {
-    border-top: 2px solid #343a40;
+    border-top: 2px solid #D4A373;
 }
 
 .table .table {
-    background-color: #1f2029;
+    background-color: #FFF8DC;
 }
 
 .table-striped tbody tr:nth-of-type(odd) {
@@ -513,7 +506,7 @@ h2:after {
 }
 
 .table-hover tbody tr:hover {
-    color: #c4c3ca;
+    color: #5C4033;
     background-color: rgba(0, 0, 0, 0.075);
 }
 
@@ -569,15 +562,19 @@ h2:after {
 }
 
 .btn-primary {
-    color: #fff;
-    background-color: #007bff;
-    border-color: #007bff;
+    background-color: #8B5E3C;
+    color: #FFFFFF;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
 }
 
 .btn-primary:hover {
-    color: #fff;
-    background-color: #0056b3;
-    border-color: #004085;
+    background-color: #C9A66B;
+    color: #FFFFFF;
 }
 
 .btn-primary:focus,
@@ -607,4 +604,284 @@ h2:after {
     color: #fff;
     background-color: #007bff;
     border-color: #007bff;
+}
+
+.btn-secondary {
+    background-color: #C9A66B;
+    color: #FFFFFF;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background-color: #8B5E3C;
+    color: #FFFFFF;
+}
+
+.btn-danger {
+    background-color: #D9534F;
+    color: #FFFFFF;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-danger:hover {
+    background-color: #C9302C;
+    color: #FFFFFF;
+}
+
+/* GUÍA DE ESTILOS PARA DON GALLETITA */
+
+/* Tipografía */
+.headerline-1 {
+    font-family: 'Helvetica World', sans-serif;
+    font-weight: bold;
+    font-size: 48px;
+    color: #8C5A3C;
+    background-color: #F3E5AB;
+    /* Amarillo pastel */
+    text-align: center;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.headers {
+    font-family: 'Helvetica World', sans-serif;
+    font-weight: bold;
+    font-size: 30px;
+    color: #000000;
+    background-color: #D7C6A1;
+    padding: 5px;
+    text-align: left;
+}
+
+.headers-alert {
+    font-family: 'Helvetica World', sans-serif;
+    font-weight: bold;
+    font-size: 30px;
+    color: #D00000;
+    background-color: #BCA77A;
+    padding: 5px;
+    text-align: left;
+}
+
+.form-text {
+    font-family: 'Helvetica World', sans-serif;
+    font-weight: bold;
+    font-size: 25px;
+    color: #000000;
+    background-color: #D7C6A1;
+    padding: 5px;
+}
+
+.form-text-alert {
+    font-family: 'Helvetica World', sans-serif;
+    font-weight: bold;
+    font-size: 25px;
+    color: #D00000;
+    background-color: #BCA77A;
+    padding: 5px;
+}
+
+.table-content {
+    font-family: 'Helvetica World', sans-serif;
+    font-weight: bold;
+    font-size: 25px;
+    color: #000000;
+    background-color: #DCCFB2;
+    padding: 5px;
+}
+
+.table-content-alert {
+    font-family: 'Helvetica World', sans-serif;
+    font-weight: bold;
+    font-size: 25px;
+    color: #D00000;
+    background-color: #D7C6A1;
+    padding: 5px;
+}
+
+/* Botones */
+.btn-primary {
+    background-color: #8B5E3C;
+    color: #FFFFFF;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background-color: #C9A66B;
+    color: #FFFFFF;
+}
+
+.btn-secondary {
+    background-color: #C9A66B;
+    color: #FFFFFF;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-family: 'Helvetica World', sans-serif;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background-color: #8B5E3C;
+    color: #FFFFFF;
+}
+
+.btn-light {
+    background-color: #E5E5E5;
+    color: #000000;
+    border: none;
+    padding: 10px 20px;
+    font-size: 18px;
+    font-family: 'Helvetica World', sans-serif;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Alertas */
+.alert {
+    border: 2px solid #D00000;
+    background-color: #F8D7DA;
+    color: #D00000;
+    padding: 10px;
+    font-family: 'Helvetica World', sans-serif;
+    font-weight: bold;
+    font-size: 18px;
+    border-radius: 5px;
+}
+
+/* Paleta de colores adicionales */
+.bg-primary {
+    background-color: #E2D9C4;
+}
+
+.bg-secondary {
+    background-color: #DCCFB2;
+}
+
+.bg-tertiary {
+    background-color: #D7C6A1;
+}
+
+.bg-quaternary {
+    background-color: #BCA77A;
+}
+
+/* Navbar */
+.navbar {
+    background-color: #C9A66B;
+    /* Marrón claro */
+    font-size: 18px;
+}
+
+.navbar .navbar-brand {
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffffff !important;
+}
+
+.navbar .nav-link {
+    color: #ffffff !important;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 10px 15px;
+}
+
+.navbar .nav-link:hover {
+    color: #fdf6e3 !important;
+    background-color: #8c5a3c !important;
+    /* Marrón oscuro */
+    border-radius: 5px;
+}
+
+.navbar .navbar-text {
+    color: #ffffff;
+    font-size: 16px;
+
+}
+
+/* Footer */
+.footer {
+    background-color: #D4A373;
+    color: #FFFFFF;
+    text-align: center;
+    padding: 10px;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+label[for="reg-log"] {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    background: url('{% static "assets/hombre-de-pan-de-jengibre.png" %}') center center;
+    background-size: contain;
+    cursor: pointer;
+}
+
+.section h6 {
+    font-size: 20px;
+    color: #8c5a3c;
+}
+
+.section h4 {
+    font-size: 24px;
+    color: #d4a373;
+}
+
+.form-style {
+    font-size: 16px;
+    color: #8c5a3c;
+    border: 1px solid #d4a373;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.form-style::placeholder {
+    color: #c9a66b;
+}
+
+.btn {
+    font-size: 18px;
+    background-color: #8b5e3c;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+}
+
+.btn:hover {
+    background-color: #d4a373;
+    color: #ffffff;
+}
+
+.link {
+    color: #8c5a3c;
+    font-size: 16px;
+}
+
+.link:hover {
+    color: #d4a373;
+}
+
+input.checkbox {
+    display: none;
 }
