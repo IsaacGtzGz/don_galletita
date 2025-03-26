@@ -22,11 +22,8 @@ from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('usuarios_app.urls')),  # Corrige el prefijo duplicado para usuarios_app
+    path('', include('usuarios_app.urls')), 
     path('', views.home, name='home'),
-    path('login/', include('django.contrib.auth.urls'), name="login"),
-    path('cuentas/', include('django.contrib.auth.urls')),
-    path('cuentas/registro/', views.registro, name="registro"),
     path('proveedores/', include('proveedores_app.urls')),
     path('clientes/', include('clientes.urls')),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),

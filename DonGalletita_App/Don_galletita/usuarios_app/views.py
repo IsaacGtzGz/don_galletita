@@ -57,20 +57,22 @@ def registro_desde_login(request):
     if request.method == 'POST':
         nombre_usuario = request.POST.get('nombre_usuario')
         contrasenia = request.POST.get('contrasenia')
-        rol = request.POST.get('rol')
 
         if Usuario.objects.filter(nombre_usuario=nombre_usuario).exists():
             messages.error(request, "El nombre de usuario ya está registrado.")
         else:
             usuario = Usuario(
                 nombre_usuario=nombre_usuario,
-                rol=rol,
-                estatus_user=1  
+                rol='cliente',  # Rol por defecto
+                estatus_user=1
             )
             usuario.set_password(contrasenia)
             usuario.save()
-            login(request, usuario)  
             messages.success(request, "Usuario registrado exitosamente.")
-            return redirect('home')
+            return redirect('completar_registro', usuario_id=usuario.usuario_id)  # Redirigir al nuevo HTML
 
     return render(request, 'registration/login.html')
+
+def completar_registro(request, usuario_id):
+    usuario = get_object_or_404(Usuario, pk=usuario_id)
+    return render(request, 'usuarios/completar_registro.html', {'usuario': usuario})

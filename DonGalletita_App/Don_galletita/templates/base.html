@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
   <head>
@@ -43,5 +44,15 @@
 
     {% endblock %}
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const toggler = document.querySelector('.navbar-toggler')
+        const navbar = document.querySelector('#navbarNav')
+      
+        toggler.addEventListener('click', function () {
+          navbar.classList.toggle('show')
+        })
+      })
+    </script>
   </body>
 </html>

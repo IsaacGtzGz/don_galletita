@@ -48,13 +48,7 @@
                           <input type="password" name="contrasenia" class="form-style" placeholder="Contraseña" id="logpass" autocomplete="off" required />
                           <img src="{% static 'assets/galleta.png' %}" alt="Icono de Galleta" style="width: 24px; height: 24px; position: absolute; right: 10px; top: 10px;" />
                         </div>
-                        <div class="form-group mt-2">
-                          <select name="rol" class="form-style" required>
-                            <option value="cliente">Cliente</option>
-                            <option value="empleado">Empleado</option>
-                            <option value="admin">Admin</option>
-                          </select>
-                        </div>
+                        <!-- Campo de rol eliminado ya que ahora es asignado por defecto en el backend -->
                         <input type="submit" value="Registrarse" class="btn mt-4" />
                       </form>
                     </div>
