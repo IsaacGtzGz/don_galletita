@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+<div class="container mt-5">
+    <h1 class="text-center">Editar Proveedor</h1>
+    <form method="POST" enctype="multipart/form-data" class="border p-4 rounded shadow-sm bg-light"> 
+        {% csrf_token %}
+        {{ form.as_p }}
+        
+        <!-- Mostrar errores -->
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                <ul>
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <!-- Botón de envío -->
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">Actualizar</button>
+        </div>
+    </form>
+</div>
+
+{% endblock content %}

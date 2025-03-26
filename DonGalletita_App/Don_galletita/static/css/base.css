@@ -1,0 +1,167 @@
+/* Estilos generales */
+body {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    background-color: #fff8e1; /* Fondo cálido */
+    color: #5a3e36; /* Texto en tono café oscuro */
+    margin: 0;
+    padding: 0;
+}
+/* Encabezado */
+header {
+    background-color: #BCA77A; /* Café claro */
+    padding: 20px;
+    display: flex;
+    justify-content: space-between; /* Separa el título y los enlaces */
+    align-items: center; /* Centra verticalmente */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+header h1 {
+    color: black;
+    margin: 0;
+    font-size: 3em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Navegación */
+nav {
+    display: flex;
+    gap: 15px; /* Espacio entre los enlaces */
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.2em;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background-color: #8B7355; /* Café más oscuro */
+    transition: background-color 0.3s ease;
+}
+
+nav a:hover {
+    background-color: #6B4F3A; /* Café más oscuro al pasar el mouse */
+}
+
+/* Contenido principal */
+main {
+    padding: 20px;
+    max-width: 800px;
+    margin: 20px auto;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Pie de página */
+/* Pie de página */
+footer {
+    background-color: #BCA77A; /* Café claro */
+    color: black;
+    text-align: center;
+    padding: 10px; /* Padding reducido */
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: center; /* Centra el contenido horizontalmente */
+    align-items: center; /* Centra el contenido verticalmente */
+    flex-direction: column; /* Apila el contenido verticalmente */
+}
+
+footer p {
+    margin: 5px 0; /* Margen ajustado */
+    font-size: 0.9em;
+}
+
+footer .footer-links {
+    display: flex;
+    gap: 15px; /* Espacio entre los enlaces */
+    margin-top: 5px; /* Espacio entre el texto y los enlaces */
+}
+
+footer .footer-links a {
+    color: white;
+    text-decoration: none;
+    font-size: 0.9em;
+}
+
+footer .footer-links a:hover {
+    text-decoration: underline;
+}
+
+/* Estilos adicionales para botones y enlaces */
+a {
+    color: #8B7355; /* Café oscuro */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+button {
+    background-color: #8B7355; /* Café oscuro */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #6B4F3A; /* Café más oscuro al pasar el mouse */
+}
+
+/* Estilos para formularios */
+form {
+    background-color: #f8edeb;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    color: #5a3e36;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #8B7355; /* Café oscuro */
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+input:focus, textarea:focus {
+    border-color: #6B4F3A; /* Café más oscuro */
+    outline: none;
+}
+
+/* Estilos para listas */
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    background-color: #f8edeb;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.actions {
+    margin-left: 20px;
+}
+
+.actions a {
+    margin-right: 10px;
+}

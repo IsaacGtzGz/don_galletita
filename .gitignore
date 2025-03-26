@@ -8,6 +8,7 @@ yarn-error.log*
 logs/
 *.log
 *.log.*
+*.pyc
 
 # Environment variables
 .env
@@ -18,6 +19,7 @@ dist/
 build/
 out/
 env/
+__pycache__/
 
 # IDEs and editors
 .vscode/

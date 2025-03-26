@@ -4,49 +4,30 @@
   <head>
     <title>Inicio</title>
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}" />
     <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark">
       <div class="container">
-        <a class="navbar-brand" href="{% url 'home' %}">Mi Libreria</a>
+        <a class="navbar-brand" href="{% url 'home' %}">DON GALLETITA</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ml-auto">
             <li class="nav-item">
               <a class="nav-link" href="{% url 'home' %}">Home</a>
             </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'lista_usuarios' %}">Lista de Usuarios</a>
+            </li>
             {% if user.is_authenticated %}
               <li class="nav-item">
-                <span class="navbar-text">Bienvenido {{ user.username }}</span>
+                <span class="navbar-text">Bienvenido {{ user.get_username }} ({{ user.rol }})</span>
               </li>
-
-              {% if perms.libros_app.permiso_admin %}
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'lista_ventas' %}">Ventas</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'lista_libros' %}">Libros</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'lista_editoriales' %}">Editoriales</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'lista_categorias' %}">Categorias</a>
-                </li>
-              {% endif %}
-
-              {% if perms.libros_app.permiso_cliente %}
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'historial_compras' %}">Historial de Compras</a>
-                </li>
-              {% endif %}
-
-              <li class="nav-item ml-auto">
+              <li class="nav-item">
                 <form id="logout-form" method="post" action="{% url 'logout' %}">
                   {% csrf_token %}
-                  <button type="submit" class="nav-link">Cerrar Sesión</button>
+                  <button type="submit" class="nav-link btn btn-link">Cerrar Sesión</button>
                 </form>
               </li>
             {% else %}

@@ -1,0 +1,24 @@
+/* Estilos específicos para cliente_form.html */
+.cliente-form {
+    background-color: #DCCFB2;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+.cliente-form p {
+    margin: 10px 0;
+}
+
+.cliente-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.cliente-form input, .cliente-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #BCA77A;
+    border-radius: 5px;
+}

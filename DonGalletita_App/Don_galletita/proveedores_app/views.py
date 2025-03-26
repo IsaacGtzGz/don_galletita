@@ -19,7 +19,7 @@ class CrearProveedorView(FormView):
     form_class = forms.ProveedorRegistrarForm
     success_url = reverse_lazy('lista_proveedores')
     def form_valid(self, form):
-        form.save(user=self.request.user)
+        form.save(self.request)
         return super().form_valid(form)
     
 # Editar un proveedor    
@@ -30,10 +30,11 @@ class EditarProveedorView(FormView):
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         id = self.kwargs.get('id')
-        proveedor = get_object_or_404(Proveedor, id=id)
+        proveedor = get_object_or_404(Proveedor, proveedor_id=id)
         kwargs['instance'] = proveedor
         return kwargs
     
     def form_valid(self, form):
-        form.save(self.kwargs.get('id'), user=self.request.user)    
+        id = self.kwargs.get('id')
+        form.save(id=id)
         return super().form_valid(form)

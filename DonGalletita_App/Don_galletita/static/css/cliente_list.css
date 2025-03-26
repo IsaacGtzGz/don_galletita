@@ -1,0 +1,53 @@
+/* Estilos específicos para la lista de clientes */
+.cliente-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.cliente-item {
+    background-color: #DCCFB2;
+    margin: 15px 0;
+    padding: 20px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cliente-info {
+    flex: 1;
+}
+
+.cliente-info p {
+    margin: 5px 0;
+    font-size: 1.1em;
+}
+
+.cliente-info strong {
+    color: #535353;
+}
+
+.cliente-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.cliente-actions a {
+    text-decoration: none;
+}
+
+.cliente-actions .button {
+    background-color: #D00000;
+    color: #FFFFFF;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease;
+}
+
+.cliente-actions .button:hover {
+    background-color: #A00000;
+}

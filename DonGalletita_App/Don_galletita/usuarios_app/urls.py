@@ -1,9 +1,12 @@
 from django.contrib import admin
 from django.urls import path
-from usuarios_app.views import ListaUsuariosView, CrearUsuarioView, LoginView
+from . import views
 
 urlpatterns = [
-    path('lista_usuarios/', ListaUsuariosView.as_view(), name='lista_usuarios'),
-    path('crear_usuario/', CrearUsuarioView.as_view(), name='crear_usuario'),
-    path('login_usuario/', LoginView.as_view(), name='login_usuario'),
+    path('usuarios/', views.lista_usuarios, name='lista_usuarios'),
+    path('usuarios/editar/<int:usuario_id>/', views.editar_usuario, name='editar_usuario'),
+    path('usuarios/eliminar/<int:usuario_id>/', views.eliminar_usuario, name='eliminar_usuario'),
+    path('login/', views.login_personalizado, name='login'),
+    path('logout/', views.logout_personalizado, name='logout'),
+    path('registro/', views.registro_desde_login, name='registro'),
 ]
