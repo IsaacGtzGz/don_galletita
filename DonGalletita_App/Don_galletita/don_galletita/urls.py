@@ -24,11 +24,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('usuarios_app.urls')), 
     path('', views.home, name='home'),
-    path('login/', include('django.contrib.auth.urls'), name="login"),
-    path('cuentas/', include('django.contrib.auth.urls')),
-    path('cuentas/registro/', views.registro, name="registro"),
-    path('clientes/', include('cliente_app.urls')),
-    path('proveedores/', include('proveedores_app.urls')),
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('password_reset/', auth_views.PasswordResetView.as_view(template_name='registration/password_reset_form.html'), name='password_reset'),
@@ -40,4 +35,5 @@ urlpatterns = [
     path('cuentas/', include('django.contrib.auth.urls')),
     path('cuentas/registro/', views.registro, name="registro"),
     path('proveedores/', include('proveedores_app.urls')),
+    path('clientes/', include('cliente_app.urls')),
 ]

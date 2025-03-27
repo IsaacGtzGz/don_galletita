@@ -1,31 +1,19 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+
 {% block content %}
-
-
-<div class="container mt-5">
-    <h1 class="text-center">Editar Proveedor</h1>
-    <form method="POST" enctype="multipart/form-data" class="border p-4 rounded shadow-sm bg-light"> 
-        {% csrf_token %}
-        {{ form.as_p }}
-        
-        <!-- Mostrar errores -->
-        {% if form.errors %}
-            <div class="alert alert-danger">
-                <ul>
-                    {% for field, errors in form.errors.items %}
-                        {% for error in errors %}
-                            <li>{{ error }}</li>
-                        {% endfor %}
-                    {% endfor %}
-                </ul>
-            </div>
-        {% endif %}
-
-        <!-- Botón de envío -->
-        <div class="text-center">
-            <button type="submit" class="btn btn-primary">Actualizar</button>
-        </div>
-    </form>
-</div>
-
-{% endblock content %}
+  <div class="container mt-5">
+    <div class="card" style="max-width: 100%; margin: auto; border: 1px solid #D4A373; border-radius: 10px; padding: 20px; background-color: #FFF8DC;">
+      <div class="card-header text-center" style="background-color: #D4A373; font-size: 28px; font-weight: bold; color: #FFFFFF;">Editar Proveedor</div>
+      <div class="card-body" style="padding: 40px;">
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-group mb-3">{{ form.as_p }}</div>
+          <div class="text-center mt-4">
+            <button type="submit" class="btn btn-success me-2" style="background-color: #8B5E3C; color: #FFFFFF; border: none;">Guardar</button>
+            <a href="{% url 'lista_proveedores' %}" class="btn btn-secondary" style="background-color: #C9A66B; color: #FFFFFF; border: none;">Volver a la lista</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

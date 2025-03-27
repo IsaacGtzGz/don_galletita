@@ -23,7 +23,16 @@
               <a class="nav-link" href="{% url 'home' %}">Home</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'lista_usuarios' %}">Lista de Usuarios</a>
+              <a class="nav-link" href="{% url 'lista_proveedores' %}">Provedores</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'lista_usuarios' %}">Usuarios</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'lista_clientes' %}">Clientes</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'lista_insumo' %}">Insumos</a>
             </li>
             <li class="nav-item">
               <a href="{% url 'lista_clientes' %}">Lista de Clientes</a>
@@ -51,6 +60,9 @@
     {% block content %}
 
     {% endblock %}
+    <footer class="footer">
+      <p>&copy; 2025 Don Galletita. Todos los derechos reservados.</p>
+    </footer>
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
     <script>
       document.addEventListener('DOMContentLoaded', function () {
