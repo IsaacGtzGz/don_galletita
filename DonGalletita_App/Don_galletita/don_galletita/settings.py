@@ -40,14 +40,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'usuarios_app',
-<<<<<<< HEAD
     'cliente_app',
-=======
     'proveedores_app',
-    'clientes',
     'insumos_app',
     
->>>>>>> 3e3fa5184d98012ca3f0fe093f21ceea9c38a76b
 ]
 
 AUTH_USER_MODEL = 'usuarios_app.Usuario'
@@ -93,7 +89,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'don_galletita_bd',
         'USER': 'root',
-        'PASSWORD': 'root',
+        'PASSWORD': 'Veronicagalvan',
         'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {

@@ -24,14 +24,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('usuarios_app.urls')), 
     path('', views.home, name='home'),
-<<<<<<< HEAD
     path('login/', include('django.contrib.auth.urls'), name="login"),
     path('cuentas/', include('django.contrib.auth.urls')),
     path('cuentas/registro/', views.registro, name="registro"),
     path('clientes/', include('cliente_app.urls')),
-=======
     path('proveedores/', include('proveedores_app.urls')),
-    path('clientes/', include('clientes.urls')),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('password_reset/', auth_views.PasswordResetView.as_view(template_name='registration/password_reset_form.html'), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(template_name='registration/password_reset_done.html'), name='password_reset_done'),
@@ -39,5 +36,4 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name='registration/password_reset_complete.html'), name='password_reset_complete'),
     path('registro/', views.registro, name='registro'),
     path('insumos/', include('insumos_app.urls'), name='lista_insumo'),
->>>>>>> 3e3fa5184d98012ca3f0fe093f21ceea9c38a76b
 ]
