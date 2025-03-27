@@ -1,28 +1,30 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <h1 class="headerline-1">Lista de Usuarios</h1>
-  <table class="table">
-    <thead>
-      <tr>
-        <th class="headers" style="background-color: #D4A373; color: #FFFFFF;">ID</th>
-        <th class="headers" style="background-color: #D4A373; color: #FFFFFF;">Nombre de Usuario</th>
-        <th class="headers" style="background-color: #D4A373; color: #FFFFFF;">Rol</th>
-        <th class="headers" style="background-color: #D4A373; color: #FFFFFF;">Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for usuario in usuarios %}
+  <div class="container mt-5">
+    <h1 class="headerline-1">Lista de Usuarios</h1>
+    <table class="table">
+      <thead>
         <tr>
-          <td class="table-content" style="background-color: #F4E3C1;">{{ usuario.usuario_id }}</td>
-          <td class="table-content" style="background-color: #F4E3C1;">{{ usuario.nombre_usuario }}</td>
-          <td class="table-content" style="background-color: #F4E3C1;">{{ usuario.rol }}</td>
-          <td class="table-content" style="background-color: #F4E3C1;">
-            <a href="{% url 'editar_usuario' usuario.usuario_id %}" class="btn btn-secondary">Editar</a>
-            <a href="{% url 'eliminar_usuario' usuario.usuario_id %}" class="btn btn-light">Eliminar</a>
-          </td>
+          <th class="headers">ID</th>
+          <th class="headers">Nombre de Usuario</th>
+          <th class="headers">Rol</th>
+          <th class="headers">Acciones</th>
         </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {% for usuario in usuarios %}
+          <tr>
+            <td class="table-content">{{ usuario.usuario_id }}</td>
+            <td class="table-content">{{ usuario.nombre_usuario }}</td>
+            <td class="table-content">{{ usuario.rol }}</td>
+            <td class="table-content">
+              <a href="{% url 'editar_usuario' usuario.usuario_id %}" class="btn btn-secondary">Editar</a>
+              <a href="{% url 'eliminar_usuario' usuario.usuario_id %}" class="btn btn-light">Eliminar</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 {% endblock %}

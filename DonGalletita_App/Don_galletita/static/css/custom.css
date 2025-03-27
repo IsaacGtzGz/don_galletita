@@ -1,3 +1,182 @@
+/* --SECCION TODO LOGIN-- */
+body {
+    font-family: 'Helvetica World', sans-serif;
+    background-color: #FAF3E0;
+    /* Fondo beige claro para evitar fatiga visual */
+    color: #4A403A;
+    /* Texto marrón oscuro */
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+    /* Tamaño base para texto general */
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-style {
+    padding: 13px 20px;
+    padding-left: 55px;
+    height: 48px;
+    width: 100%;
+    font-weight: 500;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: #FFFFFF;
+    /* Fondo blanco para los campos de entrada */
+    border: 1px solid #D4A373;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 8px 0 rgba(21, 21, 21, .2);
+    color: #4A403A;
+    /* Texto marrón oscuro */
+}
+
+.form-style:focus {
+    border-color: #8C5A3C;
+    outline: none;
+    box-shadow: 0 4px 8px 0 rgba(21, 21, 21, .2);
+}
+
+.form-style::placeholder {
+    color: #8C5A3C;
+    /* Placeholder más oscuro para mejor visibilidad */
+}
+
+/* --SECCION TODO LO DE LAS TABLAS-- */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+    font-size: 18px;
+    text-align: left;
+}
+
+.table th.headers {
+    background-color: #D4A373;
+    color: #FFFFFF;
+    padding: 5px;
+    font-weight: bold;
+    font-size: 25px;
+}
+
+.table td.table-content {
+    background-color: #F4E3C1;
+    padding: 10px;
+}
+
+/* --SECCION TODO NAVBAR-- */
+.navbar {
+    background-color: #C9A66B;
+    font-size: 18px;
+}
+
+.navbar .navbar-brand {
+    font-size: 25px;
+    font-weight: bold;
+    color: #ffffff !important;
+}
+
+.navbar .nav-link {
+    color: #ffffff !important;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 10px 15px;
+}
+
+.navbar .nav-link:hover {
+    color: #fdf6e3 !important;
+    background-color: #8c5a3c !important;
+    border-radius: 5px;
+}
+
+/* --SECCION TODO ENCABEZADOS-- */
+.headerline-1 {
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 30px;
+}
+
+h1 {
+    font-size: 36px;
+    font-weight: bold;
+}
+
+h2 {
+    font-size: 30px;
+    font-weight: bold;
+}
+
+h3 {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+h4 {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+h5,
+h6 {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* --SECCION TODO BOTONES-- */
+.btn {
+    font-size: 16px;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: #8B5E3C;
+    /* Marrón oscuro para botones */
+    color: #FFFFFF;
+    /* Texto blanco para contraste */
+    border: none;
+}
+
+.btn:hover {
+    background-color: #C9A66B;
+    /* Marrón claro para hover */
+    color: #FFFFFF;
+    /* Texto blanco */
+}
+
+.btn-primary {
+    background-color: #8B5E3C;
+    color: #FFFFFF;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #C9A66B;
+    color: #FFFFFF;
+}
+
+.btn-secondary {
+    background-color: #C9A66B;
+    color: #FFFFFF;
+    border: none;
+}
+
+.btn-secondary:hover {
+    background-color: #8B5E3C;
+    color: #FFFFFF;
+}
+
+.btn-danger {
+    background-color: #D9534F;
+    color: #FFFFFF;
+    border: none;
+}
+
+.btn-danger:hover {
+    background-color: #C9302C;
+    color: #FFFFFF;
+}
+
 /* Ajustes de tamaños de texto para coherencia */
 
 /* Encabezados principales */
@@ -58,17 +237,6 @@ p {
 
 /* Please ❤ this if you like it! */
 
-
-body {
-    font-family: 'Helvetica World', sans-serif;
-    background-color: #FAF3E0;
-    /* Fondo cálido y suave */
-    color: #4A403A;
-    /* Texto marrón oscuro */
-    margin: 0;
-    padding: 0;
-}
-
 a {
     cursor: pointer;
     transition: all 200ms linear;
@@ -109,7 +277,39 @@ h6 span {
 }
 
 .full-height {
-    min-height: 100vh;
+    min-height: 50vh;
+}
+
+label[for="reg-log"] {
+    width: 36px;
+    /* Ajusté el ancho al tamaño del círculo */
+    height: 36px;
+    /* Ajusté la altura al tamaño del círculo */
+    background-color: transparent;
+    /* Eliminé el fondo amarillo */
+    border-radius: 50%;
+    /* Aseguré que el contenedor sea circular */
+    position: relative;
+    margin: 10px auto;
+    cursor: pointer;
+}
+
+label[for="reg-log"]:before {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: url('/static/assets/hombre-de-pan-de-jengibre.png') center center no-repeat;
+    background-size: 24px 24px;
+    background-color: #ffffff;
+    /* Cambiado de azul a blanco */
+    top: -10px;
+    left: -10px;
+    transition: all 0.5s ease;
+}
+
+input[type="checkbox"]:checked+label:before {
+    transform: translateX(44px) rotate(-270deg);
 }
 
 [type="checkbox"]:checked,
@@ -140,7 +340,8 @@ h6 span {
     height: 36px;
     border-radius: 50%;
     color: #ffeba7;
-    background-color: #102770;
+    background-color: #ffffff;
+    /* Cambiado de azul a blanco */
     font-family: 'unicons';
     content: '\eb4f';
     z-index: 20;
@@ -156,7 +357,6 @@ h6 span {
     transform: translateX(44px) rotate(-270deg);
 }
 
-
 .card-3d-wrap {
     position: relative;
     width: 440px;
@@ -165,7 +365,9 @@ h6 span {
     -webkit-transform-style: preserve-3d;
     transform-style: preserve-3d;
     perspective: 800px;
-    margin-top: 60px;
+    margin-top: 25px;
+
+
 }
 
 .card-3d-wrapper {
@@ -183,7 +385,13 @@ h6 span {
 .card-back {
     width: 100%;
     height: 100%;
-    background-color: #2a2b38;
+    background-color: #FFFFFF;
+    /* Fondo blanco para mayor contraste */
+    color: #4A403A;
+    /* Texto marrón oscuro para mejor legibilidad */
+    border-radius: 10px;
+    /* Bordes redondeados */
+    padding: 20px;
     background-image: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1462889/pat.svg');
     background-position: bottom center;
     background-repeat: no-repeat;
@@ -219,43 +427,11 @@ h6 span {
     display: block;
 }
 
-
 .form-group {
     position: relative;
     display: block;
     margin: 0;
     padding: 0;
-}
-
-.form-style {
-    padding: 13px 20px;
-    padding-left: 55px;
-    height: 48px;
-    width: 100%;
-    font-weight: 500;
-    border-radius: 4px;
-    font-size: 14px;
-    line-height: 22px;
-    letter-spacing: 0.5px;
-    outline: none;
-    color: #c4c3ca;
-    background-color: #FFF8DC;
-    border: 1px solid #D4A373;
-    padding: 10px;
-    font-size: 16px;
-    border-radius: 5px;
-    width: 100%;
-    margin-bottom: 10px;
-    -webkit-transition: all 200ms linear;
-    transition: all 200ms linear;
-    box-shadow: 0 4px 8px 0 rgba(21, 21, 21, .2);
-}
-
-.form-style:focus,
-.form-style:active {
-    border-color: #8C5A3C;
-    outline: none;
-    box-shadow: 0 4px 8px 0 rgba(21, 21, 21, .2);
 }
 
 .input-icon {
@@ -348,7 +524,7 @@ h6 span {
     text-align: center;
     border: none;
     background-color: #ffeba7;
-    color: #102770;
+    color: #706d10;
     box-shadow: 0 8px 24px 0 rgba(255, 235, 167, .2);
 }
 
@@ -409,7 +585,6 @@ h2:after {
     display: flex;
     flex-flow: row wrap;
 }
-
 
 .news {
     display: flex;
@@ -695,7 +870,7 @@ h2:after {
 .table-content {
     font-family: 'Helvetica World', sans-serif;
     font-weight: bold;
-    font-size: 25px;
+    font-size: 20px;
     color: #000000;
     background-color: #DCCFB2;
     padding: 5px;
@@ -792,7 +967,7 @@ h2:after {
 }
 
 .navbar .navbar-brand {
-    font-size: 24px;
+    font-size: 25px;
     font-weight: bold;
     color: #ffffff !important;
 }
@@ -828,14 +1003,7 @@ h2:after {
     width: 100%;
 }
 
-label[for="reg-log"] {
-    display: inline-block;
-    width: 40px;
-    height: 40px;
-    background: url('{% static "assets/hombre-de-pan-de-jengibre.png" %}') center center;
-    background-size: contain;
-    cursor: pointer;
-}
+
 
 .section h6 {
     font-size: 20px;
@@ -860,7 +1028,7 @@ label[for="reg-log"] {
 }
 
 .btn {
-    font-size: 18px;
+    font-size: 15px;
     background-color: #8b5e3c;
     color: #ffffff;
     border: none;
@@ -884,4 +1052,34 @@ label[for="reg-log"] {
 
 input.checkbox {
     display: none;
+}
+
+/* Estilos para las tablas */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+    font-size: 18px;
+    text-align: left;
+}
+
+.table th.headers {
+    background-color: #D4A373;
+    color: #FFFFFF;
+    padding: 5px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+.table td.table-content {
+    background-color: #F4E3C1;
+    padding: 10px;
+}
+
+/* Estilo para encabezados */
+.headerline-1 {
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 30px;
 }

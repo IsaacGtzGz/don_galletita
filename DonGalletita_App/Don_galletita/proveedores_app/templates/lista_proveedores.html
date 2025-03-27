@@ -1,36 +1,36 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 {% block content %}
-
-<h1 class="text-center">LISTA DE PROVEEDORES</h1>
-<div class="text-right mb-3">
-    <a href="{% url 'crear_proveedor' %}" class="btn btn-primary">Crear proveedor</a>
-</div>
-<table class="table table-striped">
-    <thead>
+  <div class="container mt-5">
+    <h1 class="headerline-1">Lista de Proveedores</h1>
+    <table class="table">
+      <thead>
         <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Teléfono</th>
-            <th>Dirección</th>
-            <th>Día de entrega</th>
-            <th>Acciones</th>
+          <th class="headers">ID</th>
+          <th class="headers">Nombre</th>
+          <th class="headers">Teléfono</th>
+          <th class="headers">Dirección</th>
+          <th class="headers">Día de Entrega</th>
+          <th class="headers">
+            <a href="{% url 'crear_proveedor' %}" class="btn btn-primary">Nuevo Proveedor</a>
+          </th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {% for item in lista %}
-        <tr>
-            <td>{{ item.proveedor_id }}</td>
-            <td>{{ item.nombre }}</td>
-            <td>{{ item.telefono }}</td>
-            <td>{{ item.direccion }}</td>
-            <td>{{ item.dia_entrega }}</td>
-            <td>
-                <a href="{% url 'editar_proveedor' item.proveedor_id %}" class="btn btn-warning">Editar</a>
+          <tr>
+            <td class="table-content">{{ item.proveedor_id }}</td>
+            <td class="table-content">{{ item.nombre }}</td>
+            <td class="table-content">{{ item.telefono }}</td>
+            <td class="table-content">{{ item.direccion }}</td>
+            <td class="table-content">{{ item.dia_entrega }}</td>
+            <td class="table-content">
+              <a href="{% url 'editar_proveedor' item.proveedor_id %}" class="btn btn-secondary">Editar</a>
+              <a href="{% url 'eliminar_proveedor' item.proveedor_id %}" class="btn btn-light">Eliminar</a>
             </td>
-        </tr>
+          </tr>
         {% endfor %}
-    </tbody>
-</table>
-
-{% endblock content %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

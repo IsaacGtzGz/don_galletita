@@ -1,28 +1,32 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 {% block content %}
-    <h1 class="text-center">Inventario de Insumos</h1>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th >Nombre</th>
-                <th>Unidad de Medida</th>
-                <th>Cantidad Disponible</th>
-                <th><a href="{% url "crear_insumo" %}">Nuevo Insumo</a></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in insumos %}
-                <tr>
-                    <td>{{ item.nombre_insumo }}</td>
-                    <td>{{ item.unidad_medida }}</td>
-                    <td>{{ item.cantidad_disponible }}</td>
-                    <td>
-                        <a href="{% url 'editar_insumo' item.id %}" class="btn btn-warning">Editar</a>
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+  <div class="container mt-5">
+    <h1 class="headerline-1">Inventario de Insumos</h1>
+    <table class="table">
+      <thead>
+        <tr>
+          <th class="headers">Nombre</th>
+          <th class="headers">Unidad de Medida</th>
+          <th class="headers">Cantidad Disponible</th>
 
-{% endblock content %}
+          <th class="headers">
+            <a href="{% url 'crear_insumo' %}" class="btn btn-primary">Nuevo Insumo</a>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in insumos %}
+          <tr>
+            <td class="table-content">{{ item.nombre_insumo }}</td>
+            <td class="table-content">{{ item.unidad_medida }}</td>
+            <td class="table-content">{{ item.cantidad_disponible }}</td>
+            <td class="table-content">
+              <a href="{% url 'editar_insumo' item.id %}" class="btn btn-secondary">Editar</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
