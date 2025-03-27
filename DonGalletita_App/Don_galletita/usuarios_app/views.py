@@ -37,10 +37,10 @@ def login_personalizado(request):
         # Intentar autenticar al usuario usando el ORM de Django
         usuario = Usuario.objects.filter(nombre_usuario=username).first()
 
-        # Mostrar mensaje de error si el usuario no existe o la contraseña es incorrecta
+        # Redirigir al formulario de registro si el usuario no está registrado
         if not usuario:
             messages.error(request, "El usuario no está registrado. Por favor, complete el formulario de registro.")
-            return render(request, 'registration/login.html', {"show_register_form": True, "messages": messages.get_messages(request)})
+            return redirect('registro')
         elif not usuario.check_password(password):
             messages.error(request, "Contraseña incorrecta.")
         else:

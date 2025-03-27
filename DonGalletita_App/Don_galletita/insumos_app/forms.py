@@ -24,12 +24,6 @@ class InsumosRegistrarForm(forms.ModelForm):
         if cantidad < Decimal('0'):
             raise forms.ValidationError("La cantidad disponible no puede ser negativa.")
 
-        # Normalizar valores si es necesario
-        if unidad == 'kg':
-            cantidad *= Decimal('1000')  # Convertir kg a g
-        elif unidad == 'ml':
-            cantidad /= Decimal('1000')  # Convertir ml a l
-
         return cantidad
     def save(self):
         insumo = Insumos(

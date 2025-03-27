@@ -309,7 +309,7 @@ label[for="reg-log"]:before {
 }
 
 input[type="checkbox"]:checked+label:before {
-    transform: translateX(44px) rotate(-270deg);
+    transform: translateX(44px) rotate(-360deg);
 }
 
 [type="checkbox"]:checked,

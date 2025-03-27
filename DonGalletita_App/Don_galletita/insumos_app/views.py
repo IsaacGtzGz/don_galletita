@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from insumos_app.models import Insumos
 from django.views.generic.base import TemplateView
 from django.views.generic import FormView
+from django.views.generic.edit import DeleteView
 from . import forms
 from django.urls import reverse_lazy
 
@@ -38,3 +39,8 @@ class EditarInsumoView(FormView):
         insumo = form.save()
         print(f"Cantidad después de guardar: {insumo.cantidad_disponible} {insumo.unidad_medida}")
         return super().form_valid(form)
+
+class EliminarInsumoView(DeleteView):
+    model = Insumos
+    template_name = 'confirmar_eliminar.html'
+    success_url = reverse_lazy('lista_insumo')
