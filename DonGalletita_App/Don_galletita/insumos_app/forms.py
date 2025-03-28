@@ -23,10 +23,6 @@ class InsumosRegistrarForm(forms.ModelForm):
 
         if cantidad < Decimal('0'):
             raise forms.ValidationError("La cantidad disponible no puede ser negativa.")
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/Kim
         return cantidad
     
     def save(self):

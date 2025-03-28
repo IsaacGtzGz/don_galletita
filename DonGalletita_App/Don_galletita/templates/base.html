@@ -5,21 +5,15 @@
     <title>Inicio</title>
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
     <link rel="stylesheet" href="{% static 'css/custom.css' %}" />
-<<<<<<< HEAD
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    <link rel="stylesheet" href="{% static 'css/detalles_cliente.css' %}">
-    <link rel="stylesheet" href="{% static 'css/cliente_list.css' %}">
-    <link rel="stylesheet" href="{% static 'css/cliente_form.css' %}">
-    <link rel="stylesheet" href="{% static 'css/cliente_confirm_delete.css' %}">
-=======
->>>>>>> origin/Kim
     <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
       <div class="container">
         <a class="navbar-brand" href="{% url 'home' %}">DON GALLETITA</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ml-auto">
             <li class="nav-item">
@@ -37,13 +31,23 @@
             <li class="nav-item">
               <a class="nav-link" href="{% url 'lista_insumo' %}">Insumos</a>
             </li>
-<<<<<<< HEAD
-            <li class="nav-item">
-              <a href="{% url 'lista_clientes' %}">Lista de Clientes</a>
-            </li>
-=======
->>>>>>> origin/Kim
+            
             {% if user.is_authenticated %}
+              {# Opciones específicas para clientes #}
+              {% if user.rol == 'cliente' %}
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'carrito_compras' %}">
+                    Carrito
+                    {% if request.session.carrito %}
+                      <span class="badge bg-danger">{{ request.session.carrito|length }}</span>
+                    {% endif %}
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'historial_compras' %}">Mis Compras</a>
+                </li>
+              {% endif %}
+              
               <li class="nav-item">
                 <span class="navbar-text">Bienvenido {{ user.get_username }} ({{ user.rol }})</span>
               </li>
@@ -55,6 +59,9 @@
               </li>
             {% else %}
               <li class="nav-item">
+                <a class="nav-link" href="{% url 'registro_cliente' %}">Registrarse</a>
+              </li>
+              <li class="nav-item">
                 <a class="nav-link" href="{% url 'login' %}">Iniciar Sesión</a>
               </li>
             {% endif %}
@@ -63,12 +70,25 @@
       </div>
     </nav>
 
-    {% block content %}
+    {# Mostrar mensajes #}
+    {% if messages %}
+      <div class="container mt-3">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
 
+    {% block content %}
     {% endblock %}
+
     <footer class="footer">
       <p>&copy; 2025 Don Galletita. Todos los derechos reservados.</p>
     </footer>
+    
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
     <script>
       document.addEventListener('DOMContentLoaded', function () {
@@ -80,5 +100,8 @@
         })
       })
     </script>
+    
+    {% block scripts %}
+    {% endblock %}
   </body>
 </html>

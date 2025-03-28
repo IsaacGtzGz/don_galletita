@@ -69,7 +69,7 @@ def registro_desde_login(request):
             usuario.set_password(contrasenia)  # Encripta la contraseña
             usuario.save()
             messages.success(request, "Usuario registrado exitosamente.")
-            return redirect('completar_registro', usuario_id=usuario.usuario_id)
+            return redirect('portal/registro_cliente', usuario_id=usuario.usuario_id)
 
     return render(request, 'registration/login.html')
 
