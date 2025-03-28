@@ -35,9 +35,6 @@ urlpatterns = [
     path('cuentas/', include('django.contrib.auth.urls')),
     path('cuentas/registro/', views.registro, name="registro"),
     path('proveedores/', include('proveedores_app.urls')),
-<<<<<<< HEAD
     path('insumos/', include('insumos_app.urls'), name='lista_insumo'),
-=======
     path('clientes/', include('cliente_app.urls')),
->>>>>>> origin/master
 ]

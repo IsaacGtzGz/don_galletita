@@ -1,20 +1,14 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-<<<<<<< HEAD
 from django.contrib.auth import login
-=======
 from usuarios_app.forms import UsuarioRegistrarForm
->>>>>>> origin/master
 from django.contrib.auth.models import Group
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from usuarios_app.models import Usuario
 from django.contrib.auth import login
 
-<<<<<<< HEAD
-=======
 # Eliminé cualquier referencia al login en las vistas.
->>>>>>> origin/master
 
 def custom_404(request, exception):
     return render(request, '404.html', status=404)

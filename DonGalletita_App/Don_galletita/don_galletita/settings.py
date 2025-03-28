@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'proveedores_app',
     'insumos_app',
     'cliente_app',
+    'recetas_app',
 ]
 
 AUTH_USER_MODEL = 'usuarios_app.Usuario'
@@ -88,7 +89,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'don_galletita_bd',
         'USER': 'root',
-        'PASSWORD': 'root',
+        'PASSWORD': '251221',
         'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {
