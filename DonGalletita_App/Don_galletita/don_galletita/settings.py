@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'proveedores_app',
     'productos_app',
     'produccion_app',    
-    'recetas_app'
+    'recetas_app',
     'insumos_app',
     'cliente_app',
 ]

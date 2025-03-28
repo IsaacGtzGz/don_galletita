@@ -14,4 +14,3 @@ class ProductoForm(forms.ModelForm):
             "peso_unidad": forms.NumberInput(attrs={"class": "form-control"}),
             "fecha_caducidad": forms.DateInput(attrs={"class": "form-control"}),
         }
-        

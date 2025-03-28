@@ -19,13 +19,6 @@ def iniciar_produccion(request, producto_id, cantidad_galletas):
         insumo = receta.insumo
         cantidad_necesaria = receta.cantidad_necesaria * cantidad_galletas
         
-        # Convertir unidades si es necesario
-        if insumo.unidad_medida != receta.unidad_medida:
-            cantidad_necesaria = convertir_unidades(
-                cantidad_necesaria, 
-                receta.unidad_medida, 
-                insumo.unidad_medida
-            )
         
         if insumo.cantidad_disponible < cantidad_necesaria:
             raise Exception(f"Insumo {insumo.nombre_insumo} insuficiente")

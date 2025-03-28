@@ -36,6 +36,6 @@ urlpatterns = [
     path('cuentas/registro/', views.registro, name="registro"),
     path('proveedores/', include('proveedores_app.urls')),
     path('productos/', include('productos_app.urls')),
-    path('produccion/', include('produccion_app.urls'))
+    path('produccion/', include('produccion_app.urls')),
     path('clientes/', include('cliente_app.urls')),
 ]
