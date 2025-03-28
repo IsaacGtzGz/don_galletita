@@ -5,19 +5,10 @@ class UsuarioRegistrarForm(forms.ModelForm):
         model = models.Usuario
         fields = ['nombre_usuario', 'contrasenia', 'rol', 'estatus_user']
         widgets = {
-            "nombre_usuario": forms.TextInput(attrs={
-                "class": "input",
-                "placeholder": "User name"
-            }),
-            "contrasenia": forms.PasswordInput(attrs={
-                "class": "input",
-                "placeholder": "Password"
-            }),
-            "rol": forms.Select(attrs={
-                "class": "input",
-                "style": "display: block; width: 60%; padding: 12px; margin: 20px auto; border: none; outline: none; border-radius: 5px; background: #e0dede;"
-            }),
-            "estatus_user": forms.HiddenInput()
+            "nombre_usuario": forms.TextInput(attrs={"class": "form-control"}),
+            "contrasenia": forms.PasswordInput(attrs={"class": "form-control"}),
+            "rol": forms.Select(attrs={"class": "form-control"}),
+            "estatus_user": forms.NumberInput(attrs={"class": "form-control"})
         }
 
     def save(self, commit=True):

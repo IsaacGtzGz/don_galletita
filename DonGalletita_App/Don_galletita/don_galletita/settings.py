@@ -38,7 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'usuarios_app',
     'proveedores_app',
-    'clientes',
+    'productos_app',
+    'produccion_app',    
+    'recetas_app'
 ]
 
 AUTH_USER_MODEL = 'usuarios_app.Usuario'
@@ -84,7 +86,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'don_galletita_bd',
         'USER': 'root',
-        'PASSWORD': 'cclab',
+        'PASSWORD': 'root',
         'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {

@@ -1,0 +1,29 @@
+from django.db import models
+
+# Create your models here.
+class Produccion(models.Model):
+    produccion_id = models.AutoField(primary_key=True)
+    producto = models.ForeignKey('Producto', on_delete=models.CASCADE)
+    fecha_inicio = models.DateTimeField(auto_now_add=True)
+    fecha_finalizacion = models.DateTimeField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"Producción {self.id} - {self.producto.nombre}"
+
+class LoteProduccion(models.Model):
+    lote_id = models.AutoField(primary_key=True)
+    produccion = models.ForeignKey(Produccion, on_delete=models.CASCADE)
+    cantidad_galletas = models.PositiveIntegerField()
+    fecha_caducidad = models.DateField()
+    
+    def __str__(self):
+        return f"Lote {self.id} - {self.produccion.producto.nombre} ({self.cantidad_galletas} piezas)"
+
+class ConsumoInsumos(models.Model):
+    consumo_id = models.AutoField(primary_key=True)
+    produccion = models.ForeignKey(Produccion, on_delete=models.CASCADE)
+    insumo = models.ForeignKey('Insumo', on_delete=models.CASCADE)
+    cantidad_usada = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    def __str__(self):
+        return f"Consumo {self.id} - {self.insumo.nombre_insumo} ({self.cantidad_usada})"
