@@ -36,8 +36,13 @@ def crear_cliente(request):
         form = ClienteForm()
     return render(request, 'cliente_form.html', {'form': form})
 
+<<<<<<< HEAD
 def editar_cliente(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk)
+=======
+def editar_cliente(request, id):
+    cliente = get_object_or_404(Cliente, cliente_id=id)
+>>>>>>> origin/Kim
     if request.method == 'POST':
         form = ClienteForm(request.POST, instance=cliente)
         if form.is_valid():
@@ -48,14 +53,24 @@ def editar_cliente(request, pk):
         form = ClienteForm(instance=cliente)
     return render(request, 'cliente_form.html', {'form': form})
 
+<<<<<<< HEAD
 def eliminar_cliente(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk)
+=======
+def eliminar_cliente(request, id):
+    cliente = get_object_or_404(Cliente, cliente_id=id)
+>>>>>>> origin/Kim
     if request.method == 'POST':
         cliente.delete()
         messages.success(request, 'Cliente eliminado exitosamente.')
         return redirect('lista_clientes')
     return render(request, 'confirmar_eliminar.html', {'cliente': cliente})
 
+<<<<<<< HEAD
 def detalle_cliente(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk)
+=======
+def detalle_cliente(request, id):
+    cliente = get_object_or_404(Cliente, cliente_id=id)
+>>>>>>> origin/Kim
     return render(request, 'detalle_cliente.html', {'cliente': cliente})

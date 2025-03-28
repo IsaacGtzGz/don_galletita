@@ -17,14 +17,18 @@ class InsumosRegistrarForm(forms.ModelForm):
         if Insumos.objects.filter(nombre_insumo__iexact=nombre).exists():
             raise forms.ValidationError(f"El insumo '{nombre}' ya existe en el inventario.")
         return nombre
+    
     def clean_cantidad_disponible(self):
         cantidad = self.cleaned_data.get('cantidad_disponible')
-        unidad = self.cleaned_data.get('unidad_medida')
 
         if cantidad < Decimal('0'):
             raise forms.ValidationError("La cantidad disponible no puede ser negativa.")
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/Kim
         return cantidad
+    
     def save(self):
         insumo = Insumos(
             nombre_insumo = self.cleaned_data['nombre_insumo'],
@@ -33,22 +37,27 @@ class InsumosRegistrarForm(forms.ModelForm):
         insumo.save()
         return insumo
     
+
+    
 class InsumosEditarForm(forms.ModelForm):
     class Meta:
         model = Insumos
-        fields = ['nombre_insumo', 'unidad_medida', 'cantidad_disponible']
+        fields = ['unidad_medida', 'cantidad_disponible']
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        cantidad = cleaned_data.get('cantidad_disponible')
+        unidad = cleaned_data.get('unidad_medida')
+        print(f"Datos limpios: Cantidad: {cantidad}, Unidad: {unidad}")
+        return cleaned_data
     
     def save(self, commit=True):
-        insumo = self.instance
-        nueva_unidad = self.cleaned_data['unidad_medida']
+        insumo = super().save(commit=False)
+        unidad_anterior = insumo.unidad_medida
+        insumo.unidad_medida = self.cleaned_data['unidad_medida']
 
-        # Detectar si la unidad cambió
-        if insumo.unidad_medida != nueva_unidad:
-            print(f"Realizando conversión de {insumo.unidad_medida} a {nueva_unidad}...")
-            insumo.convertir_unidades(nueva_unidad)
-
-        insumo.nombre_insumo = self.cleaned_data['nombre_insumo']
-        print(f"Después de la conversión: {insumo.cantidad_disponible} {insumo.unidad_medida}")
+        if unidad_anterior != insumo.unidad_medida:
+            insumo.convertir_unidades(insumo.unidad_medida)
 
         if commit:
             insumo.save()
