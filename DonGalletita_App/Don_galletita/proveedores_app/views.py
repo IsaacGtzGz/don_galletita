@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404, redirect
 from proveedores_app.models import Proveedor
 from django.views.generic.base import TemplateView
-from django.views.generic import FormView
+from django.views.generic import FormView, DeleteView
 from . import forms
 from django.urls import reverse_lazy
 
@@ -38,3 +38,13 @@ class EditarProveedorView(FormView):
         id = self.kwargs.get('id')
         form.save(id=id)
         return super().form_valid(form)
+
+# Eliminar un proveedor
+class EliminarProveedorView(DeleteView):
+    model = Proveedor
+    template_name = 'confirmar_eliminar.html'
+    success_url = reverse_lazy('lista_proveedores')
+
+    def get_object(self, queryset=None):
+        id = self.kwargs.get('id')
+        return get_object_or_404(Proveedor, proveedor_id=id)

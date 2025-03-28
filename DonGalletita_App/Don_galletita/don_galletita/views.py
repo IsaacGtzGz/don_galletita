@@ -25,17 +25,17 @@ def registro(request):
     if request.method == 'POST':
         nombre_usuario = request.POST.get('nombre_usuario')
         contrasenia = request.POST.get('contrasenia')
-        rol = request.POST.get('rol')
+        rol = request.POST.get('rol', 'cliente')  # Valor predeterminado para el rol
 
         if Usuario.objects.filter(nombre_usuario=nombre_usuario).exists():
             messages.error(request, "El nombre de usuario ya está en uso.")
         else:
             usuario = Usuario(
                 nombre_usuario=nombre_usuario,
-                contrasenia=contrasenia,  # La contraseña debe encriptarse antes de guardarse
                 rol=rol
             )
+            usuario.set_password(contrasenia)  # Encriptar la contraseña
             usuario.save()
             login(request, usuario)  # Iniciar sesión automáticamente
-            return redirect('home')
+            return render(request, 'usuarios/completar_registro.html', {'usuario': usuario})
     return render(request, 'registration/login.html')

@@ -22,7 +22,7 @@ from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('usuarios_app.urls')),  # Corrige el prefijo duplicado para usuarios_app
+    path('', include('usuarios_app.urls')), 
     path('', views.home, name='home'),
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
@@ -31,9 +31,11 @@ urlpatterns = [
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='registration/password_reset_confirm.html'), name='password_reset_confirm'),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name='registration/password_reset_complete.html'), name='password_reset_complete'),
     path('registro/', views.registro, name='registro'),
+    path('insumos/', include('insumos_app.urls'), name='lista_insumo'),
     path('cuentas/', include('django.contrib.auth.urls')),
     path('cuentas/registro/', views.registro, name="registro"),
     path('proveedores/', include('proveedores_app.urls')),
     path('productos/', include('productos_app.urls')),
     path('produccion/', include('produccion_app.urls'))
+    path('clientes/', include('cliente_app.urls')),
 ]
