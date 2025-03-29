@@ -37,7 +37,7 @@ class Insumos(models.Model):
         factor_conversion = conversiones.get((self.unidad_medida, nueva_unidad))
 
         if factor_conversion is None:
-            print(f"⚠️ No se encontró conversión válida de {self.unidad_medida} a {nueva_unidad}")
+            print(f"No se encontró conversión válida de {self.unidad_medida} a {nueva_unidad}")
             return
 
         # Aplica la conversión y actualiza la unidad
