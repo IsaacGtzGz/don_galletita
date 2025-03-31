@@ -21,21 +21,20 @@ class Insumos(models.Model):
     fecha_caducidad = models.DateField(null=True, blank=True)
 
     def convertir_unidad(self, nueva_unidad):
-        print(f"Convertir de {self.unidad_medida} a {nueva_unidad}")
-        if self.unidad_medida == 'kg' and nueva_unidad == 'g':
+        print(f"Convertir de {self.unidad_medida}")
+        if self.unidad_medida == 'g':
             self.cantidad_disponible * 1000
-        elif self.unidad_medida == 'g' and nueva_unidad == 'kg':
+        elif self.unidad_medida == 'kg':
             self.cantidad_disponible / 1000
-        elif self.unidad_medida == 'l' and nueva_unidad == 'ml':
+        elif self.unidad_medida == 'ml':
             self.cantidad_disponible * 1000
-        elif self.unidad_medida == 'ml' and nueva_unidad == 'l':
+        elif self.unidad_medida == 'l':
             self.cantidad_disponible / 1000
         self.unidad_medida = nueva_unidad
         print(f"Cantidad convertida: {self.cantidad_disponible} {self.unidad_medida}")
 
-    def save(self, *args, **kwargs):
-        print(f"Guardando insumo con cantidad: {self.cantidad_disponible} y unidad: {self.unidad_medida}")
-        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.insumo_id}-{self.nombre_insumo}-{self.unidad_medida}-{self.cantidad_disponible}"
+        return f"{self.id}-{self.nombre_insumo}-{self.unidad_medida}-{self.cantidad_disponible}-{self.fecha_caducidad}"
+    
+    

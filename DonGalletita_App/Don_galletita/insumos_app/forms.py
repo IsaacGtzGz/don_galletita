@@ -5,11 +5,12 @@ from decimal import Decimal
 class InsumosRegistrarForm(forms.ModelForm):
     class Meta:
         model = Insumos
-        fields = ['nombre_insumo', 'unidad_medida', 'cantidad_disponible']
+        fields = ['nombre_insumo', 'unidad_medida', 'cantidad_disponible', 'fecha_caducidad']	
         widgets = {
             'nombre_insumo': forms.TextInput(attrs={'class': 'form-control'}),
             'unidad_medida': forms.Select(attrs={'class': 'form-control'}),
             'cantidad_disponible': forms.NumberInput(attrs={'class': 'form-control'}),
+            'fecha_caducidad': forms.DateInput(attrs={'class': 'form-control'}),
         }
     def clean_nombre_insumo(self):
         nombre = self.cleaned_data.get('nombre_insumo')
@@ -29,7 +30,8 @@ class InsumosRegistrarForm(forms.ModelForm):
         insumo = Insumos(
             nombre_insumo = self.cleaned_data['nombre_insumo'],
             unidad_medida = self.cleaned_data['unidad_medida'],
-            cantidad_disponible = self.cleaned_data['cantidad_disponible'])
+            cantidad_disponible = self.cleaned_data['cantidad_disponible'],
+            fecha_caducidad = self.cleaned_data['fecha_caducidad'])
         insumo.save()
         return insumo
     
@@ -38,7 +40,7 @@ class InsumosRegistrarForm(forms.ModelForm):
 class InsumosEditarForm(forms.ModelForm):
     class Meta:
         model = Insumos
-        fields = ['unidad_medida', 'cantidad_disponible']
+        fields = ['nombre_insumo', 'unidad_medida', 'cantidad_disponible', 'fecha_caducidad']
     
     def clean(self):
         cleaned_data = super().clean()

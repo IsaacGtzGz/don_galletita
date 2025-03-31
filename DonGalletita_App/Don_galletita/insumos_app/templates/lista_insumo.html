@@ -27,6 +27,7 @@
             <th>Nombre</th>
             <th>Unidad de Medida</th>
             <th>Cantidad Disponible</th>
+            <th>Fecha_caducidad</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -36,6 +37,7 @@
               <td>{{ item.nombre_insumo }}</td>
               <td>{{ item.unidad_medida }}</td>
               <td>{{ item.cantidad_disponible }}</td>
+              <td>{{ item.fecha_caducidad }}</td>
               <td>
                 <a href="{% url 'editar_insumo' item.id %}" class="btn btn-warning btn-sm">Editar</a>
                 <a href="{% url 'eliminar_insumo' item.id %}" class="btn btn-danger btn-sm">Eliminar</a>

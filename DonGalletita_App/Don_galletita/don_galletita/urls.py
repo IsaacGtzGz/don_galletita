@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from . import views
+from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 
@@ -35,6 +36,7 @@ urlpatterns = [
     path('cuentas/', include('django.contrib.auth.urls')),
     path('cuentas/registro/', views.registro, name="registro"),
     path('proveedores/', include('proveedores_app.urls')),
-    path('insumos/', include('insumos_app.urls'), name='lista_insumo'),
     path('clientes/', include('cliente_app.urls')),
-]
+    path('recetas/', include('recetas_app.urls'), name='lista_receta'),
+] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
+
