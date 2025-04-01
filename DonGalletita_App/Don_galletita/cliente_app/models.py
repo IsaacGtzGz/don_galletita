@@ -1,12 +1,16 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-
-# Create your models here.
 from django.db import models
 from usuarios_app.models import Usuario
 
+# Create your models here.
 class Cliente(models.Model):
-    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, primary_key=True)
+    cliente_id = models.AutoField(primary_key=True)
+    usuario = models.OneToOneField(
+        Usuario, 
+        on_delete=models.CASCADE,
+        related_name='cliente'
+    )
     nombre = models.CharField(max_length=255)
     apellido_paterno = models.CharField(max_length=255)
     apellido_materno = models.CharField(max_length=255)
@@ -14,12 +18,15 @@ class Cliente(models.Model):
     direccion = models.CharField(max_length=255, blank=True, null=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        db_table = 'cliente'
-    
     def __str__(self):
         return f"{self.nombre} {self.apellido_paterno} {self.apellido_materno}"
-
+    
+    class Meta:
+        db_table = 'clientes'
+        verbose_name = 'Cliente'
+        verbose_name_plural = 'Clientes'
+        ordering = ['cliente_id']
+    
 class Producto(models.Model):
     UNIDADES_MEDIDA = (
         ('kg', 'Kilogramos'),
