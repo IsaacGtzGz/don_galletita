@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Pedido{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card" style="max-width: 100%; margin: auto; border: 1px solid #D4A373; border-radius: 10px; padding: 20px; background-color: #FFF8DC;">
+        <div class="card-header text-center" style="background-color: #D4A373; font-size: 28px; font-weight: bold; color: #FFFFFF;">
+            Confirmar Pedido
+        </div>
+        <div class="card-body">
+            <h4 class="mb-4">Resumen de tu compra</h4>
+            
+            <div class="table-responsive mb-4">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Precio Unitario</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for producto_id, item in carrito.items %}
+                        <tr>
+                            <td>{{ item.nombre }}</td>
+                            <td>{{ item.cantidad }} {{ item.get_unidad_medida_display }}</td>
+                            <td>${{ item.precio|floatformat:2 }}</td>
+                            <td>${{ item.subtotal|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="3" class="text-end">Total:</th>
+                            <th>${{ total|floatformat:2 }}</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            
+            <form method="post" action="{% url 'checkout' %}" id="checkout-form">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="direccion" class="form-label">Dirección de envío</label>
+                    <input type="text" class="form-control" id="direccion" name="direccion" 
+                           value="{{ request.user.cliente.direccion|default:'' }}" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="metodo_pago" class="form-label">Método de pago</label>
+                    <select class="form-select" id="metodo_pago" name="metodo_pago" required>
+                        <option value="">Seleccione un método</option>
+                        <option value="efectivo">Efectivo</option>
+                        <option value="tarjeta">Tarjeta de crédito/débito</option>
+                        <option value="transferencia">Transferencia bancaria</option>
+                    </select>
+                </div>
+                
+                <div class="form-check mb-4">
+                    <input class="form-check-input" type="checkbox" id="terminos" name="terminos" required>
+                    <label class="form-check-label" for="terminos">
+                        Acepto los términos y condiciones
+                    </label>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'ver_carrito' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver al carrito
+                    </a>
+                    <button type="submit" class="btn btn-success" style="background-color: #8B5E3C;">
+                        <a href="{% url 'confirmacion_pedido' %}">
+                        <i class="bi bi-check-circle"></i> Confirmar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,7 +1,4 @@
 from django.db import models
-<<<<<<< HEAD
-
-=======
 from productos_app.models import Producto
 from insumos_app.models import Insumos
 
@@ -15,4 +12,3 @@ class Receta(models.Model):
     class Meta:
         db_table = 'receta'
         unique_together = ('producto', 'insumo')
->>>>>>> origin/ulises

@@ -1,7 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
+import json
 from django.contrib.auth import login
 from django.db.models import Q
 from django.contrib import messages
+from productos_app.models import Producto 
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import transaction
@@ -9,6 +11,8 @@ from .models import Cliente, Producto, Venta, DetalleVenta
 from .forms import RegistroClienteForm, CarritoForm, ClienteForm
 from usuarios_app.models import Usuario
 from django.core.exceptions import ObjectDoesNotExist
+from .models import Venta, Producto
+
 
 # Función para verificar roles permitidos
 def lista_clientes(request):
@@ -72,6 +76,20 @@ def detalle_cliente(request, cliente_id):
 def puede_comprar(user):
     return hasattr(user, 'rol') and user.rol in ['cliente', 'admin']
 
+@login_required
+def ver_carrito(request):
+    carrito = request.session.get('carrito', {})
+    
+    # Calcular subtotales y total
+    for item in carrito.values():
+        item['subtotal'] = item['precio'] * item['cantidad']
+    
+    total = sum(item['subtotal'] for item in carrito.values())
+    
+    return render(request, 'portal/carrito.html', {
+        'carrito': carrito,
+        'total': total
+    })
 
 def registro_cliente(request):
     if request.method == 'POST':
@@ -128,46 +146,28 @@ def perfil_cliente(request):
             
             request.session['carrito'] = {}
             messages.success(request, f'¡Pedido #{venta.venta_id} realizado con éxito!')
-            return redirect('historial_compras')
+            return redirect('portal/historial')
     
     return render(request, 'portal/carrito.html', {
         'carrito': carrito,
         'total_general': sum(item['subtotal'] for item in carrito.values())
     })
 
-@login_required
-def agregar_al_carrito(request):
-    if request.method == 'POST':
-        form = CarritoForm(request.POST)
-        if form.is_valid():
-            producto_id = str(form.cleaned_data['producto_id'])
-            producto = get_object_or_404(Producto, pk=producto_id)
-            
-            carrito = request.session.get('carrito', {})
-            
-            if producto_id in carrito:
-                carrito[producto_id]['cantidad'] += form.cleaned_data['cantidad']
-            else:
-                carrito[producto_id] = {
-                    'nombre': producto.nombre,
-                    'unidad_medida': form.cleaned_data['unidad_medida'],
-                    'cantidad': float(form.cleaned_data['cantidad']),
-                    'precio': float(producto.precio_unitario)
-                }
-            
-            request.session['carrito'] = carrito
-            messages.success(request, 'Producto añadido al carrito')
-    
-    return redirect('carrito_compras')
 
 @login_required
 def eliminar_del_carrito(request, producto_id):
     carrito = request.session.get('carrito', {})
+    
     if str(producto_id) in carrito:
+        producto_nombre = carrito[str(producto_id)]['nombre']
         del carrito[str(producto_id)]
         request.session['carrito'] = carrito
-        messages.success(request, 'Producto eliminado del carrito')
-    return redirect('carrito_compras')
+        request.session.modified = True
+        messages.success(request, f'{producto_nombre} eliminado del carrito')
+    else:
+        messages.error(request, 'Producto no encontrado en el carrito')
+    
+    return redirect('ver_carrito')
 
 
 def compra_permitida(view_func):
@@ -184,46 +184,142 @@ def compra_permitida(view_func):
             return redirect('registro_cliente') 
     return _wrapped_view
 
-@compra_permitida
+@login_required
 def historial_compras(request):
-    try:
-        cliente = request.user.cliente
-        ventas = Venta.objects.filter(cliente=request.user).order_by('-fecha_venta')
-        return render(request, 'portal/historial.html', {'ventas': ventas})
-    except ObjectDoesNotExist:
-        messages.error(request, 'No tienes un perfil de cliente asociado')
-        return redirect('registro_cliente')  
-
-
-
-@compra_permitida
-def carrito_compras(request):
-    try:
-        # Verificar que el usuario tenga perfil de cliente
-        request.user.cliente
-        carrito = request.session.get('carrito', {})
-        
-        # Resto de la lógica del carrito...
-        return render(request, 'portal/carrito.html', {
-            'carrito': carrito,
-            'total_general': sum(item['subtotal'] for item in carrito.values())
-        })
-    except ObjectDoesNotExist:
-        messages.error(request, 'No tienes un perfil de cliente asociado')
-        return redirect('inicio')
-    ventas = Venta.objects.filter(cliente=request.user).order_by('-fecha_venta')
+    # Obtener el cliente asociado al usuario actual
+    cliente_actual = request.user.cliente  # Asume que ya tienes esta relación
+    
+    # Filtrar ventas por el cliente actual
+    ventas = Venta.objects.filter(cliente=cliente_actual).order_by('-fecha_creacion')
+    
     return render(request, 'portal/historial.html', {
         'ventas': ventas,
-        'cliente_id': request.user.cliente.cliente_id
+        'cliente': cliente_actual
     })
 
-@compra_permitida
+@login_required
+def actualizar_carrito(request, producto_id):
+    if request.method == 'POST':
+        cantidad = float(request.POST.get('cantidad', 1))
+        
+        try:
+            producto = Producto.objects.get(pk=producto_id)
+            carrito = request.session.get('carrito', {})
+            
+            if str(producto_id) in carrito:
+                if cantidad <= 0:
+                    del carrito[str(producto_id)]
+                    messages.success(request, 'Producto eliminado del carrito')
+                else:
+                    # Validar disponibilidad
+                    if cantidad > producto.cantidad_disponible:
+                        messages.error(request, 'No hay suficiente stock disponible')
+                    else:
+                        carrito[str(producto_id)]['cantidad'] = cantidad
+                        messages.success(request, 'Cantidad actualizada')
+                
+                request.session['carrito'] = carrito
+                request.session.modified = True
+            
+        except Producto.DoesNotExist:
+            messages.error(request, 'Producto no encontrado')
+    
+    return redirect('ver_carrito')
+
+
 def cancelar_pedido(request, venta_id):
     venta = get_object_or_404(Venta, pk=venta_id, cliente=request.user)
+    
     if venta.estatus_venta == 'Pendiente':
-        venta.estatus_venta = 'Cancelado'
-        venta.save()
-        messages.success(request, f'Pedido #{venta_id} cancelado exitosamente')
+        try:
+            with transaction.atomic():
+                # Revertir stock
+                for detalle in venta.detalles.all():
+                    producto = detalle.producto
+                    producto.cantidad_disponible += detalle.cantidad
+                    producto.save()
+                
+                # Actualizar estado
+                venta.estatus_venta = 'Cancelado'
+                venta.save()
+                
+                messages.success(request, f'Pedido #{venta_id} cancelado exitosamente')
+        except Exception as e:
+            messages.error(request, f'Error al cancelar el pedido: {str(e)}')
     else:
         messages.error(request, 'Solo puedes cancelar pedidos pendientes')
-    return redirect('historial_compras')
+    
+    return redirect('portal/historial')
+
+@login_required
+def confirmacion_pedido(request):
+    return render(request, 'portal/confirmacion_pedido.html')
+
+
+def agregar_al_carrito(request, producto_id):
+    producto = get_object_or_404(Producto, id=producto_id)
+    carrito = request.session.get('carrito', {})
+    
+    if str(producto_id) in carrito:
+        carrito[str(producto_id)]['cantidad'] += 1
+    else:
+        carrito[str(producto_id)] = {
+            'nombre': producto.nombre,
+            'precio': str(producto.precio),  
+            'cantidad': 1,
+            'unidad_medida': producto.unidad_medida
+        }
+    
+    request.session['carrito'] = carrito
+    return redirect('ver_carrito')
+
+@login_required
+def carrito_compras(request):
+    carrito = request.session.get('carrito', {})
+    
+    # Calcular totales
+    total = 0
+    for item in carrito.values():
+        item['subtotal'] = item['precio'] * item['cantidad']
+        total += item['subtotal']
+    
+    return render(request, 'portal/carrito.html', {
+        'carrito': carrito,
+        'total': total
+    })
+
+@login_required
+def checkout(request):
+    carrito = request.session.get('carrito', {})
+    
+    if not carrito:
+        return redirect('ver_carrito')
+
+    # Calcular total
+    total = sum(float(item['precio']) * int(item['cantidad']) for item in carrito.values())
+    
+    if request.method == 'POST':
+        try:
+            # Crear la venta con los items en JSON
+            venta = Venta.objects.create(
+                cliente=request.user.cliente,
+                direccion=request.POST.get('direccion'),
+                metodo_pago=request.POST.get('metodo_pago'),
+                total=total,
+                items_json=json.dumps(carrito)  # Guarda todo el carrito como JSON
+            )
+            
+            # Limpiar carrito
+            del request.session['carrito']
+            request.session.modified = True
+            
+            return redirect('portal/confirmacion_pedido', venta_id=venta.id)
+            
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
+            return redirect('portal/checkout')
+    
+    return render(request, 'portal/checkout.html', {
+        'carrito': carrito,
+        'total': total
+    })

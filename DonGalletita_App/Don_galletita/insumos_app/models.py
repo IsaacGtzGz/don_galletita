@@ -20,18 +20,6 @@ class Insumos(models.Model):
     cantidad_disponible = models.DecimalField(max_digits=10, decimal_places=3)
     fecha_caducidad = models.DateField(null=True, blank=True)
 
-<<<<<<< HEAD
-    def convertir_unidad(self, nueva_unidad):
-        print(f"Convertir de {self.unidad_medida} a {nueva_unidad}")
-        if self.unidad_medida == 'kg' and nueva_unidad == 'g':
-            self.cantidad_disponible * 1000
-        elif self.unidad_medida == 'g' and nueva_unidad == 'kg':
-            self.cantidad_disponible / 1000
-        elif self.unidad_medida == 'l' and nueva_unidad == 'ml':
-            self.cantidad_disponible * 1000
-        elif self.unidad_medida == 'ml' and nueva_unidad == 'l':
-            self.cantidad_disponible / 1000
-=======
      
     def convertir_unidades(self, nueva_unidad):
         """ Convierte la cantidad disponible a otra unidad si es compatible """
@@ -58,7 +46,6 @@ class Insumos(models.Model):
 
         # Aplica la conversión y actualiza la unidad
         self.cantidad_disponible *= factor_conversion
->>>>>>> origin/ulises
         self.unidad_medida = nueva_unidad
         print(f"Cantidad convertida: {self.cantidad_disponible} {self.unidad_medida}")
 

@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     'recetas_app',
     'insumos_app',
     'cliente_app',
-    'recetas_app',
 ]
 
 AUTH_USER_MODEL = 'usuarios_app.Usuario'
