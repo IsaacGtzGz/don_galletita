@@ -20,6 +20,17 @@
       </form>
     </div>
 
+    {% if proximos_a_caducar %}
+    <div class="alert alert-warning">
+        <strong>¡Atención!</strong> Los siguientes insumos están próximos a caducar:
+        <ul>
+            {% for insumo in proximos_a_caducar %}
+            <li>{{ insumo.nombre_insumo }} - Caduca el {{ insumo.fecha_caducidad }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
     <div class="table-responsive">
       <table class="table table-striped table-hover">
         <thead class="table-dark">
@@ -27,6 +38,7 @@
             <th>Nombre</th>
             <th>Unidad de Medida</th>
             <th>Cantidad Disponible</th>
+            <th>Fecha de Caducidad</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -36,6 +48,7 @@
               <td>{{ item.nombre_insumo }}</td>
               <td>{{ item.unidad_medida }}</td>
               <td>{{ item.cantidad_disponible }}</td>
+              <td>{{ item.fecha_caducidad }}</td>
               <td>
                 <a href="{% url 'editar_insumo' item.id %}" class="btn btn-warning btn-sm">Editar</a>
                 <a href="{% url 'eliminar_insumo' item.id %}" class="btn btn-danger btn-sm">Eliminar</a>
@@ -43,7 +56,7 @@
             </tr>
           {% empty %}
             <tr>
-              <td colspan="4" class="text-center">No hay insumos registrados</td>
+              <td colspan="5" class="text-center">No hay insumos registrados</td>
             </tr>
           {% endfor %}
         </tbody>

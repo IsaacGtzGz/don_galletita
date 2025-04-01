@@ -5,6 +5,7 @@ from django.views.generic import FormView
 from django.views.generic.edit import DeleteView
 from . import forms
 from django.urls import reverse_lazy
+from datetime import date, timedelta
 
 # Create your views here.
 
@@ -44,3 +45,30 @@ class EliminarInsumoView(DeleteView):
     model = Insumos
     template_name = 'confirmar_eliminar.html'
     success_url = reverse_lazy('lista_insumo')
+
+def agregar_al_carrito(request, detalle):
+    if 'carrito' not in request.session:
+        request.session['carrito'] = []
+    request.session['carrito'].append({
+        'insumo': detalle['insumo'].id,  # Usa .id para obtener el identificador
+        'nombre_insumo': detalle['insumo'].nombre_insumo,
+        'cantidad': detalle['cantidad'],
+        'precio_unitario': detalle['precio_unitario'],
+        'unidad_medida': detalle['unidad_medida'],  # Agregar unidad de medida
+        'fecha_caducidad': detalle['fecha_caducidad'].strftime('%Y-%m-%d') if detalle['fecha_caducidad'] else None,
+    })
+
+def listar_insumos(request):
+    insumos = Insumos.objects.all()
+    proximos_a_caducar = insumos.filter(fecha_caducidad__lte=date.today() + timedelta(days=7))
+    return render(request, 'lista_insumo.html', {
+        'insumos': insumos,
+        'proximos_a_caducar': proximos_a_caducar
+    })
+
+def alertas_caducidad(request):
+    proximos_a_caducar = Insumos.objects.filter(
+        fecha_caducidad__lte=date.today() + timedelta(days=7),
+        fecha_caducidad__gte=date.today()
+    )
+    return render(request, 'alertas_caducidad.html', {'proximos_a_caducar': proximos_a_caducar})

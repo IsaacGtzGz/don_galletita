@@ -32,7 +32,7 @@ def eliminar_usuario(request, usuario_id):
 def login_personalizado(request):
     if request.method == 'POST':
         username = request.POST.get('username')
-        password = request.POST.get('password')
+        contrasenia = request.POST.get('contrasenia')
 
         # Intentar autenticar al usuario usando el ORM de Django
         usuario = Usuario.objects.filter(nombre_usuario=username).first()
@@ -41,7 +41,7 @@ def login_personalizado(request):
         if not usuario:
             messages.error(request, "El usuario no está registrado. Por favor, complete el formulario de registro.")
             return redirect('registro')
-        elif not usuario.check_password(password):
+        elif not usuario.check_password(contrasenia):
             messages.error(request, "Contraseña incorrecta.")
         else:
             login(request, usuario)
