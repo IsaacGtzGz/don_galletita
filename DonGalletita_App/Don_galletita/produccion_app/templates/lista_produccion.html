@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Lista de Producciones</h2>
+
+<a href="{% url 'crear_produccion' %}" class="btn btn-primary">Nueva Producción</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Fecha</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for produccion in producciones %}
+        <tr>
+            <td>{{ produccion.id }}</td>
+            <td>{{ produccion.producto.nombre }}</td>
+            <td>{{ produccion.cantidad_producida }}</td>
+            <td>{{ produccion.fecha_produccion }}</td>
+            <td>
+                <a href="{% url 'detalle_produccion' produccion.id %}" class="btn btn-info">Ver</a>
+                <a href="{% url 'eliminar_produccion' produccion.id %}" class="btn btn-danger">Eliminar</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Detalles de la Producción</h2>
+
+<p><strong>Producto:</strong> {{ produccion.producto.nombre }}</p>
+<p><strong>Cantidad Producida:</strong> {{ produccion.cantidad_producida }}</p>
+<p><strong>Fecha:</strong> {{ produccion.fecha_produccion }}</p>
+
+<h3>Insumos Utilizados</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Insumo</th>
+            <th>Cantidad Usada</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for insumo in insumos %}
+        <tr>
+            <td>{{ insumo.nombre_insumo }}</td>
+            <td>{{ insumo.cantidad_utilizada }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<a href="{% url 'lista_produccion' %}" class="btn btn-secondary">Volver</a>
+{% endblock %}

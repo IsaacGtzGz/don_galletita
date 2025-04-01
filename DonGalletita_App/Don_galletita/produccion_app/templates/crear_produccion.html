@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Registrar Nueva Producción</h2>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label>Producto:</label>
+        {{ form.producto }}
+    </div>
+    <div class="form-group">
+        <label>Cantidad a Producir:</label>
+        {{ form.cantidad_producida }}
+    </div>
+    <button type="submit" class="btn btn-success">Registrar Producción</button>
+</form>
+{% endblock %}
