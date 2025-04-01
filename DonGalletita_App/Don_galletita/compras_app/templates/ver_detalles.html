@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Detalles de la Compra</h1>
+    <p><strong>ID de Compra:</strong> {{ compra.compra_id }}</p>
+    <p><strong>Proveedor:</strong> {{ compra.proveedor.nombre }}</p>
+    <p><strong>Fecha de Compra:</strong> {{ compra.fecha_compra|date:"Y-m-d H:i" }}</p>
+
+    <h3>Insumos</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Insumo</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Unidad de Medida</th>
+                <th>Fecha de Caducidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in compra.detalles.all %}
+            <tr>
+                <td>{{ detalle.insumo.nombre_insumo }}</td>
+                <td>{{ detalle.cantidad }}</td>
+                <td>${{ detalle.precio_unitario }}</td>
+                <td>{{ detalle.unidad_medida }}</td>
+                <td>{{ detalle.fecha_caducidad|date:"Y-m-d" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{% url 'lista_compras' %}" class="btn btn-secondary">Volver</a>
+</div>
+{% endblock %}

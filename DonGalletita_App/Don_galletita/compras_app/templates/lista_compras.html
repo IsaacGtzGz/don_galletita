@@ -11,11 +11,6 @@
             <tr>
                 <th>ID</th>
                 <th>Proveedor</th>
-                <th>Insumo</th>
-                <th>Cantidad</th>
-                <th>Precio Unitario</th>
-                <th>Unidad de Medida</th>
-                <th>Fecha de Caducidad</th>
                 <th>Fecha de Compra</th>
                 <th>Acciones</th>
             </tr>
@@ -25,14 +20,9 @@
             <tr>
                 <td>{{ compra.compra_id }}</td>
                 <td>{{ compra.proveedor.nombre }}</td>
-                <td>{{ compra.insumo.nombre_insumo }}</td>
-                <td>{{ compra.cantidad }}</td>
-                <td>{{ compra.precio_unitario }}</td>
-                <td>{{ compra.unidad_medida }}</td>
-                <td>{{ compra.fecha_caducidad|date:"Y-m-d" }}</td>
                 <td>{{ compra.fecha_compra|date:"Y-m-d H:i" }}</td>
                 <td>
-                    <a href="{% url 'editar_compra' compra.compra_id %}" class="btn btn-warning btn-sm">Editar</a>
+                    <a href="{% url 'ver_detalles' compra.compra_id %}" class="btn btn-info btn-sm">Ver Detalles</a>
                 </td>
             </tr>
             {% endfor %}
