@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>¿Estás seguro de que quieres eliminar esta producción?</h2>
+
+<p>Producto: <strong>{{ produccion.producto.nombre }}</strong></p>
+<p>Cantidad: <strong>{{ produccion.cantidad_producida }}</strong></p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Eliminar</button>
+    <a href="{% url 'lista_produccion' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

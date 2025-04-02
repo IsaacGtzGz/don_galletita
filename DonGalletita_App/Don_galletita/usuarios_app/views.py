@@ -9,7 +9,7 @@ from .models import Usuario
 # CRUD para usuarios
 def lista_usuarios(request):
     usuarios = Usuario.objects.all()
-    return render(request, 'usuarios/lista_usuarios.html', {'usuarios': usuarios})
+    return render(request, 'lista_usuarios.html', {'usuarios': usuarios})
 
 def editar_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, pk=usuario_id)
@@ -20,14 +20,14 @@ def editar_usuario(request, usuario_id):
             return redirect('lista_usuarios')
     else:
         form = UsuarioEditarForm(instance=usuario)
-    return render(request, 'usuarios/editar_usuario.html', {'form': form})
+    return render(request, 'editar_usuario.html', {'form': form})
 
 def eliminar_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, pk=usuario_id)
     if request.method == 'POST':
         usuario.delete()
         return redirect('lista_usuarios')
-    return render(request, 'usuarios/eliminar_usuario.html', {'usuario': usuario})
+    return render(request, 'eliminar_usuario.html', {'usuario': usuario})
 
 def login_personalizado(request):
     if request.method == 'POST':

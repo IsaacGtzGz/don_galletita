@@ -1,5 +1,4 @@
 from django.apps import AppConfig
-
-class InsumosAppConfig(AppConfig):
+class RecetasAppConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'insumos_app'
+    name = 'recetas_app'

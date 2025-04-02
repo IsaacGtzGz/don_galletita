@@ -1,6 +1,5 @@
 from django import forms
 from . import models
-
 class UsuarioRegistrarForm(forms.ModelForm):
     class Meta:
         model = models.Usuario

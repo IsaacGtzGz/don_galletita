@@ -36,6 +36,8 @@ urlpatterns = [
     path('', include('usuarios_app.urls')),
     path('insumos/', include('insumos_app.urls'), name='lista_insumo'),
     path('proveedores/', include('proveedores_app.urls')),
+    path('productos/', include('productos_app.urls')),
+    path('produccion/', include('produccion_app.urls')),
     path('clientes/', include('cliente_app.urls')),
     path('ventas/', include('ventas_app.urls')),
 ]
