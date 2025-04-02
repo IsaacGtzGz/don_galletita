@@ -11,7 +11,13 @@ class ListaProveedoresView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['lista'] = Proveedor.objects.all()
+        query = self.request.GET.get('q', '')  # Obtén el parámetro de búsqueda
+        if query:
+            # Filtra los proveedores cuyo nombre contiene el texto ingresado
+            context['lista'] = Proveedor.objects.filter(nombre__icontains=query)
+        else:
+            # Muestra todos los proveedores si no hay búsqueda
+            context['lista'] = Proveedor.objects.all()
         return context
 
 # Crear un proveedor
@@ -21,7 +27,7 @@ class CrearProveedorView(FormView):
     success_url = reverse_lazy('lista_proveedores')
 
     def form_valid(self, form):
-        form.save()  # Se asume que el formulario guarda directamente el modelo
+        form.save()  # Guarda el formulario sin pasar un id
         return super().form_valid(form)
 
 # Editar un proveedor
@@ -38,7 +44,8 @@ class EditarProveedorView(FormView):
         return kwargs
 
     def form_valid(self, form):
-        form.save()  # Se asume que el formulario guarda directamente el modelo
+        id = self.kwargs.get('id')  # Obtener el id de los argumentos de la URL
+        form.save(id=id)  # Pasar el id requerido al método save
         return super().form_valid(form)
 
 # Eliminar un proveedor
@@ -47,6 +54,7 @@ class EliminarProveedorView(DeleteView):
     template_name = 'confirmar_eliminar.html'
     success_url = reverse_lazy('lista_proveedores')
 
-    def get_object(self, queryset=None):
+    def get_object(self):
         id = self.kwargs.get('id')
         return get_object_or_404(Proveedor, proveedor_id=id)
+

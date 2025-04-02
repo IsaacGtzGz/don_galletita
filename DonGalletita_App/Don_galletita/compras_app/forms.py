@@ -1,6 +1,11 @@
 from django import forms
 from django.forms.models import inlineformset_factory
-from .models import Compra, DetalleCompra, Insumos
+from .models import Compra, DetalleCompra, Insumos, Proveedor
+
+
+class SelectProveedor(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.nombre  # Ajusta según el atributo correcto del modelo Proveedor
 
 
 class SelectInsumo(forms.ModelChoiceField):
@@ -9,6 +14,12 @@ class SelectInsumo(forms.ModelChoiceField):
 
 
 class CompraRegistrarForm(forms.ModelForm):
+    proveedor = SelectProveedor(
+        queryset=Proveedor.objects.all(),
+        empty_label="Seleccione un proveedor",
+        widget=forms.Select(attrs={"class": "form-control"})
+    )
+
     class Meta:
         model = Compra
         fields = ['proveedor']
@@ -35,9 +46,10 @@ class DetalleCompraForm(forms.ModelForm):
             "fecha_caducidad": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
         }
 
+
 DetalleCompraFormSet = inlineformset_factory(
     Compra, DetalleCompra,
-    form=DetalleCompraForm,  
+    form=DetalleCompraForm,
     fields=['insumo', 'cantidad', 'precio_unitario', 'unidad_medida', 'fecha_caducidad'],
-    extra=1, can_delete=True
+    extra=1, can_delete=False
 )

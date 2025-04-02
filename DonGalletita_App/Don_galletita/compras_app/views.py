@@ -8,9 +8,16 @@ from django.views.generic import TemplateView
 class ListaComprasView(TemplateView):
     template_name = 'lista_compras.html'
 
-    def get_context_data(self):
-        lista = Compra.objects.all()
-        return {'lista': lista}
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        query = self.request.GET.get('q', '')  # Obtén el parámetro de búsqueda
+        if query:
+            # Filtra las compras cuya fecha_compra contiene el texto ingresado
+            context['lista'] = Compra.objects.filter(fecha_compra__icontains=query)
+        else:
+            # Muestra todas las compras si no hay búsqueda
+            context['lista'] = Compra.objects.all()
+        return context
 
 # Crear una compra
 def CrearCompraView(request):
