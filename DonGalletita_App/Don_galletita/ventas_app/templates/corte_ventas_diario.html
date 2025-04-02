@@ -37,6 +37,25 @@
       <h3>Total de Transacciones: {{ total_transacciones }}</h3>
     </div>
 
+    <div class="mt-3">
+      <h3>Totales por Categoría:</h3>
+      <ul>
+        <li>Piezas: {{ totales_por_categoria.piezas }}</li>
+        <li>Gramos: {{ totales_por_categoria.gramos }}</li>
+        <li>Presentaciones de 1kg: {{ totales_por_categoria.kg }}</li>
+        <li>Presentaciones de 700gr: {{ totales_por_categoria.gr700 }}</li>
+      </ul>
+    </div>
+
+    <div class="mt-3">
+      <h3>Métodos de Pago Utilizados:</h3>
+      <ul>
+        <li>Efectivo: ${{ metodos_pago.efectivo }}</li>
+        <li>Tarjeta: ${{ metodos_pago.tarjeta }}</li>
+        <li>Transferencia: ${{ metodos_pago.transferencia }}</li>
+      </ul>
+    </div>
+
     <div class="mt-5">
       <h2>Desglose de Productos Vendidos</h2>
       <table class="table table-bordered">
@@ -55,6 +74,32 @@
           {% empty %}
             <tr>
               <td colspan="2" class="text-center">No se vendieron productos hoy.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-5">
+      <h2>Comparativa con Días Anteriores</h2>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Total Ventas</th>
+            <th>Transacciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for dia in comparativa_dias %}
+            <tr>
+              <td>{{ dia.fecha }}</td>
+              <td>${{ dia.total_ventas }}</td>
+              <td>{{ dia.transacciones }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="3" class="text-center">No hay datos de días anteriores.</td>
             </tr>
           {% endfor %}
         </tbody>

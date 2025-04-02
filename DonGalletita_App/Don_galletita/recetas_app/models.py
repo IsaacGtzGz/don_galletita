@@ -12,3 +12,4 @@ class Receta(models.Model):
     class Meta:
         db_table = 'receta'
         unique_together = ('producto', 'insumo')
+

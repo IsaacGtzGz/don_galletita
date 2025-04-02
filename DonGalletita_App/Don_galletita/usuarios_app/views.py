@@ -66,10 +66,10 @@ def registro_desde_login(request):
                 rol='cliente',  # Rol por defecto
                 estatus_user=1
             )
-            usuario.set_password(contrasenia)
+            usuario.set_password(contrasenia)  # Encripta la contraseña
             usuario.save()
             messages.success(request, "Usuario registrado exitosamente.")
-            return redirect('completar_registro', usuario_id=usuario.usuario_id)  # Redirigir al nuevo HTML
+            return redirect('portal/registro_cliente', usuario_id=usuario.usuario_id)
 
     return render(request, 'registration/login.html')
 

@@ -43,10 +43,10 @@ INSTALLED_APPS = [
     'proveedores_app',
     'productos_app',
     'produccion_app',    
-    'recetas_app',
     'insumos_app',
     'cliente_app',
     'ventas_app',
+    'recetas_app',
 ]
 
 AUTH_USER_MODEL = 'usuarios_app.Usuario'
@@ -150,3 +150,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'login'
+

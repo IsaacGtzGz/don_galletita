@@ -10,6 +10,11 @@ class Venta(models.Model):
         default='Pendiente'
     )
     ticket = models.TextField(null=True, blank=True)  # Cambiado de FileField a TextField para almacenar Base64
+    metodo_pago = models.CharField(
+        max_length=15,
+        choices=[('efectivo', 'Efectivo')],  # Solo efectivo
+        default='efectivo'
+    )
 
     def __str__(self):
         return f"Venta {self.id} - {self.persona}"

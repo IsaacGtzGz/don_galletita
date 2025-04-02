@@ -107,32 +107,67 @@ class CorteVentasDiarioView(TemplateView):
     template_name = 'corte_ventas_diario.html'
 
     def get_context_data(self, **kwargs):
-        from django.utils.timezone import now
+        from django.utils.timezone import now, timedelta
         hoy = now().date()
-        # Filtrar ventas por la fecha actual
         ventas_diarias = Venta.objects.filter(fecha_venta__date=hoy)
         ventas_con_totales = []
         productos_vendidos = {}
+        metodos_pago = {'efectivo': 0, 'tarjeta': 0, 'transferencia': 0}
+        totales_por_categoria = {'piezas': 0, 'gramos': 0, 'kg': 0, 'gr700': 0}
 
         for venta in ventas_diarias:
             total_venta = 0
             for detalle in venta.detalles.all():
                 total_venta += detalle.cantidad * detalle.precio_unitario
+
+                # Contabilizar productos vendidos por categoría
+                if detalle.unidad_medida == 'pieza':
+                    totales_por_categoria['piezas'] += detalle.cantidad
+                elif detalle.unidad_medida == 'gramos':
+                    totales_por_categoria['gramos'] += detalle.cantidad
+                elif detalle.unidad_medida == '1kg':
+                    totales_por_categoria['kg'] += detalle.cantidad
+                elif detalle.unidad_medida == '700gr':
+                    totales_por_categoria['gr700'] += detalle.cantidad
+
                 # Contabilizar productos vendidos
                 if detalle.producto.nombre_insumo not in productos_vendidos:
                     productos_vendidos[detalle.producto.nombre_insumo] = 0
                 productos_vendidos[detalle.producto.nombre_insumo] += detalle.cantidad
+
+            # Contabilizar métodos de pago
+            if venta.metodo_pago in metodos_pago:
+                metodos_pago[venta.metodo_pago] += total_venta
 
             ventas_con_totales.append({'venta': venta, 'total': total_venta})
 
         total_ventas = sum(venta['total'] for venta in ventas_con_totales)
         total_transacciones = ventas_diarias.count()
 
+        # Comparativa con días anteriores (últimos 7 días)
+        comparativa_dias = []
+        for i in range(1, 8):
+            dia_anterior = hoy - timedelta(days=i)
+            ventas_dia_anterior = Venta.objects.filter(fecha_venta__date=dia_anterior)
+            total_dia_anterior = sum(
+                detalle.cantidad * detalle.precio_unitario
+                for venta in ventas_dia_anterior
+                for detalle in venta.detalles.all()
+            )
+            comparativa_dias.append({
+                'fecha': dia_anterior,
+                'total_ventas': total_dia_anterior,
+                'transacciones': ventas_dia_anterior.count()
+            })
+
         return {
             'ventas_diarias': ventas_con_totales,
             'total_ventas': total_ventas,
             'total_transacciones': total_transacciones,
-            'productos_vendidos': productos_vendidos
+            'productos_vendidos': productos_vendidos,
+            'metodos_pago': metodos_pago,
+            'totales_por_categoria': totales_por_categoria,
+            'comparativa_dias': comparativa_dias
         }
         
 # Clase para generar y descargar el ticket

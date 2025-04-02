@@ -37,7 +37,7 @@
                 <div class="center-wrap">
                   <div class="section text-center">
                     <h4 class="mb-4 pb-3">Registrarse</h4>
-                    <form method="post" action="{% url 'registro' %}">
+                    <form method="post" action="{% url 'registro_cliente' %}">
                       {% csrf_token %}
                       <div class="form-group">
                         <input type="text" name="nombre_usuario" class="form-style" placeholder="Nombre de Usuario" id="logname" autocomplete="off" required />

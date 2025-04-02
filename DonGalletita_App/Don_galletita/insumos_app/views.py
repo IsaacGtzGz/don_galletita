@@ -24,30 +24,35 @@ class CrearInsumoView(FormView):
         form.save()
         return super().form_valid(form)
     
+
 class EditarInsumoView(FormView):
     template_name = 'editar_insumo.html'
     form_class = forms.InsumosEditarForm
     success_url = reverse_lazy('lista_insumo')
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         insumo_id = self.kwargs.get('insumo_id')
         insumos = get_object_or_404(Insumos, id=insumo_id)
         kwargs['instance'] = insumos
         return kwargs
+    
     def form_valid(self, form):
-         # Obtener el insumo del formulario y la unidad actual
-        insumo = form.save()
+        # Obtener el insumo del formulario y la unidad actual
+        insumo = form.instance
+        nueva_unidad = form.cleaned_data.get('unidad_medida')
+        print(f"Datos limpios: Cantidad: {insumo.cantidad_disponible}, Unidad: {insumo.unidad_medida}")
+        print(f"Cantidad antes de guardar: {insumo.cantidad_disponible} {insumo.unidad_medida}")
+        
+        # Convertir la unidad si es necesario
+        if insumo.unidad_medida != nueva_unidad:
+            insumo.convertir_unidad(nueva_unidad)
+        
+        insumo.save()
         print(f"Cantidad después de guardar: {insumo.cantidad_disponible} {insumo.unidad_medida}")
         return super().form_valid(form)
 
 class EliminarInsumoView(DeleteView):
     model = Insumos
-    template_name = 'confirmar_eliminar.html'
+    template_name = 'eliminar_insumo.html'
     success_url = reverse_lazy('lista_insumo')
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        insumo = self.get_object()
-        context['titulo'] = 'Eliminar Insumo'
-        context['mensaje'] = f'¿Estás seguro de que deseas eliminar el insumo "{insumo.nombre_insumo}"?'
-        context['url_cancelar'] = reverse_lazy('lista_insumo')
-        return context
