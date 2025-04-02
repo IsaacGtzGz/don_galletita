@@ -19,6 +19,7 @@ from django.urls import path, include
 from . import views
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
+from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -32,10 +33,11 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name='registration/password_reset_complete.html'), name='password_reset_complete'),
     path('registro/', views.registro, name='registro'),
     path('insumos/', include('insumos_app.urls'), name='lista_insumo'),
+    path('recetas/', include('recetas_app.urls'), name='lista_receta'),
     path('cuentas/', include('django.contrib.auth.urls')),
     path('cuentas/registro/', views.registro, name="registro"),
     path('proveedores/', include('proveedores_app.urls')),
     path('productos/', include('productos_app.urls')),
     path('produccion/', include('produccion_app.urls')),
     path('clientes/', include('cliente_app.urls')),
-]
+]+ static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
