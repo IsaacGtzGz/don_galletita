@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from recetas_app.models import Recetas, RecetaInsumo
+from receta_app.models import Receta, RecetaInsumo
 from django.views.generic.base import TemplateView
 from django.views.generic import FormView
 from django.views.generic.edit import DeleteView, UpdateView
@@ -11,11 +11,11 @@ class ListaRecetaView(TemplateView):
     template_name = 'lista_recetas.html' 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['recetas'] = Recetas.objects.all()
+        context['recetas'] = Receta.objects.all()
         return context
     
 class CrearRecetaView(FormView):
-    model = Recetas
+    model = Receta
     template_name = 'crear_receta.html'
     form_class = forms.RecetasRegistrarForm
     success_url = reverse_lazy('lista_receta')
@@ -57,7 +57,7 @@ class CrearRecetaView(FormView):
         
     
 class EditarRecetaView(UpdateView):
-    model = Recetas
+    model = Receta
     form_class = forms.RecetaEditarForm
     template_name = 'editar_receta.html'
     success_url = reverse_lazy('lista_receta')
@@ -66,13 +66,14 @@ class EditarRecetaView(UpdateView):
     def get_object(self, queryset=None):
         # Obtiene la receta específica usando receta_id
         receta_id = self.kwargs.get(self.pk_url_kwarg)
-        return get_object_or_404(Recetas, id=receta_id)
+        return get_object_or_404(Receta, id=receta_id)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.request.POST:
             context['formset'] = forms.RecetasInsumoFormSet(
                 self.request.POST,
+                self.request.FILES,
                 instance=self.object,  # ¡Esto es crucial!
                 prefix='insumos'
             )
@@ -96,7 +97,7 @@ class EditarRecetaView(UpdateView):
             return self.form_invalid(form)
 
 class EliminarRecetaView(DeleteView):
-    model = Recetas
+    model = Receta
     template_name = 'eliminar_receta.html'
     success_url = reverse_lazy('lista_receta')
     pk_url_kwarg = 'receta_id'

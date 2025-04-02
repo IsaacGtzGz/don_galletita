@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+  <div class="container">
+    <h1>{{ titulo }}</h1>
+    <p>Fecha actual: {{ fecha_actual }}</p>
+    
+    <a href="{% url 'crear_producto' %}" class="btn btn-primary">Registrar nuevo producto</a>
+    
+    <table class="table table-striped mt-3">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Unidad de Medida</th>
+          <th>Cantidad Disponible</th>
+          <th>Precio Unitario</th>
+          <th>Peso por Unidad</th>
+          <th>Fecha de Caducidad</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for producto in producto %}
+          <tr>
+            <td>{{ producto.nombre }}</td>
+            <td>{{ producto.descripcion }}</td>
+            <td>{{ producto.get_unidad_medida_display }}</td>
+            <td>{{ producto.cantidad_disponible }}</td>
+            <td>{{ producto.precio_unitario }}</td>
+            <td>{{ producto.peso_unidad }}</td>
+            <td>{{ producto.fecha_caducidad }}</td>
+            <td>
+              <a href="{% url 'editar_producto' producto.producto_id %}" class="btn btn-warning btn-sm">Editar</a>
+              <a href="{% url 'eliminar_producto' producto.producto_id %}" class="btn btn-danger btn-sm">Eliminar</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" class="text-center">No hay productos registrados.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import inlineformset_factory
-from recetas_app.models import Recetas, RecetaInsumo
+from receta_app.models import Receta, RecetaInsumo
 from insumos_app.models import Insumos
 
 class SelectInsumo(forms.ModelChoiceField):
@@ -27,7 +27,7 @@ class RecetasInsumoForm(forms.ModelForm):
 
 # Define el formset factory aquí
 RecetasInsumoFormSet = inlineformset_factory(
-    Recetas,
+    Receta,
     RecetaInsumo,
     form=RecetasInsumoForm,
     extra=1,
@@ -38,11 +38,11 @@ RecetasInsumoFormSet = inlineformset_factory(
 
 class RecetasRegistrarForm(forms.ModelForm):
     class Meta:
-        model = Recetas
-        fields = ['foto_receta','nombre_receta','porciones_galletas','preparacion']
+        model = Receta
+        fields = ['producto', 'foto_receta', 'porciones_galletas', 'preparacion']
         widgets = {
+            'producto': forms.Select(attrs={'class': 'form-control'}),
             'foto_receta': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
-            'nombre_receta': forms.TextInput(attrs={'class': 'form-control'}),
             'porciones_galletas': forms.NumberInput(attrs={'class': 'form-control'}),
             'preparacion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
         }
@@ -50,15 +50,15 @@ class RecetasRegistrarForm(forms.ModelForm):
     
 class RecetaEditarForm(forms.ModelForm):
     class Meta:
-        model = Recetas
-        fields = ['foto_receta', 'nombre_receta', 'porciones_galletas', 'preparacion']
+        model = Receta
+        fields = ['producto', 'foto_receta', 'porciones_galletas', 'preparacion'] 
         widgets = {
             'foto_receta': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
             'nombre_receta': forms.TextInput(attrs={'class': 'form-control'}),
             'porciones_galletas': forms.NumberInput(attrs={'class': 'form-control'}),
             'preparacion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
         }
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def _init_(self, *args, **kwargs):
+        super()._init_(*args, **kwargs)
         # Opcional: personalizaciones adicionales al inicializar
         self.fields['foto_receta'].required = False

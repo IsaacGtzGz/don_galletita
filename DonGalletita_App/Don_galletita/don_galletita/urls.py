@@ -37,6 +37,8 @@ urlpatterns = [
     path('cuentas/registro/', views.registro, name="registro"),
     path('proveedores/', include('proveedores_app.urls')),
     path('clientes/', include('cliente_app.urls')),
-    path('recetas/', include('recetas_app.urls'), name='lista_receta'),
+    path('recetas/', include('receta_app.urls'), name='lista_receta'),
+    path('productos/', include('productos_app.urls')),
+
 ] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
 
