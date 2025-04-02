@@ -54,7 +54,7 @@ def eliminar_cliente(request, pk):
         cliente.delete()
         messages.success(request, 'Cliente eliminado exitosamente.')
         return redirect('lista_clientes')
-    return render(request, 'confirmar_eliminar.html', {'cliente': cliente})
+    return render(request, 'eliminar_cliente.html', {'cliente': cliente})
 
 def detalle_cliente(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk)

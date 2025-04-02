@@ -49,4 +49,4 @@ class Insumos(models.Model):
         self.save()
 
     def __str__(self):
-        return f"{self.insumo_id}-{self.nombre_insumo}-{self.unidad_medida}-{self.cantidad_disponible}"
+        return f"{self.id}-{self.nombre_insumo}-{self.unidad_medida}-{self.cantidad_disponible}"

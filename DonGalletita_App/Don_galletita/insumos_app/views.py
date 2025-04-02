@@ -44,3 +44,10 @@ class EliminarInsumoView(DeleteView):
     model = Insumos
     template_name = 'confirmar_eliminar.html'
     success_url = reverse_lazy('lista_insumo')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        insumo = self.get_object()
+        context['titulo'] = 'Eliminar Insumo'
+        context['mensaje'] = f'¿Estás seguro de que deseas eliminar el insumo "{insumo.nombre_insumo}"?'
+        context['url_cancelar'] = reverse_lazy('lista_insumo')
+        return context
