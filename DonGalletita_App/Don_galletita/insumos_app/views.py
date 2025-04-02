@@ -25,50 +25,35 @@ class CrearInsumoView(FormView):
         form.save()
         return super().form_valid(form)
     
+
 class EditarInsumoView(FormView):
     template_name = 'editar_insumo.html'
     form_class = forms.InsumosEditarForm
     success_url = reverse_lazy('lista_insumo')
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         insumo_id = self.kwargs.get('insumo_id')
         insumos = get_object_or_404(Insumos, id=insumo_id)
         kwargs['instance'] = insumos
         return kwargs
+    
     def form_valid(self, form):
-         # Obtener el insumo del formulario y la unidad actual
-        insumo = form.save()
+        # Obtener el insumo del formulario y la unidad actual
+        insumo = form.instance
+        nueva_unidad = form.cleaned_data.get('unidad_medida')
+        print(f"Datos limpios: Cantidad: {insumo.cantidad_disponible}, Unidad: {insumo.unidad_medida}")
+        print(f"Cantidad antes de guardar: {insumo.cantidad_disponible} {insumo.unidad_medida}")
+        
+        # Convertir la unidad si es necesario
+        if insumo.unidad_medida != nueva_unidad:
+            insumo.convertir_unidad(nueva_unidad)
+        
+        insumo.save()
         print(f"Cantidad después de guardar: {insumo.cantidad_disponible} {insumo.unidad_medida}")
         return super().form_valid(form)
 
 class EliminarInsumoView(DeleteView):
     model = Insumos
-    template_name = 'confirmar_eliminar.html'
+    template_name = 'eliminar_insumo.html'
     success_url = reverse_lazy('lista_insumo')
-
-def agregar_al_carrito(request, detalle):
-    if 'carrito' not in request.session:
-        request.session['carrito'] = []
-    request.session['carrito'].append({
-        'insumo': detalle['insumo'].id,  # Usa .id para obtener el identificador
-        'nombre_insumo': detalle['insumo'].nombre_insumo,
-        'cantidad': detalle['cantidad'],
-        'precio_unitario': detalle['precio_unitario'],
-        'unidad_medida': detalle['unidad_medida'],  # Agregar unidad de medida
-        'fecha_caducidad': detalle['fecha_caducidad'].strftime('%Y-%m-%d') if detalle['fecha_caducidad'] else None,
-    })
-
-def listar_insumos(request):
-    insumos = Insumos.objects.all()
-    proximos_a_caducar = insumos.filter(fecha_caducidad__lte=date.today() + timedelta(days=7))
-    return render(request, 'lista_insumo.html', {
-        'insumos': insumos,
-        'proximos_a_caducar': proximos_a_caducar
-    })
-
-def alertas_caducidad(request):
-    proximos_a_caducar = Insumos.objects.filter(
-        fecha_caducidad__lte=date.today() + timedelta(days=7),
-        fecha_caducidad__gte=date.today()
-    )
-    return render(request, 'alertas_caducidad.html', {'proximos_a_caducar': proximos_a_caducar})

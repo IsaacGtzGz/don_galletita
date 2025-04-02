@@ -51,10 +51,17 @@ class EditarProveedorView(FormView):
 # Eliminar un proveedor
 class EliminarProveedorView(DeleteView):
     model = Proveedor
-    template_name = 'confirmar_eliminar.html'
+    template_name = 'eliminar_proveedor.html'
     success_url = reverse_lazy('lista_proveedores')
 
     def get_object(self):
         id = self.kwargs.get('id')
         return get_object_or_404(Proveedor, proveedor_id=id)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        proveedor = self.get_object()
+        context['titulo'] = 'Eliminar Proveedor'
+        context['mensaje'] = f'¿Estás seguro de que deseas eliminar al proveedor "{proveedor.nombre}"?'
+        context['url_cancelar'] = reverse_lazy('lista_proveedores')
+        return context

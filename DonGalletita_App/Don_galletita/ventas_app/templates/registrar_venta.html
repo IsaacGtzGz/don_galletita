@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Crear Venta
+{% endblock %}
+
+{% block content %}
+  <div class="container mt-5">
+    <div class="card detalle-card">
+      <div class="card-header detalle-header">Crear Venta</div>
+      <div class="card-body detalle-body">
+        <form method="post">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <button type="submit" class="btn btn-success">Guardar</button>
+            <a href="{% url 'lista_ventas' %}" class="btn btn-secondary">Cancelar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}
