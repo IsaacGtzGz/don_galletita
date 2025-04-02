@@ -16,6 +16,21 @@
       <strong>Estatus:</strong> {{ venta.estatus_venta }}
     </p>
 
+    <h2>Ticket Digital</h2>
+    {% if venta.ticket %}
+      <a href="{% url 'descargar_ticket' venta_id=venta.id %}" class="btn btn-primary">Descargar Ticket</a>
+    {% else %}
+      <p>No se ha generado un ticket para esta venta.</p>
+    {% endif %}
+
+    <h2>Estado de Entrega</h2>
+    <p>
+      <strong>Estado:</strong> {{ venta.estado_entrega }}
+    </p>
+
+    <h2>Observaciones</h2>
+    <p>{{ venta.observaciones }}</p>
+
     <h2>Productos</h2>
     <table class="table table-striped">
       <thead>
@@ -30,7 +45,7 @@
       <tbody>
         {% for detalle in detalles %}
           <tr>
-            <td>{{ detalle.producto.nombre_insumo }}</td>
+            <td>{{ detalle.producto.nombre }}</td>
             <td>{{ detalle.cantidad }}</td>
             <td>{{ detalle.unidad_medida }}</td>
             <td>${{ detalle.precio_unitario }}</td>

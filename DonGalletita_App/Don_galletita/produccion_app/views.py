@@ -1,11 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, CreateView, DetailView, DeleteView
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.db import transaction
 from .models import Produccion, LoteProduccion, ConsumoInsumos
 from .forms import ProduccionForm, LoteProduccionForm
-from recetas_app.models import Receta
+from recetas_app.models import Receta, RecetaInsumo
 from insumos_app.models import Insumos
 
 class ListaProduccionView(ListView):
@@ -25,41 +25,52 @@ class CrearProduccionView(CreateView):
                 produccion = form.save(commit=False)
                 producto = produccion.producto
                 cantidad = form.cleaned_data['cantidad_producida']
+                receta = Receta.objects.get(producto=producto)
                 
-                # Verificar insumos
-                recetas = Receta.objects.filter(producto=producto)
-                for receta in recetas:
-                    if receta.insumo.cantidad_disponible < (receta.cantidad_necesaria * cantidad):
-                        raise ValueError(f"Insumo insuficiente: {receta.insumo.nombre_insumo}")
+                for receta_insumo in RecetaInsumo.objects.filter(receta=receta):
+                    cantidad_necesaria = receta_insumo.cantidad_necesaria * cantidad
+                    
+                    # Conversión de unidades si es necesario
+                    if receta_insumo.unidad_medida == 'g' and receta_insumo.insumo.unidad_medida == 'kg':
+                        cantidad_necesaria /= 1000
+                    elif receta_insumo.unidad_medida == 'kg' and receta_insumo.insumo.unidad_medida == 'g':
+                        cantidad_necesaria *= 1000
+                    # Agrega otras conversiones necesarias aquí
+                    
+                    if receta_insumo.insumo.cantidad_disponible < cantidad_necesaria:
+                        raise ValueError(
+                            f"Insumo insuficiente: {receta_insumo.insumo.nombre_insumo}\n"
+                            f"Necesitas {cantidad_necesaria} {receta_insumo.insumo.unidad_medida} "
+                            f"(tienes {receta_insumo.insumo.cantidad_disponible})"
+                        )
                 
-                # Guardar producción
-                produccion.cantidad_producida = cantidad
                 produccion.save()
-                
-                # Crear lote de producción
                 lote = LoteProduccion.objects.create(
                     produccion=produccion,
                     cantidad_galletas=cantidad,
                     fecha_caducidad=form.cleaned_data['fecha_finalizacion'].date() if form.cleaned_data['fecha_finalizacion'] else None
                 )
                 
-                # Actualizar inventario de insumos
-                for receta in recetas:
+                for receta_insumo in RecetaInsumo.objects.filter(receta=receta):
+                    cantidad_usada = receta_insumo.cantidad_necesaria * cantidad
+                    # Aplica misma conversión para el descuento
+                    if receta_insumo.unidad_medida == 'g' and receta_insumo.insumo.unidad_medida == 'kg':
+                        cantidad_usada /= 1000
+                    elif receta_insumo.unidad_medida == 'kg' and receta_insumo.insumo.unidad_medida == 'g':
+                        cantidad_usada *= 1000
+                    
                     ConsumoInsumos.objects.create(
                         produccion=produccion,
-                        insumo=receta.insumo,
-                        cantidad_usada=receta.cantidad_necesaria * cantidad
+                        insumo=receta_insumo.insumo,
+                        cantidad_usada=cantidad_usada
                     )
-                    receta.insumo.cantidad_disponible -= receta.cantidad_necesaria * cantidad
-                    receta.insumo.save()
+                    receta_insumo.insumo.cantidad_disponible -= cantidad_usada
+                    receta_insumo.insumo.save()
                 
-                # Actualizar inventario de producto
                 producto.cantidad_disponible += cantidad
                 producto.save()
-                
                 messages.success(self.request, "Producción registrada exitosamente!")
                 return super().form_valid(form)
-                
         except Exception as e:
             messages.error(self.request, f"Error: {str(e)}")
             return self.form_invalid(form)
@@ -76,7 +87,7 @@ class DetalleProduccionView(DetailView):
 
 class EliminarProduccionView(DeleteView):
     model = Produccion
-    template_name = 'confirmar_eliminar.html'
+    template_name = 'eliminar_produccion.html'
     success_url = reverse_lazy('lista_produccion')
     
     def delete(self, request, *args, **kwargs):

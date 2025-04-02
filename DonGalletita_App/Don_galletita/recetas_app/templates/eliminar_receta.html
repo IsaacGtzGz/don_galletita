@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container mt-5">
+    <div class="card" style="max-width: 100%; margin: auto; border: 1px solid #D4A373; border-radius: 10px; padding: 20px; background-color: #FFF8DC;">
+      <div class="card-header text-center" style="background-color: #D4A373; font-size: 28px; font-weight: bold; color: #FFFFFF;">Eliminar Receta</div>
+      <div class="card-body text-center" style="padding: 40px;">
+        <p>
+          ¿Estás seguro de que deseas eliminar esta receta <strong>{{ object.nombre_receta }}</strong>?
+        </p>
+        <form method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger me-2" style="background-color: #8B5E3C; color: #FFFFFF; border: none;">ELIMINAR</button>
+          <a href="{% url 'lista_receta' %}" class="btn btn-secondary" style="background-color: #C9A66B; color: #FFFFFF; border: none;">CANCELAR</a>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

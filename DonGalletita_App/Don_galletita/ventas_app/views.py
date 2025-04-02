@@ -8,14 +8,27 @@ from reportlab.pdfgen import canvas
 import base64
 from io import BytesIO
 from django.http import FileResponse
+from django.db.models.functions import TruncDate
+from django.utils.timezone import now, localtime
+from datetime import timedelta
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import letter
+import io
+import openpyxl
+from openpyxl.styles import Font
+from django.db import transaction
 
 # Listar ventas
 class ListaVentasView(TemplateView):
     template_name = 'lista_ventas.html'
 
     def get_context_data(self, **kwargs):
-        lista = Venta.objects.all()
-        return {'lista': lista}
+        context = super().get_context_data(**kwargs)
+        lista_pagadas = Venta.objects.filter(estatus_venta='Pagado')
+        lista_otros = Venta.objects.exclude(estatus_venta='Pagado')
+        context['lista_pagadas'] = lista_pagadas
+        context['lista_otros'] = lista_otros
+        return context
     
 # Crear una venta
 class CrearVentaView(FormView):
@@ -107,69 +120,128 @@ class CorteVentasDiarioView(TemplateView):
     template_name = 'corte_ventas_diario.html'
 
     def get_context_data(self, **kwargs):
-        from django.utils.timezone import now, timedelta
-        hoy = now().date()
-        ventas_diarias = Venta.objects.filter(fecha_venta__date=hoy)
-        ventas_con_totales = []
+        from django.utils.timezone import now, localdate
+        from django.db.models import Sum
+        hoy = localdate()
+
+        # Filtrar ventas del día actual
+        hoy_inicio = localtime().replace(hour=0, minute=0, second=0, microsecond=0)
+        hoy_fin = localtime().replace(hour=23, minute=59, second=59, microsecond=999999)
+        ventas_diarias = Venta.objects.filter(fecha_venta__range=(hoy_inicio, hoy_fin))
+
+        # Consolidar totales
+        total_ventas = ventas_diarias.aggregate(total=Sum('detalles__precio_unitario'))['total'] or 0
+        total_transacciones = ventas_diarias.count()
+
+        # Totales por tipo de presentación
+        totales_por_categoria = {
+            'piezas': 0,
+            'gramos': 0,
+            'kg': 0,
+            'gr700': 0
+        }
         productos_vendidos = {}
-        metodos_pago = {'efectivo': 0, 'tarjeta': 0, 'transferencia': 0}
-        totales_por_categoria = {'piezas': 0, 'gramos': 0, 'kg': 0, 'gr700': 0}
 
         for venta in ventas_diarias:
-            total_venta = 0
             for detalle in venta.detalles.all():
-                total_venta += detalle.cantidad * detalle.precio_unitario
-
-                # Contabilizar productos vendidos por categoría
-                if detalle.unidad_medida == 'pieza':
+                if detalle.unidad_medida == 'pz':
                     totales_por_categoria['piezas'] += detalle.cantidad
-                elif detalle.unidad_medida == 'gramos':
+                elif detalle.unidad_medida == 'g':
                     totales_por_categoria['gramos'] += detalle.cantidad
-                elif detalle.unidad_medida == '1kg':
+                elif detalle.unidad_medida == 'kg':
                     totales_por_categoria['kg'] += detalle.cantidad
                 elif detalle.unidad_medida == '700gr':
                     totales_por_categoria['gr700'] += detalle.cantidad
 
-                # Contabilizar productos vendidos
-                if detalle.producto.nombre_insumo not in productos_vendidos:
-                    productos_vendidos[detalle.producto.nombre_insumo] = 0
-                productos_vendidos[detalle.producto.nombre_insumo] += detalle.cantidad
+                # Contabilizar productos más vendidos
+                if detalle.producto.nombre not in productos_vendidos:
+                    productos_vendidos[detalle.producto.nombre] = 0
+                productos_vendidos[detalle.producto.nombre] += detalle.cantidad
 
-            # Contabilizar métodos de pago
-            if venta.metodo_pago in metodos_pago:
-                metodos_pago[venta.metodo_pago] += total_venta
+        # Productos más vendidos (top 5)
+        top_productos = sorted(productos_vendidos.items(), key=lambda x: x[1], reverse=True)[:5]
 
-            ventas_con_totales.append({'venta': venta, 'total': total_venta})
+        # Comparativa con el día anterior
+        dia_anterior = hoy - timedelta(days=1)
+        ventas_dia_anterior = Venta.objects.filter(fecha_venta__date=dia_anterior)
+        total_dia_anterior = ventas_dia_anterior.aggregate(total=Sum('detalles__precio_unitario'))['total'] or 0
 
-        total_ventas = sum(venta['total'] for venta in ventas_con_totales)
-        total_transacciones = ventas_diarias.count()
-
-        # Comparativa con días anteriores (últimos 7 días)
-        comparativa_dias = []
-        for i in range(1, 8):
-            dia_anterior = hoy - timedelta(days=i)
-            ventas_dia_anterior = Venta.objects.filter(fecha_venta__date=dia_anterior)
-            total_dia_anterior = sum(
+        ventas_con_totales = []
+        for venta in ventas_diarias:
+            total_venta = sum(
                 detalle.cantidad * detalle.precio_unitario
-                for venta in ventas_dia_anterior
                 for detalle in venta.detalles.all()
             )
-            comparativa_dias.append({
-                'fecha': dia_anterior,
-                'total_ventas': total_dia_anterior,
-                'transacciones': ventas_dia_anterior.count()
+            ventas_con_totales.append({
+                'id': venta.id,
+                'cliente': venta.persona,
+                'fecha': venta.fecha_venta,
+                'total': total_venta
             })
+
+        ventas_pagadas = []
+        ventas_otros = []
+
+        for venta in ventas_diarias:
+            total_venta = sum(
+                detalle.cantidad * detalle.precio_unitario
+                for detalle in venta.detalles.all()
+            )
+            venta_data = {
+                'id': venta.id,
+                'cliente': venta.persona,
+                'fecha': venta.fecha_venta,
+                'estatus': venta.estatus_venta,
+                'total': total_venta
+            }
+            if venta.estatus_venta == 'Pagado':
+                ventas_pagadas.append(venta_data)
+            else:
+                ventas_otros.append(venta_data)
 
         return {
             'ventas_diarias': ventas_con_totales,
+            'ventas_pagadas': ventas_pagadas,
+            'ventas_otros': ventas_otros,
             'total_ventas': total_ventas,
             'total_transacciones': total_transacciones,
-            'productos_vendidos': productos_vendidos,
-            'metodos_pago': metodos_pago,
             'totales_por_categoria': totales_por_categoria,
-            'comparativa_dias': comparativa_dias
+            'top_productos': top_productos,
+            'total_dia_anterior': total_dia_anterior
         }
         
+    def post(self, request, *args, **kwargs):
+        hoy = now().date()
+        ventas_diarias = Venta.objects.filter(fecha_venta__date=hoy)
+
+        # Validación: Bloquear cierre si hay ventas sin cliente asociado
+        ventas_sin_cliente = ventas_diarias.filter(persona__isnull=True)
+        if ventas_sin_cliente.exists():
+            return self.render_to_response({
+                'error': 'No se puede cerrar el día. Existen ventas sin cliente asociado.'
+            })
+
+        # Generar tickets para todas las ventas del día
+        for venta in ventas_diarias:
+            if not venta.ticket:
+                TicketVentaView().generar_ticket(venta)
+
+        # Validación: Alertar si hay discrepancias en el efectivo
+        total_ventas = sum(
+            detalle.cantidad * detalle.precio_unitario
+            for venta in ventas_diarias
+            for detalle in venta.detalles.all()
+        )
+        efectivo_fisico = float(request.POST.get('efectivo_fisico', 0))
+        if efectivo_fisico != total_ventas:
+            return self.render_to_response({
+                'error': f'Discrepancia detectada. Total registrado: {total_ventas}, Efectivo físico: {efectivo_fisico}'
+            })
+
+        return self.render_to_response({
+            'success': 'Corte diario completado exitosamente.'
+        })
+
 # Clase para generar y descargar el ticket
 class TicketVentaView(TemplateView):
     def generar_ticket(self, venta):
@@ -182,7 +254,7 @@ class TicketVentaView(TemplateView):
 
         y = 720
         for detalle in venta.detalles.all():
-            c.drawString(100, y, f"Producto: {detalle.producto.nombre_insumo}, Cantidad: {detalle.cantidad} {detalle.unidad_medida}, Precio: {detalle.precio_unitario}")
+            c.drawString(100, y, f"Producto: {detalle.producto.nombre}, Cantidad: {detalle.cantidad} {detalle.unidad_medida}, Precio: {detalle.precio_unitario}")
             y -= 20
 
         c.save()
@@ -209,3 +281,110 @@ class DetalleVentaView(TemplateView):
         venta = get_object_or_404(Venta, id=venta_id)
         detalles = venta.detalles.all()
         return {'venta': venta, 'detalles': detalles}
+
+# Exportar reporte en PDF
+class ExportarReportePDFView(TemplateView):
+    def get(self, request, *args, **kwargs):
+        from django.utils.timezone import localtime
+        from django.db.models import Sum
+        hoy_inicio = localtime().replace(hour=0, minute=0, second=0, microsecond=0)
+        hoy_fin = localtime().replace(hour=23, minute=59, second=59, microsecond=999999)
+        ventas_diarias = Venta.objects.filter(fecha_venta__range=(hoy_inicio, hoy_fin))
+
+        total_ventas = ventas_diarias.aggregate(total=Sum('detalles__precio_unitario'))['total'] or 0
+        total_transacciones = ventas_diarias.count()
+
+        buffer = io.BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
+
+        # Título del reporte
+        p.drawString(100, 750, "Reporte Diario de Ventas")
+
+        # Datos del reporte
+        p.drawString(100, 730, f"Total Ventas: ${total_ventas}")
+        p.drawString(100, 710, f"Total Transacciones: {total_transacciones}")
+
+        # Detalles de las ventas
+        y = 690
+        for venta in ventas_diarias:
+            total_venta = sum(
+                detalle.cantidad * detalle.precio_unitario
+                for detalle in venta.detalles.all()
+            )
+            p.drawString(100, y, f"ID: {venta.id}, Cliente: {venta.persona}, Fecha: {venta.fecha_venta}, Total: ${total_venta}")
+            y -= 20
+
+        # Finalizar y guardar
+        p.showPage()
+        p.save()
+
+        buffer.seek(0)
+        response = HttpResponse(buffer, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="reporte_diario.pdf"'
+        return response
+
+# Exportar reporte en Excel
+class ExportarReporteExcelView(TemplateView):
+    def get(self, request, *args, **kwargs):
+        from django.utils.timezone import localtime
+        from django.db.models import Sum
+        hoy_inicio = localtime().replace(hour=0, minute=0, second=0, microsecond=0)
+        hoy_fin = localtime().replace(hour=23, minute=59, second=59, microsecond=999999)
+        ventas_diarias = Venta.objects.filter(fecha_venta__range=(hoy_inicio, hoy_fin))
+
+        # Crear un libro de Excel
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Reporte Diario"
+
+        # Título del reporte
+        ws.merge_cells("A1:D1")
+        ws["A1"] = "Reporte Diario de Ventas"
+        ws["A1"].font = Font(bold=True, size=14)
+
+        # Encabezados
+        headers = ["ID", "Cliente", "Fecha", "Total"]
+        ws.append(headers)
+
+        # Datos del reporte
+        for venta in ventas_diarias:
+            total_venta = sum(
+                detalle.cantidad * detalle.precio_unitario
+                for detalle in venta.detalles.all()
+            )
+            ws.append([venta.id, str(venta.persona), str(venta.fecha_venta), total_venta])
+
+        # Guardar el archivo en memoria
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="reporte_diario.xlsx"'
+        wb.save(response)
+        return response
+
+# Confirmar venta
+class ConfirmarVentaView(TemplateView):
+    def post(self, request, *args, **kwargs):
+        venta_id = kwargs.get('venta_id')
+        venta = get_object_or_404(Venta, id=venta_id)
+
+        # Descuento automático de existencias
+        with transaction.atomic():
+            for detalle in venta.detalles.all():
+                producto = detalle.producto
+                cantidad_a_descontar = detalle.cantidad
+
+                # Aplicar merma (2%)
+                cantidad_a_descontar += cantidad_a_descontar * 0.02
+
+                if producto.cantidad_disponible >= cantidad_a_descontar:
+                    producto.cantidad_disponible -= cantidad_a_descontar
+                    producto.save()
+                else:
+                    return self.render_to_response({
+                        'error': f"Stock insuficiente para el producto {producto.nombre}."
+                    })
+
+        # Actualizar estatus de la venta
+        venta.estatus_venta = 'Entregado'
+        venta.save()
+
+        return redirect('detalle_venta', venta_id=venta.id)
