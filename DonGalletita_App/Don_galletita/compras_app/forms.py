@@ -1,6 +1,12 @@
 from django import forms
 from django.forms.models import inlineformset_factory
-from .models import Compra, DetalleCompra
+from .models import Compra, DetalleCompra, Insumos
+
+
+class SelectInsumo(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.nombre_insumo
+
 
 class CompraRegistrarForm(forms.ModelForm):
     class Meta:
@@ -10,12 +16,19 @@ class CompraRegistrarForm(forms.ModelForm):
             "proveedor": forms.Select(attrs={"class": "form-control"}),
         }
 
+
 class DetalleCompraForm(forms.ModelForm):
+    # Sobrescribe el campo insumo para mostrar solo el nombre
+    insumo = SelectInsumo(
+        queryset=Insumos.objects.all(),
+        empty_label="Seleccione un insumo",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
     class Meta:
         model = DetalleCompra
         fields = ['insumo', 'cantidad', 'precio_unitario', 'unidad_medida', 'fecha_caducidad']
         widgets = {
-            "insumo": forms.Select(attrs={"class": "form-control"}),
             "cantidad": forms.NumberInput(attrs={"class": "form-control"}),
             "precio_unitario": forms.NumberInput(attrs={"class": "form-control"}),
             "unidad_medida": forms.Select(attrs={"class": "form-control"}),
@@ -23,7 +36,8 @@ class DetalleCompraForm(forms.ModelForm):
         }
 
 DetalleCompraFormSet = inlineformset_factory(
-    Compra, DetalleCompra, 
-    fields=['insumo', 'cantidad', 'precio_unitario', 'unidad_medida', 'fecha_caducidad'], 
+    Compra, DetalleCompra,
+    form=DetalleCompraForm,  
+    fields=['insumo', 'cantidad', 'precio_unitario', 'unidad_medida', 'fecha_caducidad'],
     extra=1, can_delete=True
 )

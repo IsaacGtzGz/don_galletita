@@ -1,6 +1,8 @@
 from django import forms
 from . import models
 
+
+
 class ProveedorRegistrarForm(forms.ModelForm):
     class Meta:
         model = models.Proveedor
