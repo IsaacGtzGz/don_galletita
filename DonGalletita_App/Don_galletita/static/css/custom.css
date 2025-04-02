@@ -1083,3 +1083,59 @@ input.checkbox {
     font-weight: bold;
     margin-bottom: 30px;
 }
+
+/* Estilos para las tarjetas de detalle */
+.detalle-card {
+    max-width: 100%;
+    margin: auto;
+    border: 1px solid #D4A373;
+    border-radius: 10px;
+    padding: 20px;
+    background-color: #FFF8DC;
+}
+
+.detalle-header {
+    background-color: #D4A373;
+    font-size: 28px;
+    font-weight: bold;
+    color: #FFFFFF;
+    text-align: center;
+}
+
+.detalle-body {
+    padding: 40px;
+}
+
+/* Botones personalizados */
+.btn-warning {
+    background-color: #C9A66B;
+    color: #FFFFFF;
+    border: none;
+}
+
+.btn-warning:hover {
+    background-color: #8B5E3C;
+    color: #FFFFFF;
+}
+
+.btn-danger {
+    background-color: #8B5E3C;
+    color: #FFFFFF;
+    border: none;
+}
+
+.btn-danger:hover {
+    background-color: #C9302C;
+    color: #FFFFFF;
+}
+
+.btn-secondary {
+    background-color: #D4A373;
+    color: #FFFFFF;
+    border: none;
+}
+
+.btn-secondary:hover {
+    background-color: #C9A66B;
+    color: #FFFFFF;
+}

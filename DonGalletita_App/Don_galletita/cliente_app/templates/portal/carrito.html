@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Carrito de Compras{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% if not user.is_authenticated or user.rol != 'cliente' and user.rol != 'admin' %}
+    <div class="alert alert-danger text-center">
+        <strong>Acceso restringido:</strong> Solo clientes y administradores pueden realizar compras.
+        <a href="{% url 'login' %}" class="alert-link">Inicia sesión como cliente</a>
+    </div>
+    {% else %}
+    <div class="card" style="max-width: 100%; margin: auto; border: 1px solid #D4A373; border-radius: 10px; padding: 20px; background-color: #FFF8DC;">
+        <div class="card-header text-center" style="background-color: #D4A373; font-size: 28px; font-weight: bold; color: #FFFFFF;">
+            Carrito de Compras
+        </div>
+        <div class="card-body">
+            {% if carrito %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Unidad</th>
+                            <th>Cantidad</th>
+                            <th>Precio Unitario</th>
+                            <th>Subtotal</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for producto_id, item in carrito.items %}
+                        <tr>
+                            <td>{{ item.nombre }}</td>
+                            <td>{{ item.unidad_medida }}</td>
+                            <td>{{ item.cantidad }}</td>
+                            <td>${{ item.precio|floatformat:2 }}</td>
+                            <td>${{ item.subtotal|floatformat:2 }}</td>
+                            <td>
+                                <a href="{% url 'clientes:eliminar_del_carrito' producto_id %}" 
+                                   class="btn btn-danger btn-sm">Eliminar</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" class="text-end"><strong>Total:</strong></td>
+                            <td>${{ total_general|floatformat:2 }}</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                
+                <div class="text-end mt-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" name="confirmar_pedido" 
+                                class="btn btn-success" style="background-color: #8B5E3C;">
+                            Confirmar Pedido
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info text-center">
+                Tu carrito está vacío.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

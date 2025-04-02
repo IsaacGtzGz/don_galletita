@@ -1,14 +1,18 @@
 from django.db import models
 from decimal import Decimal
+from datetime import date
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 # Create your models here.
 class Insumos(models.Model):
     UNIDADES_CHOICES = [
-        ('kg', 'Kilogramos'),
         ('g', 'Gramos'),
-        ('l', 'Litros'),
-        ('ml', 'Mililitros'),
-        ('pz', 'Piezas'),
+        ('kg', 'Kilogramos'),
+        ('litros', 'Litros'),
+        ('bultos', 'Bultos'),
     ]
 
     nombre_insumo = models.CharField(max_length=200)

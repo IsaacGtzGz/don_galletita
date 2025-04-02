@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Historial de Compras{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card" style="border: 1px solid #D4A373; background-color: #FFF8DC;">
+        <div class="card-header text-center" style="background-color: #D4A373; color: #FFFFFF;">
+            <h2>Historial de Compras</h2>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Pedido #</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for venta in page_obj %}
+                    <tr>
+                        <td>{{ venta.venta_id }}</td>
+                        <td>{{ venta.fecha_venta|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if venta.estatus_venta == 'Pagado' %}bg-success
+                                {% elif venta.estatus_venta == 'Cancelado' %}bg-danger
+                                {% else %}bg-warning{% endif %}">
+                                {{ venta.get_estatus_venta_display }}
+                            </span>
+                        </td>
+                        <td>${{ venta.calcular_total|floatformat:2 }}</td>
+                        <td>
+                            <a href="#" class="btn btn-info btn-sm" data-bs-toggle="modal" 
+                               data-bs-target="#modalDetalle{{ venta.venta_id }}">
+                                Detalles
+                            </a>
+                            {% if venta.estatus_venta == 'Pendiente' %}
+                            <a href="{% url 'clientes:cancelar_pedido' venta.venta_id %}" 
+                               class="btn btn-danger btn-sm">Cancelar</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+           
+        </div>
+    </div>
+</div>
+{% endblock %}

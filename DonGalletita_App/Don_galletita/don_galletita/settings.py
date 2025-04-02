@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'usuarios_app',
     'proveedores_app',
     'productos_app',
@@ -46,6 +47,8 @@ INSTALLED_APPS = [
     'recetas_app',
     'insumos_app',
     'cliente_app',
+    'compras_app',
+    'ventas_app',
 ]
 
 AUTH_USER_MODEL = 'usuarios_app.Usuario'
@@ -91,7 +94,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'don_galletita_bd',
         'USER': 'root',
-        'PASSWORD': 'root',
+        'PASSWORD': 'cclab',
         'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {
@@ -149,3 +152,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'login'
+

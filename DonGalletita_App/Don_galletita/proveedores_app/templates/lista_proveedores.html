@@ -24,10 +24,9 @@
         <thead class="table-dark">
           <tr>
             <th>ID</th>
-            <th>Nombre</th>
+            <th>Nombre Completo</th>
             <th>Teléfono</th>
             <th>Dirección</th>
-            <th>Día de Entrega</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -35,10 +34,9 @@
           {% for item in lista %}
             <tr>
               <td>{{ item.proveedor_id }}</td>
-              <td>{{ item.nombre }}</td>
+              <td>{{ item.nombre }} {{ item.apellido_paterno }} {{ item.apellido_materno }}</td>
               <td>{{ item.telefono }}</td>
               <td>{{ item.direccion }}</td>
-              <td>{{ item.dia_entrega }}</td>
               <td>
                 <a href="{% url 'editar_proveedor' item.proveedor_id %}" class="btn btn-warning btn-sm">Editar</a>
                 <a href="{% url 'eliminar_proveedor' item.proveedor_id %}" class="btn btn-danger btn-sm">Eliminar</a>
@@ -46,7 +44,7 @@
             </tr>
           {% empty %}
             <tr>
-              <td colspan="6" class="text-center">No hay proveedores registrados</td>
+              <td colspan="5" class="text-center">No hay proveedores registrados</td>
             </tr>
           {% endfor %}
         </tbody>
