@@ -54,5 +54,5 @@ class EditarInsumoView(FormView):
 
 class EliminarInsumoView(DeleteView):
     model = Insumos
-    template_name = 'eliminar_insumo.html'
+    template_name = 'confirmar_eliminar.html'
     success_url = reverse_lazy('lista_insumo')

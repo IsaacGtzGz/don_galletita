@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from django.contrib.auth import login
 from usuarios_app.forms import UsuarioRegistrarForm
 from django.contrib.auth.models import Group
 from django.contrib import messages

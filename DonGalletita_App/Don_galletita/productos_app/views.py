@@ -1,56 +1,41 @@
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
-from django.utils import timezone
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Producto
 from .forms import ProductoForm
 
-class ListaProductosView(ListView):
-    model = Producto
-    template_name = 'lista_productos.html'
-    context_object_name = 'productos'
-    ordering = ['nombre']
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['titulo'] = 'Inventario de Productos'
-        context['fecha_actual'] = timezone.now().date()
-        return context
+# Create your views here.
 
-class CrearProductoView(CreateView):
-    model = Producto
-    form_class = ProductoForm
-    template_name = 'crear_producto.html'
-    success_url = reverse_lazy('lista_productos')
-    success_message = "Producto registrado exitosamente"
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['titulo'] = 'Registrar nuevo producto'
-        context['accion'] = 'crear'
-        return context
+# Listar productos
+def lista_productos(request):
+    productos = Producto.objects.all()
+    return render(request, 'lista_productos.html', {'productos': productos})
 
-class EditarProductoView(UpdateView):
-    model = Producto
-    form_class = ProductoForm
-    template_name = 'editar_producto.html'
-    success_url = reverse_lazy('lista_productos')
-    success_message = "Producto actualizado exitosamente"
-    pk_url_kwarg = 'producto_id'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['titulo'] = f'Editar {self.object.nombre}'
-        context['accion'] = 'editar'
-        return context
+# Agregar producto
+def agregar_producto(request):
+    if request.method == "POST":
+        form = ProductoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('lista_productos')
+    else:
+        form = ProductoForm()
+    return render(request, 'agregar_producto.html', {'form': form})
 
-class EliminarProductoView(DeleteView):
-    model = Producto
-    template_name = 'eliminar_producto.html'
-    success_url = reverse_lazy('lista_productos')
-    success_message = "Producto eliminado exitosamente"
-    pk_url_kwarg = 'producto_id'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['titulo'] = f'Eliminar {self.object.nombre}'
-        return context
+# Editar producto
+def editar_producto(request, producto_id):
+    producto = get_object_or_404(Producto, id=producto_id)
+    if request.method == "POST":
+        form = ProductoForm(request.POST, instance=producto)
+        if form.is_valid():
+            form.save()
+            return redirect('lista_productos')
+    else:
+        form = ProductoForm(instance=producto)
+    return render(request, 'editar_producto.html', {'form': form})
+
+# Eliminar producto
+def eliminar_producto(request, producto_id):
+    producto = get_object_or_404(Producto, id=producto_id)
+    if request.method == "POST":
+        producto.delete()
+        return redirect('lista_productos')
+    return render(request, 'eliminar_producto.html', {'producto': producto})

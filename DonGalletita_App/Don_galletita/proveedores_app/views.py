@@ -42,7 +42,7 @@ class EditarProveedorView(FormView):
 # Eliminar un proveedor
 class EliminarProveedorView(DeleteView):
     model = Proveedor
-    template_name = 'eliminar_proveedor.html'
+    template_name = 'confirmar_eliminar.html'
     success_url = reverse_lazy('lista_proveedores')
 
     def get_object(self, queryset=None):
