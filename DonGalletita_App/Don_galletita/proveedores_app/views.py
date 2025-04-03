@@ -48,3 +48,11 @@ class EliminarProveedorView(DeleteView):
     def get_object(self, queryset=None):
         id = self.kwargs.get('id')
         return get_object_or_404(Proveedor, proveedor_id=id)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        proveedor = self.get_object()
+        context['titulo'] = 'Eliminar Proveedor'
+        context['mensaje'] = f'¿Estás seguro de que deseas eliminar al proveedor "{proveedor.nombre}"?'
+        context['url_cancelar'] = reverse_lazy('lista_proveedores')
+        return context

@@ -1,24 +1,45 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<h2>Registrar Nueva Producción</h2>
-
-{% if messages %}
-    {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-    {% endfor %}
-{% endif %}
-
-<form method="post">
-    {% csrf_token %}
-    <div class="form-group">
-        <label>Producto:</label>
-        {{ form.producto }}
+  <div class="container mt-5">
+    <div class="card" style="max-width: 100%; margin: auto; border: 1px solid #D4A373; border-radius: 10px; padding: 20px; background-color: #FFF8DC;">
+      <div class="card-header text-center" style="background-color: #D4A373; font-size: 28px; font-weight: bold; color: #FFFFFF;">Nueva Producción</div>
+      <div class="card-body" style="padding: 40px;">
+        <form method="post" class="needs-validation" novalidate>
+          {% csrf_token %}
+          <div class="form-group mb-3">
+            {{ form.as_p }}
+          </div>
+          <div class="text-center mt-4">
+            <button type="submit" class="btn btn-success me-2" style="background-color: #8B5E3C; color: #FFFFFF; border: none;">
+              <i class="fas fa-save"></i> Guardar
+            </button>
+            <a href="{% url 'lista_produccion' %}" class="btn btn-secondary" style="background-color: #C9A66B; color: #FFFFFF; border: none;">
+              <i class="fas fa-times"></i> Cancelar
+            </a>
+          </div>
+        </form>
+      </div>
     </div>
-    <div class="form-group">
-        <label>Cantidad a Producir:</label>
-        {{ form.cantidad_producida }}
-    </div>
-    <button type="submit" class="btn btn-success">Registrar Producción</button>
-</form>
+  </div>
+
+  <script>
+    // Validación del formulario
+    (function() {
+        'use strict';
+        window.addEventListener('load', function() {
+            var forms = document.getElementsByClassName('needs-validation');
+            Array.prototype.filter.call(forms, function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        }, false);
+    })();
+  </script>
 {% endblock %}

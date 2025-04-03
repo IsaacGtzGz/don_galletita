@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h1>Listado de Ventas Pagadas</h1>
+    </div>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Cliente</th>
+          <th>Fecha</th>
+          <th>Estatus</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for venta in lista_pagadas %}
+          <tr>
+            <td>{{ venta.id }}</td>
+            <td>{{ venta.persona }}</td>
+            <td>{{ venta.fecha_venta }}</td>
+            <td>{{ venta.estatus_venta }}</td>
+            <td>
+              <a href="{% url 'detalle_venta' venta.id %}" class="btn btn-info btn-sm">Ver Detalles</a>
+              <a href="{% url 'editar_venta' id=venta.id %}" class="btn btn-warning btn-sm">Editar</a>
+              <a href="{% url 'eliminar_venta' id=venta.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+              <a href="{% url 'descargar_ticket' venta_id=venta.id %}" class="btn btn-primary btn-sm">Ticket</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h1>Listado de Ventas Pendientes y Canceladas</h1>
+    </div>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Cliente</th>
+          <th>Fecha</th>
+          <th>Estatus</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for venta in lista_otros %}
+          <tr>
+            <td>{{ venta.id }}</td>
+            <td>{{ venta.persona }}</td>
+            <td>{{ venta.fecha_venta }}</td>
+            <td>{{ venta.estatus_venta }}</td>
+            <td>
+              <a href="{% url 'detalle_venta' venta.id %}" class="btn btn-info btn-sm">Ver Detalles</a>
+              <a href="{% url 'editar_venta' id=venta.id %}" class="btn btn-warning btn-sm">Editar</a>
+              <a href="{% url 'eliminar_venta' id=venta.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+              <a href="{% url 'descargar_ticket' venta_id=venta.id %}" class="btn btn-primary btn-sm">Ticket</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

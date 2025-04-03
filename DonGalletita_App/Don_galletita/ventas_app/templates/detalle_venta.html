@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container mt-5">
+    <h1>Detalles de la Venta</h1>
+    <p>
+      <strong>ID de Venta:</strong> {{ venta.id }}
+    </p>
+    <p>
+      <strong>Cliente:</strong> {{ venta.persona }}
+    </p>
+    <p>
+      <strong>Fecha:</strong> {{ venta.fecha_venta }}
+    </p>
+    <p>
+      <strong>Estatus:</strong> {{ venta.estatus_venta }}
+    </p>
+
+    <h2>Ticket Digital</h2>
+    {% if venta.ticket %}
+      <a href="{% url 'descargar_ticket' venta_id=venta.id %}" class="btn btn-primary">Descargar Ticket</a>
+    {% else %}
+      <p>No se ha generado un ticket para esta venta.</p>
+    {% endif %}
+
+    <h2>Estado de Entrega</h2>
+    <p>
+      <strong>Estado:</strong> {{ venta.estado_entrega }}
+    </p>
+
+    <h2>Observaciones</h2>
+    <p>{{ venta.observaciones }}</p>
+
+    <h2>Productos</h2>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Cantidad</th>
+          <th>Unidad de Medida</th>
+          <th>Precio Unitario</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for detalle in detalles %}
+          <tr>
+            <td>{{ detalle.producto.nombre }}</td>
+            <td>{{ detalle.cantidad }}</td>
+            <td>{{ detalle.unidad_medida }}</td>
+            <td>${{ detalle.precio_unitario }}</td>
+            <td>
+              <a href="{% url 'editar_detalle_venta' detalle.id %}" class="btn btn-warning btn-sm">Editar</a>
+              <a href="{% url 'eliminar_detalle_venta' detalle.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <a href="{% url 'crear_detalle_venta' venta.id %}" class="btn btn-primary">Agregar Producto</a>
+    <a href="{% url 'lista_ventas' %}" class="btn btn-secondary">Regresar a Ventas</a>
+  </div>
+{% endblock %}

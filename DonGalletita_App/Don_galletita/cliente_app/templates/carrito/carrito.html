@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<h1>Carrito de compras</h1>
+
+
+<!-- Tabla del carrito -->
+<table class="table">
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Precio Unitario</th>
+            <th>Cantidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for key, item in carrito.items %}
+        <tr>
+            <td>{{ item.nombre }}</td>
+            <td>${{ item.precio_unitario }}</td>
+            <td>{{ item.cantidad }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">No hay productos en el carrito</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Total del carrito -->
+<h3>Total a pagar: ${{ total }}</h3>
+
+<div class="d-flex gap-2">
+    <!-- Botón para vaciar el carrito -->
+    <form action="{% url 'limpiar_carrito' %}" method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Vaciar carrito</button>
+    </form>
+
+    <!-- Botón para ir al catálogo -->
+    <form action="{% url 'catalogo' %}" method="GET">
+        <button type="submit" class="btn btn-info">Ir al catálogo</button>
+    </form>
+
+    <form action="{% url 'confirmar_compra' %}" method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">Confirmar Compra</button>
+    </form>
+</div>
+
+
+{% endblock %}

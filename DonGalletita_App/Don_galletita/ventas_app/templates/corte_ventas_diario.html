@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container mt-5">
+    <h1>Corte de Ventas Diario</h1>
+
+    <div class="mt-4">
+      <h3>Totales del Día</h3>
+      <p>
+        <strong>Total Ventas:</strong> ${{ total_ventas }}
+      </p>
+      <p>
+        <strong>Total Transacciones:</strong> {{ total_transacciones }}
+      </p>
+    </div>
+
+    <div class="mt-4">
+      <h3>Totales por Categoría</h3>
+      <ul>
+        <li>Piezas: {{ totales_por_categoria.piezas }}</li>
+        <li>Gramos: {{ totales_por_categoria.gramos }}</li>
+        <li>1kg: {{ totales_por_categoria.kg }}</li>
+        <li>700gr: {{ totales_por_categoria.gr700 }}</li>
+      </ul>
+    </div>
+
+    <div class="mt-4">
+      <h3>Productos Más Vendidos (Top 5)</h3>
+      <ul>
+        {% for producto, cantidad in top_productos %}
+          <li>{{ producto }}: {{ cantidad }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="mt-4">
+      <h3>Comparativa con el Día Anterior</h3>
+      <p>
+        <strong>Total Ventas Día Anterior:</strong> ${{ total_dia_anterior }}
+      </p>
+    </div>
+
+    <div class="mt-4">
+      <h3>Ventas Pagadas</h3>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Fecha</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for venta in ventas_pagadas %}
+            <tr>
+              <td>{{ venta.id }}</td>
+              <td>{{ venta.cliente }}</td>
+              <td>{{ venta.fecha }}</td>
+              <td>${{ venta.total }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="4" class="text-center">No hay ventas pagadas registradas hoy.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-4">
+      <h3>Ventas Pendientes y Canceladas</h3>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Fecha</th>
+            <th>Estatus</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for venta in ventas_otros %}
+            <tr>
+              <td>{{ venta.id }}</td>
+              <td>{{ venta.cliente }}</td>
+              <td>{{ venta.fecha }}</td>
+              <td>{{ venta.estatus }}</td>
+              <td>${{ venta.total }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="text-center">No hay ventas pendientes o canceladas registradas hoy.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-4">
+      <h3>Exportar Reporte</h3>
+      <a href="{% url 'exportar_reporte_pdf' %}" class="btn btn-primary">Exportar a PDF</a>
+      <a href="{% url 'exportar_reporte_excel' %}" class="btn btn-success">Exportar a Excel</a>
+    </div>
+  </div>
+{% endblock %}
