@@ -10,27 +10,26 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css" rel="stylesheet">
 
-    <!-- Agrega este bloque de estilos en tu archivo base.html -->
     <style>
       .navbar-nav .nav-link {
-      font-size: 0.8rem; /* Reduce aún más el tamaño de la fuente */
-      padding: 0.4rem 0.6rem; /* Ajusta más el espaciado */
+        font-size: 0.8rem;
+        padding: 0.4rem 0.6rem;
       }
 
       .navbar-brand {
-      font-size: 1rem; /* Reduce más el tamaño del logo/marca */
+        font-size: 1rem;
       }
 
       .navbar-toggler {
-      font-size: 0.7rem; /* Ajusta más el tamaño del botón de colapso */
+        font-size: 0.7rem;
       }
 
       .dropdown-menu .dropdown-item {
-      font-size: 0.75rem; /* Reduce más el tamaño de los elementos del dropdown */
+        font-size: 0.75rem;
       }
 
       .badge {
-      font-size: 0.65rem; /* Ajusta más el tamaño de las insignias */
+        font-size: 0.65rem;
       }
     </style>
   </head>
@@ -43,103 +42,75 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto">
-            <!-- Menú principal -->
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'catalogo' %}"><i class="fas fa-home"></i> Home</a>
-            </li>
-
-            <!-- Dropdown para operaciones -->
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="operacionesDropdown" role="button" data-bs-toggle="dropdown">
-                <i class="fas fa-cogs"></i> Operaciones
-              </a>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="{% url 'lista_proveedores' %}">Proveedores</a></li>
-                <li><a class="dropdown-item" href="{% url 'lista_usuarios' %}">Usuarios</a></li>
-                <li><a class="dropdown-item" href="{% url 'lista_clientes' %}">Clientes</a></li>
-                <li><a class="dropdown-item" href="{% url 'lista_insumo' %}">Insumos</a></li>
-                <li><a class="dropdown-item" href="{% url 'lista_compras' %}">Compra de materia prima</a></li>
-                <li><a class="dropdown-item" href="{% url 'lista_ventas' %}">Ventas</a></li>
-              </ul>
-            </li>
-
-            <!-- Dropdown para producción -->
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="produccionDropdown" role="button" data-bs-toggle="dropdown">
-                <i class="fas fa-industry"></i> Producción
-              </a>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="{% url 'lista_receta' %}">Recetario</a></li>
-                <li><a class="dropdown-item" href="{% url 'lista_produccion' %}">Producción</a></li>
-                <li><a class="dropdown-item" href="{% url 'lista_productos' %}">Productos</a></li>
-              </ul>
-            </li>
-
-            <!-- Otros enlaces -->
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'corte_ventas_diario' %}"><i class="fas fa-chart-line"></i> Corte Ventas</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'catalogo' %}"><i class="fas fa-store"></i> Catálogo</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'dashboard_presentaciones_alertas' %}">Dashboard Presentaciones y Alertas</a>
-            </li>
-          </ul>
-
-          <ul class="navbar-nav ms-auto">
             {% if user.is_authenticated %}
-              {% if not user.is_staff %}
-                <!-- Elementos para clientes -->
+              {% if user.rol == 'admin' %}
+                <!-- Menú para administradores -->
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'ver_carrito' %}">
-                    <i class="fa-solid fa-cart-shopping"></i> Carrito{% if request.session.carrito %}
-                      <span class="badge bg-danger">{{ request.session.carrito|length }}</span>
-                    {% endif %}
-                  </a>
+                  <a class="nav-link" href="{% url 'catalogo' %}"><i class="fas fa-store"></i> Catálogo</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'catalogo' %}"><i class="fas fa-home"></i> Home</a>
                 </li>
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" href="#" id="clienteDropdown" role="button" data-bs-toggle="dropdown">
-                    <i class="fas fa-user"></i> {{ user.username }}
+                  <a class="nav-link dropdown-toggle" href="#" id="operacionesDropdown" role="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-cogs"></i> Operaciones
                   </a>
-                  <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="{% url 'historial_compras' %}">Mis Compras</a></li>
-                    <li><a class="dropdown-item" href="{% url 'perfil_cliente' %}">Mi Perfil</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                      <form id="logout-form" method="post" action="{% url 'logout' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="dropdown-item">Cerrar Sesión</button>
-                      </form>
-                    </li>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{% url 'lista_proveedores' %}">Proveedores</a></li>
+                    <li><a class="dropdown-item" href="{% url 'lista_usuarios' %}">Usuarios</a></li>
+                    <li><a class="dropdown-item" href="{% url 'lista_clientes' %}">Clientes</a></li>
+                    <li><a class="dropdown-item" href="{% url 'lista_insumo' %}">Insumos</a></li>
+                    <li><a class="dropdown-item" href="{% url 'lista_compras' %}">Compra de materia prima</a></li>
+                    <li><a class="dropdown-item" href="{% url 'lista_ventas' %}">Ventas</a></li>
                   </ul>
-                </li>
-              {% else %}
-                <!-- Elementos para staff -->
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'admin:index' %}"><i class="fas fa-cog"></i> Panel Admin</a>
                 </li>
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
-                    <i class="fas fa-user-shield"></i> {{ user.username }}
+                  <a class="nav-link dropdown-toggle" href="#" id="produccionDropdown" role="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-industry"></i> Producción
                   </a>
-                  <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                      <form id="logout-form" method="post" action="{% url 'logout' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="dropdown-item">Cerrar Sesión</button>
-                      </form>
-                    </li>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{% url 'lista_receta' %}">Recetario</a></li>
+                    <li><a class="dropdown-item" href="{% url 'lista_produccion' %}">Producción</a></li>
+                    <li><a class="dropdown-item" href="{% url 'lista_productos' %}">Productos</a></li>
                   </ul>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'corte_ventas_diario' %}"><i class="fas fa-chart-line"></i> Corte Ventas</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'dashboard_presentaciones_alertas' %}">Dashboard Presentaciones y Alertas</a>
+                </li>
+              {% elif user.rol == 'cliente' %}
+                <!-- Menú para clientes -->
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'catalogo' %}"><i class="fas fa-store"></i> Catálogo</a>
                 </li>
               {% endif %}
             {% else %}
-              <!-- Elementos para usuarios no autenticados -->
+              <!-- Menú para usuarios no autenticados -->
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'registro_cliente' %}"><i class="fas fa-user-plus"></i> Registrarse</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</a>
+              </li>
+            {% endif %}
+          </ul>
+
+          <ul class="navbar-nav ms-auto">
+            {% if user.is_authenticated %}
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                  <i class="fas fa-user"></i> {{ user.username }}
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <form id="logout-form" method="post" action="{% url 'logout' %}">
+                      {% csrf_token %}
+                      <button type="submit" class="dropdown-item">Cerrar Sesión</button>
+                    </form>
+                  </li>
+                </ul>
               </li>
             {% endif %}
           </ul>

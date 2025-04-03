@@ -5,6 +5,12 @@ from django.contrib.auth.hashers import check_password
 from django.db import connection
 from .forms import UsuarioRegistrarForm, UsuarioEditarForm
 from .models import Usuario
+from django.contrib.auth.models import Group  # Importar el modelo Group
+import logging
+from django.utils.timezone import now
+
+# Configuración del logger
+logger = logging.getLogger('usuarios_app')
 
 # CRUD para usuarios
 def lista_usuarios(request):
@@ -61,15 +67,28 @@ def registro_desde_login(request):
         if Usuario.objects.filter(nombre_usuario=nombre_usuario).exists():
             messages.error(request, "El nombre de usuario ya está registrado.")
         else:
-            usuario = Usuario(
-                nombre_usuario=nombre_usuario,
-                rol='cliente',  # Rol por defecto
-                estatus_user=1
-            )
-            usuario.set_password(contrasenia)  # Encripta la contraseña
-            usuario.save()
-            messages.success(request, "Usuario registrado exitosamente.")
-            return redirect('portal/registro_cliente', usuario_id=usuario.usuario_id)
+            try:
+                usuario = Usuario(
+                    nombre_usuario=nombre_usuario,
+                    rol='Cliente',  # Rol por defecto
+                    estatus_user=1
+                )
+                usuario.set_password(contrasenia)  # Encripta la contraseña
+                usuario.save()
+
+                # Asignar el usuario al grupo "Cliente"
+                grupo, created = Group.objects.get_or_create(name="Cliente")
+                usuario.groups.add(grupo)
+
+                # Registrar el evento en el log
+                logger.info(f"Nuevo usuario registrado: {usuario.nombre_usuario} el {now()}")
+
+                messages.success(request, "Usuario registrado exitosamente.")
+                return redirect('portal/registro_cliente', usuario_id=usuario.usuario_id)
+            except Exception as e:
+                # Captura cualquier error inesperado
+                logger.error(f"Error inesperado en el registro de usuario: {e} - {now()}")
+                messages.error(request, "Ocurrió un error al registrar el usuario.")
 
     return render(request, 'registration/login.html')
 

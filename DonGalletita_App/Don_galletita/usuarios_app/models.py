@@ -3,15 +3,15 @@ from django.utils.timezone import now
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
 class UsuarioManager(BaseUserManager):
-    def create_user(self, nombre_usuario, contrasenia, **extra_fields):
+    def create_user(self, nombre_usuario, password=None, **extra_fields):
         if not nombre_usuario:
             raise ValueError('El nombre de usuario es obligatorio')
         usuario = self.model(nombre_usuario=nombre_usuario, **extra_fields)
-        usuario.set_password(contrasenia)
+        usuario.set_password(password)
         usuario.save(using=self._db)
         return usuario
 
-    def create_superuser(self, nombre_usuario, contrasenia, **extra_fields):
+    def create_superuser(self, nombre_usuario, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
@@ -20,7 +20,7 @@ class UsuarioManager(BaseUserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('El superusuario debe tener is_superuser=True.')
 
-        return self.create_user(nombre_usuario, contrasenia, **extra_fields)
+        return self.create_user(nombre_usuario, password, **extra_fields)
 
 class Usuario(AbstractBaseUser, PermissionsMixin):
     usuario_id = models.AutoField(primary_key=True)
