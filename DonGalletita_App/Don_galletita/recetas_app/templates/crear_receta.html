@@ -3,45 +3,45 @@
 {% block content %}
 
 <div class="container mt-5">
-  <div class="card" style="max-width: 100%; margin: auto; border: 1px solid #D4A373; border-radius: 10px; padding: 20px; background-color: #FFF8DC;">
-    <div class="card-header text-center" style="background-color: #D4A373; font-size: 28px; font-weight: bold; color: #FFFFFF;">Nueva Receta</div>
-    <div class="card-body" style="padding: 40px;">
+    <div class="card" style="max-width: 100%; margin: auto; border: 1px solid #D4A373; border-radius: 10px; padding: 20px; background-color: #FFF8DC;">
+      <div class="card-header text-center" style="background-color: #D4A373; font-size: 28px; font-weight: bold; color: #FFFFFF;">Nueva Receta</div>
+      <div class="card-body" style="padding: 40px;">
 
-      <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        
-        <!-- Datos principales de la receta -->
-        <div class="form-group mb-3">
-          {{ form.producto.label_tag }}
-          {{ form.producto }}
-          {% if form.producto.errors %}
-            <div class="text-danger">{{ form.producto.errors }}</div>
-          {% endif %}
-        </div>
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          
+          <!-- Datos principales de la receta -->
+          <div class="form-group mb-3">
+            {{ form.producto.label_tag }}
+            {{ form.producto }}
+            {% if form.producto.errors %}
+              <div class="text-danger small">{{ form.producto.errors }}</div>
+            {% endif %}
+          </div>
 
-        <div class="form-group mb-3">
-          {{ form.foto_receta.label_tag }}
-          {{ form.foto_receta }}
-          {% if form.foto_receta.errors %}
-            <div class="text-danger">{{ form.foto_receta.errors }}</div>
-          {% endif %}
-        </div>
+          <div class="form-group mb-3">
+            {{ form.foto_receta.label_tag }}
+            {{ form.foto_receta }}
+            {% if form.foto_receta.errors %}
+              <div class="text-danger">{{ form.foto_receta.errors }}</div>
+            {% endif %}
+          </div>
 
-        <div class="form-group mb-3">
-          {{ form.porciones_galletas.label_tag }}
-          {{ form.porciones_galletas }}
-          {% if form.porciones_galletas.errors %}
-            <div class="text-danger">{{ form.porciones_galletas.errors }}</div>
-          {% endif %}
-        </div>
+          <div class="form-group mb-3">
+            {{ form.preparacion.label_tag }}
+            {{ form.preparacion }}
+            {% if form.preparacion.errors %}
+              <div class="text-danger">{{ form.preparacion.errors }}</div>
+            {% endif %}
+          </div>
 
-        <div class="form-group mb-3">
-          {{ form.preparacion.label_tag }}
-          {{ form.preparacion }}
-          {% if form.preparacion.errors %}
-            <div class="text-danger">{{ form.preparacion.errors }}</div>
-          {% endif %}
-        </div>
+          <div class="form-group mb-3">
+            {{ form.porciones_galletas.label_tag }}
+            {{ form.porciones_galletas }}
+            {% if form.porciones_galletas.errors %}
+              <div class="text-danger">{{ form.porciones_galletas.errors }}</div>
+            {% endif %}
+          </div>
 
           <!-- Sección de Insumos -->
           <div class="insumos-section">
@@ -142,11 +142,14 @@
           
           <div class="text-center mt-4">
             <button type="submit" class="btn btn-success me-2" style="background-color: #8B5E3C; color: #FFFFFF; border: none;">Registrar</button>
-            <a href="{% url 'lista_receta' %}" class="btn btn-secondary" style="background-color: #C9A66B; color: #FFFFFF; border: none;">Volver</a>
+            <a href="{% url 'lista_receta' %}" class="btn btn-secondary" style="background-color: #C9A66B; color: #FFFFFF; border: none;">Volver a la lista</a>
           </div>
         </form>
-  
+
       </div>
     </div>
   </div>
-  {% endblock %}
+{% block scripts %}
+  <script src="{% static 'js/recetas.js' %}"></script>
+{% endblock %}
+{% endblock %}

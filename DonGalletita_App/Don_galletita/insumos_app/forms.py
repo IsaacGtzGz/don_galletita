@@ -5,11 +5,11 @@ from decimal import Decimal
 class InsumosRegistrarForm(forms.ModelForm):
     class Meta:
         model = Insumos
-        fields = ['nombre_insumo', 'unidad_medida', 'cantidad_disponible']
+        fields = ['nombre_insumo', 'unidad_medida', 'cantidad_disponible']	
         widgets = {
             'nombre_insumo': forms.TextInput(attrs={'class': 'form-control'}),
             'unidad_medida': forms.Select(attrs={'class': 'form-control'}),
-            'cantidad_disponible': forms.NumberInput(attrs={'class': 'form-control'}),
+            'cantidad_disponible': forms.NumberInput(attrs={'class': 'form-control'})
         }
     def clean_nombre_insumo(self):
         nombre = self.cleaned_data.get('nombre_insumo')
@@ -38,7 +38,7 @@ class InsumosRegistrarForm(forms.ModelForm):
 class InsumosEditarForm(forms.ModelForm):
     class Meta:
         model = Insumos
-        fields = ['unidad_medida', 'cantidad_disponible']
+        fields = ['nombre_insumo', 'unidad_medida', 'cantidad_disponible']
     
     def clean(self):
         cleaned_data = super().clean()
@@ -46,6 +46,13 @@ class InsumosEditarForm(forms.ModelForm):
         unidad = cleaned_data.get('unidad_medida')
         print(f"Datos limpios: Cantidad: {cantidad}, Unidad: {unidad}")
         return cleaned_data
+    
+    def clean_cantidad_disponible(self):
+        cantidad = self.cleaned_data.get('cantidad_disponible')
+
+        if cantidad < Decimal('0'):
+            raise forms.ValidationError("La cantidad disponible no puede ser negativa.")
+        return cantidad
     
     def save(self, commit=True):
         insumo = super().save(commit=False)

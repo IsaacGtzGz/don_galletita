@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from recetas_app.models import Receta, RecetaInsumo
 from django.views.generic.base import TemplateView
 from django.views.generic import FormView
@@ -40,12 +40,9 @@ class CrearRecetaView(FormView):
         formset = context['formset']
         
         if formset.is_valid():
-            self.object = form.save(commit=False)
-            # Asigna automáticamente el nombre "Receta para [producto]"
-            self.object.nombre_receta = f"Receta para {self.object.producto.nombre}"
-            self.object.save()
+            self.object = form.save()  # Guarda primero la receta
             formset.instance = self.object
-            formset.save()
+            formset.save()  # Luego guarda los insumos
             
             # Eliminar los marcados para borrado
             instances = formset.save(commit=False)
@@ -60,43 +57,51 @@ class CrearRecetaView(FormView):
         
     
 class EditarRecetaView(UpdateView):
-    model = Receta
-    form_class = forms.RecetaEditarForm
     template_name = 'editar_receta.html'
-    success_url = reverse_lazy('lista_receta')
-    pk_url_kwarg = 'receta_id' #Para asegurar que se coinsida con el id
+    form_class = forms.RecetaEditarForm
+    success_url = reverse_lazy('lista_receta')  # 🔹 Redirigir correctamente después de guardar
 
     def get_object(self, queryset=None):
-        # Obtiene la receta específica usando pk
-        pk = self.kwargs.get(self.pk_url_kwarg)
-        return get_object_or_404(Receta, pk=pk)
+        return get_object_or_404(Receta, receta_id=self.kwargs.get('receta_id'))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.request.POST:
             context['formset'] = forms.RecetasInsumoFormSet(
                 self.request.POST,
-                instance=self.object,  # ¡Esto es crucial!
+                self.request.FILES,
+                instance=self.object,
                 prefix='insumos'
             )
         else:
             context['formset'] = forms.RecetasInsumoFormSet(
-                instance=self.object,  # ¡Esto es crucial!
+                instance=self.object,
                 prefix='insumos'
-            )            
+            )
         return context
-    
+
     def form_valid(self, form):
         context = self.get_context_data()
         formset = context['formset']
         
         if formset.is_valid():
-            response = super().form_valid(form)
-            formset.instance = self.object
-            formset.save()
-            return response
+            self.object = form.save()
+            
+            # Guardar primero los objetos no marcados para borrar
+            instances = formset.save(commit=False)
+            for instance in instances:
+                instance.receta = self.object
+                instance.save()
+            
+            # Eliminar los objetos marcados para borrar
+            for obj in formset.deleted_objects:
+                obj.delete()
+            
+            return super().form_valid(form)
         else:
-            return self.form_invalid(form)
+            print("Errores en el formset:", formset.errors)
+            return self.render_to_response(self.get_context_data(form=form))
+            
 
 class EliminarRecetaView(DeleteView):
     model = Receta
