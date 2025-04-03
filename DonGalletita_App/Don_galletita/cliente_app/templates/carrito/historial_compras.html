@@ -1,38 +1,42 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Historial de Compras</h2>
+<div class="container py-4">
+    <h2 class="mb-4"><i class="bi bi-receipt"></i> Historial de Compras</h2>
     
-    {% if ventas %}
-        <table class="table table-bordered">
-            <thead class="thead-dark">
-                <tr>
-                    <th>Fecha</th>
-                    <th>Estado</th>
-                    <th>Total</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for venta in ventas %}
-                    <tr>
-                        <td>{{ venta.fecha_venta }}</td>
-                        <td>{{ venta.estatus_venta }}</td>
-                        <td>${{ venta.total|floatformat:2 }}</td>
-                        <td>
-                            <a href="{% url 'descargar_ticket' venta.id %}" class="btn btn-primary btn-sm">
-                                Ver Ticket
-                            </a>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    {% if ventas_con_detalle %}
+    <div class="list-group">
+        {% for item in ventas_con_detalle %}
+        <div class="list-group-item mb-3">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <h5>Venta #{{ item.venta.id }}</h5>
+                    <small class="text-muted">{{ item.fecha }}</small>
+                </div>
+                <div>
+                    <span class="badge bg-{% if item.venta.estatus_venta == 'Pagado' %}success{% else %}warning{% endif %}">
+                        {{ item.venta.get_estatus_venta_display }}
+                    </span>
+                    <span class="badge bg-{% if item.venta.estado_entrega == 'entregado' %}success{% else %}warning{% endif %}">
+                        {{ item.venta.get_estado_entrega_display }}
+                    </span>
+                    <span class="fw-bold">${{ item.total|floatformat:2 }}</span>
+                </div>
+            </div>
+        
+            <td>
+                <a href="{% url 'generar_ticket' item.venta.id %}" 
+                   class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-receipt"></i> Ver Ticket
+                </a>
+            </td>
+        </div>
+        {% endfor %}
+    </div>
     {% else %}
-        <p class="alert alert-info">No tienes compras registradas.</p>
+    <div class="alert alert-info">
+        No hay compras registradas
+    </div>
     {% endif %}
-
-    <a href="{% url 'catalogo' %}" class="btn btn-secondary">Seguir Comprando</a>
 </div>
 {% endblock %}

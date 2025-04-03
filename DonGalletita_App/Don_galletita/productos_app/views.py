@@ -54,3 +54,4 @@ class EliminarProductoView(DeleteView):
         context = super().get_context_data(**kwargs)
         context['titulo'] = f'Eliminar {self.object.nombre}'
         return context
+
