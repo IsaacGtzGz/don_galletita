@@ -21,70 +21,43 @@
             <li class="nav-item">
               <a class="nav-link" href="{% url 'home' %}">Home</a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'lista_proveedores' %}">Provedores</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'lista_usuarios' %}">Usuarios</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'lista_clientes' %}">Clientes</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'lista_insumo' %}">Insumos</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'lista_compras' %}">Compra de materia prima</a>
-          </li>
-              <a class="nav-link" href="{% url 'lista_ventas' %}">Ventas</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'corte_ventas_diario' %}">Corte de Ventas</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'lista_receta' %}">Recetario</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'lista_produccion' %}">Producción</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'lista_productos' %}">Productos</a>
-            </li>
 
             {% if user.is_authenticated %}
-              {# Opciones específicas para clientes #}
-              {% if user.rol == 'cliente' %}
+              {% if user.groups.filter(name__in=['Empleado', 'Administrador']).exists %}
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'carrito_compras' %}">
-                    Carrito{% if request.session.carrito %}
-                      <span class="badge bg-danger">{{ request.session.carrito|length }}</span>
-                    {% endif %}
-                  </a>
+                  <a class="nav-link" href="{% url 'lista_proveedores' %}">Proveedores</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'historial_compras' %}">Mis Compras</a>
+                  <a class="nav-link" href="{% url 'lista_clientes' %}">Clientes</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'perfil_cliente' %}">Mi Perfil</a>
+                  <a class="nav-link" href="{% url 'lista_insumo' %}">Insumos</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'lista_compras' %}">Compra de materia prima</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'lista_ventas' %}">Ventas</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'corte_ventas_diario' %}">Corte de Ventas</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'lista_receta' %}">Recetario</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'lista_produccion' %}">Producción</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'lista_productos' %}">Productos</a>
                 </li>
               {% endif %}
 
-              <li class="nav-item">
-                <span class="navbar-text">Bienvenido {{ user.get_username }} ({{ user.rol }})</span>
-              </li>
-              <li class="nav-item">
-                <form id="logout-form" method="post" action="{% url 'logout' %}">
-                  {% csrf_token %}
-                  <button type="submit" class="nav-link btn btn-link">Cerrar Sesión</button>
-                </form>
-              </li>
-            {% else %}
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'registro_cliente' %}">Registrarse</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'login' %}">Iniciar Sesión</a>
-              </li>
+              {% if user.groups.filter(name='Administrador').exists %}
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'lista_usuarios' %}">Usuarios</a>
+                </li>
+              {% endif %}
             {% endif %}
           </ul>
         </div>

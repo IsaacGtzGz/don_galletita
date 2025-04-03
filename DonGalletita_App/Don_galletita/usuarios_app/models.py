@@ -3,15 +3,16 @@ from django.utils.timezone import now
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
 class UsuarioManager(BaseUserManager):
-    def create_user(self, nombre_usuario, contrasenia, **extra_fields):
-        if not nombre_usuario:
-            raise ValueError('El nombre de usuario es obligatorio')
-        usuario = self.model(nombre_usuario=nombre_usuario, **extra_fields)
-        usuario.set_password(contrasenia)
-        usuario.save(using=self._db)
-        return usuario
+    def create_user(self, username, email, contrasenia=None, **extra_fields):
+        if not email:
+            raise ValueError('El usuario debe tener un correo electrónico')
+        email = self.normalize_email(email)
+        user = self.model(username=username, email=email, **extra_fields)
+        user.set_password(contrasenia)
+        user.save(using=self._db)
+        return user
 
-    def create_superuser(self, nombre_usuario, contrasenia, **extra_fields):
+    def create_superuser(self, username, email, contrasenia=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
@@ -20,11 +21,12 @@ class UsuarioManager(BaseUserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('El superusuario debe tener is_superuser=True.')
 
-        return self.create_user(nombre_usuario, contrasenia, **extra_fields)
+        return self.create_user(username, email, contrasenia, **extra_fields)
 
 class Usuario(AbstractBaseUser, PermissionsMixin):
     usuario_id = models.AutoField(primary_key=True)
     nombre_usuario = models.CharField(max_length=255, unique=True)
+    email = models.EmailField(unique=True)
     contrasenia = models.CharField(max_length=255)
     rol = models.CharField(
         max_length=10,
@@ -43,7 +45,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     objects = UsuarioManager()
 
     USERNAME_FIELD = 'nombre_usuario'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['email']
 
     def __str__(self):
         return self.nombre_usuario
