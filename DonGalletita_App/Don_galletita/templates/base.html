@@ -3,67 +3,97 @@
 <html lang="es">
   <head>
     <title>Inicio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
     <link rel="stylesheet" href="{% static 'css/custom.css' %}" />
     <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css" rel="stylesheet">
+
+    <!-- Agrega este bloque de estilos en tu archivo base.html -->
+    <style>
+      .navbar-nav .nav-link {
+      font-size: 0.8rem; /* Reduce aún más el tamaño de la fuente */
+      padding: 0.4rem 0.6rem; /* Ajusta más el espaciado */
+      }
+
+      .navbar-brand {
+      font-size: 1rem; /* Reduce más el tamaño del logo/marca */
+      }
+
+      .navbar-toggler {
+      font-size: 0.7rem; /* Ajusta más el tamaño del botón de colapso */
+      }
+
+      .dropdown-menu .dropdown-item {
+      font-size: 0.75rem; /* Reduce más el tamaño de los elementos del dropdown */
+      }
+
+      .badge {
+      font-size: 0.65rem; /* Ajusta más el tamaño de las insignias */
+      }
+    </style>
   </head>
 
   <body>
-    <nav class="navbar navbar-expand-lg ">
-      <div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top">
+      <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'home' %}">DON GALLETITA</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto">
+          <ul class="navbar-nav me-auto">
+            <!-- Menú principal -->
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'home' %}">Home</a>
+              <a class="nav-link" href="{% url 'catalogo' %}"><i class="fas fa-home"></i> Home</a>
+            </li>
+
+            <!-- Dropdown para operaciones -->
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="operacionesDropdown" role="button" data-bs-toggle="dropdown">
+                <i class="fas fa-cogs"></i> Operaciones
+              </a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{% url 'lista_proveedores' %}">Proveedores</a></li>
+                <li><a class="dropdown-item" href="{% url 'lista_usuarios' %}">Usuarios</a></li>
+                <li><a class="dropdown-item" href="{% url 'lista_clientes' %}">Clientes</a></li>
+                <li><a class="dropdown-item" href="{% url 'lista_insumo' %}">Insumos</a></li>
+                <li><a class="dropdown-item" href="{% url 'lista_ventas' %}">Ventas</a></li>
+              </ul>
+            </li>
+
+            <!-- Dropdown para producción -->
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="produccionDropdown" role="button" data-bs-toggle="dropdown">
+                <i class="fas fa-industry"></i> Producción
+              </a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{% url 'lista_receta' %}">Recetario</a></li>
+                <li><a class="dropdown-item" href="{% url 'lista_produccion' %}">Producción</a></li>
+                <li><a class="dropdown-item" href="{% url 'lista_productos' %}">Productos</a></li>
+              </ul>
+            </li>
+
+            <!-- Otros enlaces -->
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'corte_ventas_diario' %}"><i class="fas fa-chart-line"></i> Corte Ventas</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'lista_proveedores' %}">Proveedores</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'lista_usuarios' %}">Usuarios</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'lista_clientes' %}">Clientes</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'lista_insumo' %}">Insumos</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'lista_ventas' %}">Ventas</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'corte_ventas_diario' %}">Corte de Ventas</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'lista_receta' %}">Recetario</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'lista_produccion' %}">Producción</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'lista_productos' %}">Productos</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'catalogo' %}">Catálogo</a>
+              <a class="nav-link" href="{% url 'catalogo' %}"><i class="fas fa-store"></i> Catálogo</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{% url 'dashboard_presentaciones_alertas' %}">
-                Dashboard Presentaciones y Alertas</a>
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
             </li>
+          </ul>
 
+          <ul class="navbar-nav ms-auto">
             {% if user.is_authenticated %}
-              {% if user.is_staff %}
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'admin:index' %}">Panel Admin</a>
-                </li>
-              {% else %}
+              {% if not user.is_staff %}
+                <!-- Elementos para clientes -->
                 <li class="nav-item">
                   <a class="nav-link" href="{% url 'ver_carrito' %}">
                     <i class="fa-solid fa-cart-shopping"></i> Carrito
@@ -72,53 +102,54 @@
                     {% endif %}
                   </a>
                 </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'lista_clientes' %}">Clientes</a>
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" id="clienteDropdown" role="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-user"></i> {{ user.username }}
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="{% url 'historial_compras' %}">Mis Compras</a></li>
+                    <li><a class="dropdown-item" href="{% url 'perfil_cliente' %}">Mi Perfil</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                      <form id="logout-form" method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="dropdown-item">Cerrar Sesión</button>
+                      </form>
+                    </li>
+                  </ul>
                 </li>
+              {% else %}
+                <!-- Elementos para staff -->
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'lista_insumo' %}">Insumos</a>
+                  <a class="nav-link" href="{% url 'admin:index' %}"><i class="fas fa-cog"></i> Panel Admin</a>
                 </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'lista_compras' %}">Compra de materia prima</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'lista_ventas' %}">Ventas</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'corte_ventas_diario' %}">Corte de Ventas</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'lista_receta' %}">Recetario</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'lista_produccion' %}">Producción</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'lista_productos' %}">Productos</a>
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-user-shield"></i> {{ user.username }}
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <form id="logout-form" method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="dropdown-item">Cerrar Sesión</button>
+                      </form>
+                    </li>
+                  </ul>
                 </li>
               {% endif %}
-
-              <li class="nav-item">
-                <span class="navbar-text text-light">Bienvenido, {{ user.username }}</span>
-              </li>
-              <li class="nav-item">
-                <form id="logout-form" method="post" action="{% url 'logout' %}">
-                  {% csrf_token %}
-                  <button type="submit" class="nav-link btn btn-link text-light">Cerrar Sesión</button>
-                </form>
-              </li>
             {% else %}
+              <!-- Elementos para usuarios no autenticados -->
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'registro_cliente' %}">Registrarse</a>
+                <a class="nav-link" href="{% url 'registro_cliente' %}"><i class="fas fa-user-plus"></i> Registrarse</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'login' %}">Iniciar Sesión</a>
+                <a class="nav-link" href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</a>
               </li>
             {% endif %}
           </ul>
         </div>
       </div>
-    </nav>
+    </nav><br><br>
 
     {% if messages %}
       <div class="container mt-3">
