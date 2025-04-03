@@ -39,9 +39,7 @@
     <nav class="navbar navbar-expand-lg fixed-top">
       <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'home' %}">DON GALLETITA</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-          <span class="navbar-toggler-icon"></span>
-        </button>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto">
@@ -60,6 +58,7 @@
                 <li><a class="dropdown-item" href="{% url 'lista_usuarios' %}">Usuarios</a></li>
                 <li><a class="dropdown-item" href="{% url 'lista_clientes' %}">Clientes</a></li>
                 <li><a class="dropdown-item" href="{% url 'lista_insumo' %}">Insumos</a></li>
+                <li><a class="dropdown-item" href="{% url 'lista_compras' %}">Compra de materia prima</a></li>
                 <li><a class="dropdown-item" href="{% url 'lista_ventas' %}">Ventas</a></li>
               </ul>
             </li>
@@ -84,9 +83,7 @@
               <a class="nav-link" href="{% url 'catalogo' %}"><i class="fas fa-store"></i> Catálogo</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'dashboard_presentaciones_alertas' %}">
-                <i class="fas fa-tachometer-alt"></i> Dashboard
-              </a>
+              <a class="nav-link" href="{% url 'dashboard_presentaciones_alertas' %}">Dashboard Presentaciones y Alertas</a>
             </li>
           </ul>
 
@@ -96,8 +93,7 @@
                 <!-- Elementos para clientes -->
                 <li class="nav-item">
                   <a class="nav-link" href="{% url 'ver_carrito' %}">
-                    <i class="fa-solid fa-cart-shopping"></i> Carrito
-                    {% if request.session.carrito %}
+                    <i class="fa-solid fa-cart-shopping"></i> Carrito{% if request.session.carrito %}
                       <span class="badge bg-danger">{{ request.session.carrito|length }}</span>
                     {% endif %}
                   </a>
@@ -163,15 +159,17 @@
     {% endif %}
 
     <main class="container mt-4">
-      {% block content %}{% endblock %}
+      {% block content %}
+      {% endblock %}
     </main>
 
-    <footer class="footer  text-white text-center py-3 mt-4">
+    <footer class="footer text-white text-center py-3 mt-4">
       <p>&copy; 2025 Don Galletita. Todos los derechos reservados.</p>
     </footer>
 
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 
-    {% block scripts %}{% endblock %}
+    {% block scripts %}
+    {% endblock %}
   </body>
 </html>

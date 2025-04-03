@@ -5,6 +5,7 @@ from .views import (
     CorteVentasDiarioView, TicketVentaView, DetalleVentaView,
     ExportarReportePDFView, ExportarReporteExcelView, ConfirmarVentaView, DashboardPresentacionesAlertasView
 )
+from . import views
 
 urlpatterns = [
     # URL para crear, editar y eliminar ventas
