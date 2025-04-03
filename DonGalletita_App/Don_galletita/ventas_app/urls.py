@@ -5,6 +5,7 @@ from .views import (
     CorteVentasDiarioView, TicketVentaView, DetalleVentaView,
     ExportarReportePDFView, ExportarReporteExcelView, ConfirmarVentaView, DashboardPresentacionesAlertasView
 )
+from . import views
 
 urlpatterns = [
     # URL para crear, editar y eliminar ventas
@@ -28,7 +29,12 @@ urlpatterns = [
     # URL para confirmar ventas
     path('confirmar_venta/<int:venta_id>/', ConfirmarVentaView.as_view(), name='confirmar_venta'),
 
+<<<<<<< Updated upstream
     #Dashboard
      path('dashboard/presentaciones-alertas/', DashboardPresentacionesAlertasView.as_view(), 
          name='dashboard_presentaciones_alertas'),
+=======
+    # URL para acceder al dashboard de ventas
+    path('dashboard/', views.dashboard_ventas, name='dashboard_ventas'),
+>>>>>>> Stashed changes
 ]
