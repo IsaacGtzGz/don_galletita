@@ -4,13 +4,56 @@
 {% block content %}
   <div class="container mt-5">
     <div class="card" style="max-width: 100%; margin: auto; border: 1px solid #D4A373; border-radius: 10px; padding: 20px; background-color: #FFF8DC;">
-      <div class="card-header text-center" style="background-color: #D4A373; font-size: 28px; font-weight: bold; color: #FFFFFF;">Nueva Producción</div>
+      <div class="card-header text-center" style="background-color: #D4A373; font-size: 28px; font-weight: bold; color: #FFFFFF;">
+        Nueva Producción
+      </div>
       <div class="card-body" style="padding: 40px;">
         <form method="post" class="needs-validation" novalidate>
           {% csrf_token %}
+          
+          <!-- Selección de Receta -->
           <div class="form-group mb-3">
-            {{ form.as_p }}
+            <label for="receta_id" class="form-label">Selecciona una receta:</label>
+            <select id="receta_id" name="receta_id" class="form-control" required>
+              <option value="" selected disabled>Seleccione una receta...</option>
+              {% for receta in recetas %}
+                  <option value="{{ receta.receta_id }}" 
+                          data-porciones="{{ receta.porciones_galletas }}"
+                          data-producto-id="{{ receta.producto.producto_id }}">
+                      {{ receta.producto.nombre }} ({{ receta.porciones_galletas }} porciones)
+                  </option>
+              {% empty %}
+                  <option value="" disabled>No hay recetas disponibles</option>
+              {% endfor %}
+            </select>
+            <div class="invalid-feedback">Por favor, selecciona una receta.</div>
           </div>
+
+          <!-- Cantidad de galletas (Automático) -->
+          <div class="form-group mb-3">
+            <label for="id_porciones_galletas" class="form-label">Cantidad de galletas a producir:</label>
+            <input type="number" id="id_porciones_galletas" name="porciones_galletas" class="form-control" readonly>
+          </div>
+
+          <!-- Fecha de finalización -->
+          <div class="form-group mb-3">
+            <label for="id_fecha_finalizacion" class="form-label">Fecha de finalización:</label>
+            <input type="datetime-local" id="id_fecha_finalizacion" name="fecha_finalizacion" class="form-control" required>
+            <div class="invalid-feedback">Ingresa la fecha de finalización.</div>
+          </div>
+
+          <!-- Añadir esto después del campo de fecha_finalizacion -->
+          <div class="form-group mb-3">
+            <label for="id_fecha_caducidad" class="form-label">Fecha de caducidad del producto:</label>
+            <input type="date" id="id_fecha_caducidad" name="fecha_caducidad" 
+                  class="form-control" required
+                  min="{% now 'Y-m-d' %}">
+            <small class="form-text text-muted">
+                Establezca la fecha en que este lote de galletas caducará (normalmente 30 días después de producción)
+            </small>
+            <div class="invalid-feedback">Por favor ingrese una fecha de caducidad válida (posterior a hoy).</div>
+          </div>
+
           <div class="text-center mt-4">
             <button type="submit" class="btn btn-success me-2" style="background-color: #8B5E3C; color: #FFFFFF; border: none;">
               <i class="fas fa-save"></i> Guardar
@@ -41,5 +84,12 @@
             });
         }, false);
     })();
+
+    // Script para actualizar la cantidad de producción según la receta seleccionada
+    document.getElementById('receta_id').addEventListener('change', function() {
+        var selectedOption = this.options[this.selectedIndex];
+        var porcionesGalletas = selectedOption.getAttribute('data-porciones');
+        document.getElementById('id_porciones_galletas').value = porcionesGalletas || '';
+    });
   </script>
 {% endblock %}

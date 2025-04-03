@@ -43,5 +43,4 @@ urlpatterns = [
     path('compras/', include('compras_app.urls')),
     path('ventas/', include('ventas_app.urls')),
     path('recetas/', include('recetas_app.urls')),
-]
-#+ static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
+]+ static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
