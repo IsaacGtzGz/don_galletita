@@ -20,7 +20,7 @@ class Receta(models.Model):
     def get_receta_id(self):
         return self.receta_id
  
-    def __str__(self):
+    def _str_(self):
         return f"Receta {self.receta_id}-{self.producto.nombre}"
 
 class RecetaInsumo(models.Model):
@@ -30,5 +30,5 @@ class RecetaInsumo(models.Model):
     cantidad_necesaria = models.IntegerField(default=0)
     unidad_medida = models.CharField(max_length=10, choices=Insumos.UNIDADES_CHOICES, null=True, blank=True)
 
-    def __str__(self):
+    def _str_(self):
         return f"{self.recetasinsumo_id}-{self.receta.producto.nombre}-{self.insumo.nombre_insumo}-{self.cantidad_necesaria}-{self.unidad_medida}"

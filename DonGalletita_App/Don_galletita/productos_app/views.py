@@ -3,6 +3,7 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from .models import Producto
 from .forms import ProductoForm
+from datetime import timedelta
 
 class ListaProductosView(ListView):
     model = Producto
@@ -13,7 +14,13 @@ class ListaProductosView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['titulo'] = 'Inventario de Productos'
+        hoy = timezone.now().date()
+        alerta_fecha = hoy + timedelta(days=2)
         context['fecha_actual'] = timezone.now().date()
+    
+        productos_por_caducar = Producto.objects.filter(fecha_caducidad=alerta_fecha)
+        
+        context['productos_por_caducar'] = productos_por_caducar
         return context
 
 class CrearProductoView(CreateView):
