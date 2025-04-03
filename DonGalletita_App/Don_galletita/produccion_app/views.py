@@ -1,72 +1,95 @@
-from django.shortcuts import render
-from django.utils import timezone
-from datetime import timedelta
-from .models import Produccion, LoteProduccion, ConsumoInsumos
-from productos_app.models import Producto
-from recetas_app.models import Receta
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.generic import ListView, CreateView, DetailView, DeleteView
+from django.urls import reverse_lazy
+from django.contrib import messages
 from django.db import transaction
+from .models import Produccion, LoteProduccion, ConsumoInsumos
+from .forms import ProduccionForm, LoteProduccionForm
+from recetas_app.models import Receta, RecetaInsumo
+from insumos_app.models import Insumos
 
+class ListaProduccionView(ListView):
+    model = Produccion
+    template_name = 'lista_produccion.html'
+    context_object_name = 'producciones'
 
+class CrearProduccionView(CreateView):
+    model = Produccion
+    form_class = ProduccionForm
+    template_name = 'crear_produccion.html'
+    success_url = reverse_lazy('lista_produccion')
 
-# Create your views here.
-@transaction.atomic
-def iniciar_produccion(request, producto_id, cantidad_galletas):
-    producto = Producto.objects.get(pk=producto_id)
-    recetas = Receta.objects.filter(producto_id=producto_id)
-    
-    # Verificar insumos suficientes
-    for receta in recetas:
-        insumo = receta.insumo
-        cantidad_necesaria = receta.cantidad_necesaria * cantidad_galletas
-        
-        # Convertir unidades si es necesario
-        if insumo.unidad_medida != receta.unidad_medida:
-            cantidad_necesaria = convertir_unidades(
-                cantidad_necesaria, 
-                receta.unidad_medida, 
-                insumo.unidad_medida
-            )
-        
-        if insumo.cantidad_disponible < cantidad_necesaria:
-            raise Exception(f"Insumo {insumo.nombre_insumo} insuficiente")
+    def form_valid(self, form):
+        try:
+            with transaction.atomic():
+                produccion = form.save(commit=False)
+                producto = produccion.producto
+                cantidad = form.cleaned_data['cantidad_producida']
+                receta = Receta.objects.get(producto=producto)
+                
+                for receta_insumo in RecetaInsumo.objects.filter(receta=receta):
+                    cantidad_necesaria = receta_insumo.cantidad_necesaria * cantidad
+                    
+                    # Conversión de unidades si es necesario
+                    if receta_insumo.unidad_medida == 'g' and receta_insumo.insumo.unidad_medida == 'kg':
+                        cantidad_necesaria /= 1000
+                    elif receta_insumo.unidad_medida == 'kg' and receta_insumo.insumo.unidad_medida == 'g':
+                        cantidad_necesaria *= 1000
+                    # Agrega otras conversiones necesarias aquí
+                    
+                    if receta_insumo.insumo.cantidad_disponible < cantidad_necesaria:
+                        raise ValueError(
+                            f"Insumo insuficiente: {receta_insumo.insumo.nombre_insumo}\n"
+                            f"Necesitas {cantidad_necesaria} {receta_insumo.insumo.unidad_medida} "
+                            f"(tienes {receta_insumo.insumo.cantidad_disponible})"
+                        )
+                
+                produccion.save()
+                lote = LoteProduccion.objects.create(
+                    produccion=produccion,
+                    cantidad_galletas=cantidad,
+                    fecha_caducidad=form.cleaned_data['fecha_finalizacion'].date() if form.cleaned_data['fecha_finalizacion'] else None
+                )
+                
+                for receta_insumo in RecetaInsumo.objects.filter(receta=receta):
+                    cantidad_usada = receta_insumo.cantidad_necesaria * cantidad
+                    # Aplica misma conversión para el descuento
+                    if receta_insumo.unidad_medida == 'g' and receta_insumo.insumo.unidad_medida == 'kg':
+                        cantidad_usada /= 1000
+                    elif receta_insumo.unidad_medida == 'kg' and receta_insumo.insumo.unidad_medida == 'g':
+                        cantidad_usada *= 1000
+                    
+                    ConsumoInsumos.objects.create(
+                        produccion=produccion,
+                        insumo=receta_insumo.insumo,
+                        cantidad_usada=cantidad_usada
+                    )
+                    receta_insumo.insumo.cantidad_disponible -= cantidad_usada
+                    receta_insumo.insumo.save()
+                
+                producto.cantidad_disponible += cantidad
+                producto.save()
+                messages.success(self.request, "Producción registrada exitosamente!")
+                return super().form_valid(form)
+        except Exception as e:
+            messages.error(self.request, f"Error: {str(e)}")
+            return self.form_invalid(form)
 
-    # Crear producción
-    produccion = Produccion.objects.create(producto=producto)
+class DetalleProduccionView(DetailView):
+    model = Produccion
+    template_name = 'detalle_produccion.html'
     
-    # Registrar consumo de insumos
-    for receta in recetas:
-        cantidad_usada = receta.cantidad_necesaria * cantidad_galletas
-        ConsumoInsumos.objects.create(
-            produccion=produccion,
-            insumo=receta.insumo,
-            cantidad_usada=cantidad_usada
-        )
-        # Actualizar inventario
-        receta.insumo.cantidad_disponible -= cantidad_usada
-        receta.insumo.save()
-    
-    return produccion
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['lotes'] = LoteProduccion.objects.filter(produccion=self.object)
+        context['consumos'] = ConsumoInsumos.objects.filter(produccion=self.object)
+        return context
 
-def finalizar_produccion(request, produccion_id):
-    produccion = Produccion.objects.get(pk=produccion_id)
-    produccion.fecha_finalizacion = timezone.now()
-    produccion.estado = 'finalizada'
-    produccion.save()
+class EliminarProduccionView(DeleteView):
+    model = Produccion
+    template_name = 'eliminar_produccion.html'
+    success_url = reverse_lazy('lista_produccion')
     
-    # Calcular fecha de caducidad (ejemplo: 30 días desde producción)
-    fecha_caducidad = timezone.now() + timedelta(days=30)
-    
-    # Crear lote
-    lote = LoteProduccion.objects.create(
-        produccion=produccion,
-        cantidad_galletas=1000,  # Obtener de la receta
-        fecha_caducidad=fecha_caducidad
-    )
-    
-    # Actualizar inventario de producto
-    producto = produccion.producto
-    producto.cantidad_disponible += lote.cantidad_galletas
-    producto.fecha_caducidad = fecha_caducidad
-    producto.save()
-    
-    return lote
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, "Producción eliminada correctamente")
+        return super().delete(request, *args, **kwargs)

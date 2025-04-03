@@ -47,6 +47,13 @@ class InsumosEditarForm(forms.ModelForm):
         print(f"Datos limpios: Cantidad: {cantidad}, Unidad: {unidad}")
         return cleaned_data
     
+    def clean_cantidad_disponible(self):
+        cantidad = self.cleaned_data.get('cantidad_disponible')
+
+        if cantidad < Decimal('0'):
+            raise forms.ValidationError("La cantidad disponible no puede ser negativa.")
+        return cantidad
+    
     def save(self, commit=True):
         insumo = super().save(commit=False)
         unidad_anterior = insumo.unidad_medida

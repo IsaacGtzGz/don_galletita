@@ -1,5 +1,7 @@
 from django import forms
-from . models import Producto
+from .models import Producto
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 class ProductoForm(forms.ModelForm):
     class Meta:
@@ -14,4 +16,17 @@ class ProductoForm(forms.ModelForm):
             "peso_unidad": forms.NumberInput(attrs={"class": "form-control"}),
             "fecha_caducidad": forms.DateInput(attrs={"class": "form-control"}),
         }
-        
+
+    def clean_nombre(self):
+        nombre = self.cleaned_data['nombre']
+        # Validación para asegurarse de que el nombre sea único
+        if Producto.objects.filter(nombre__iexact=nombre).exists():
+            if self.instance.pk is None:  # Solo validar si es una creación
+                raise ValidationError('Este nombre de producto ya existe')
+        return nombre.strip().title()
+
+    def clean_fecha_caducidad(self):
+        fecha = self.cleaned_data['fecha_caducidad']
+        if fecha and fecha < timezone.now().date():
+            raise ValidationError('La fecha de caducidad no puede ser en el pasado')
+        return fecha

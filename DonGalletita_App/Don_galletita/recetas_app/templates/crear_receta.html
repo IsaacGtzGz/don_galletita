@@ -12,8 +12,11 @@
           
           <!-- Datos principales de la receta -->
           <div class="form-group mb-3">
-            {{ form.producto.nombre.label_tag }} 
-            {{ form.producto.nombre }}
+            {{ form.producto.label_tag }}
+            {{ form.producto }}
+            {% if form.producto.errors %}
+              <div class="text-danger small">{{ form.producto.errors }}</div>
+            {% endif %}
           </div>
 
           <div class="form-group mb-3">

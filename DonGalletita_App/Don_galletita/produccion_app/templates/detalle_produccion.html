@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="container mt-5">
+    <div class="card" style="max-width: 100%; margin: auto; border: 1px solid #D4A373; border-radius: 10px; padding: 20px; background-color: #FFF8DC;">
+      <div class="card-header text-center" style="background-color: #D4A373; font-size: 28px; font-weight: bold; color: #FFFFFF;">
+        Detalles de Producción #{{ produccion.produccion_id }}
+      </div>
+      <div class="card-body" style="padding: 40px;">
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <h5>Información General</h5>
+            <ul class="list-group">
+              <li class="list-group-item">
+                <strong>Producto:</strong> {{ produccion.producto.nombre }}
+              </li>
+              <li class="list-group-item">
+                <strong>Fecha Inicio:</strong> {{ produccion.fecha_inicio|date:"d/m/Y H:i" }}
+              </li>
+              <li class="list-group-item">
+                <strong>Fecha Finalización:</strong> 
+                {% if produccion.fecha_finalizacion %}
+                  {{ produccion.fecha_finalizacion|date:"d/m/Y H:i" }}
+                {% else %}
+                  <span class="text-muted">Pendiente</span>
+                {% endif %}
+              </li>
+              <li class="list-group-item">
+                <strong>Cantidad Producida:</strong> {{ produccion.cantidad_producida }} {{ produccion.producto.unidad_medida }}
+              </li>
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <h5>Lotes Asociados</h5>
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>Lote ID</th>
+                    <th>Cantidad</th>
+                    <th>Caducidad</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for lote in lotes %}
+                  <tr>
+                    <td>{{ lote.lote_id }}</td>
+                    <td>{{ lote.cantidad_galletas }} pz</td>
+                    <td>{{ lote.fecha_caducidad|date:"d/m/Y" }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="3" class="text-center">No hay lotes registrados</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <h5 class="mt-4">Insumos Utilizados</h5>
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered">
+            <thead class="thead-light">
+              <tr>
+                <th>Insumo</th>
+                <th>Cantidad Usada</th>
+                <th>Unidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for consumo in consumos %}
+              <tr>
+                <td>{{ consumo.insumo.nombre_insumo }}</td>
+                <td>{{ consumo.cantidad_usada }}</td>
+                <td>{{ consumo.insumo.unidad_medida }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="3" class="text-center">No hay registros de consumo</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer text-right">
+        <a href="{% url 'lista_produccion' %}" class="btn btn-secondary" style="background-color: #C9A66B; color: #FFFFFF; border: none;">
+          Volver a la lista
+        </a>
+      </div>
+    </div>
+  </div>
+{% endblock %}
