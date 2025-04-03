@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Historial de Compras</h2>
+    
+    {% if ventas %}
+        <table class="table table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Total</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for venta in ventas %}
+                    <tr>
+                        <td>{{ venta.fecha_venta }}</td>
+                        <td>{{ venta.estatus_venta }}</td>
+                        <td>${{ venta.total|floatformat:2 }}</td>
+                        <td>
+                            <a href="{% url 'descargar_ticket' venta.id %}" class="btn btn-primary btn-sm">
+                                Ver Ticket
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="alert alert-info">No tienes compras registradas.</p>
+    {% endif %}
+
+    <a href="{% url 'catalogo' %}" class="btn btn-secondary">Seguir Comprando</a>
+</div>
+{% endblock %}

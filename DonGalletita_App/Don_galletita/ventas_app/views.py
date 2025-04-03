@@ -17,7 +17,11 @@ import io
 import openpyxl
 from openpyxl.styles import Font
 from django.db import transaction
-
+from django.utils import timezone
+from django.db.models import Sum, Count
+from ventas_app.models import DetalleVenta
+from productos_app.models import Producto
+from datetime import timedelta
 # Listar ventas
 class ListaVentasView(TemplateView):
     template_name = 'lista_ventas.html'
@@ -388,3 +392,51 @@ class ConfirmarVentaView(TemplateView):
         venta.save()
 
         return redirect('detalle_venta', venta_id=venta.id)
+    
+
+# Dashboard de presentaciones y alertas
+class DashboardPresentacionesAlertasView(TemplateView):
+    template_name = 'dashboard_presentaciones_alertas.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # --- Gráfico de Presentaciones Más Vendidas ---
+        ventas_30_dias = Venta.objects.filter(
+            fecha_venta__gte=timezone.now() - timedelta(days=30))
+        
+        detalles = DetalleVenta.objects.filter(venta__in=ventas_30_dias)
+        
+        # Agrupar por tipo de presentación
+        presentaciones_data = detalles.values('unidad_medida').annotate(
+            total_vendido=Sum('cantidad'),
+            total_ventas=Count('id')
+        ).order_by('-total_vendido')
+        
+        # Preparar datos para el gráfico con nombres y colores para galletas
+        context['presentaciones_chart'] = {
+            'labels': [self.get_presentation_name(p['unidad_medida']) for p in presentaciones_data],
+            'data': [float(p['total_vendido']) for p in presentaciones_data],
+            'colors': ['#F4A261', '#2A9D8F', '#E9C46A', '#E76F51', '#264653']
+        }
+        
+        # --- Alertas de Caducidad ---
+        fecha_limite = timezone.now().date() + timedelta(days=2)
+        context['productos_proximos_caducar'] = Producto.objects.filter(
+            fecha_caducidad__lte=fecha_limite,
+            fecha_caducidad__gte=timezone.now().date(),
+            cantidad_disponible__gt=0
+        ).order_by('fecha_caducidad')
+        
+        return context
+    
+    def get_presentation_name(self, unidad_medida):
+        # Mapeo de códigos a nombres legibles para galletas
+        presentation_names = {
+            'kg': 'Bolsas 1kg',
+            'g': 'Granel (100g)',
+            'pz': 'Cajas Individuales',
+            '1kg': 'Paquetes Familiares',
+            '700g': 'Promo Especial'
+        }
+        return presentation_names.get(unidad_medida, unidad_medida)

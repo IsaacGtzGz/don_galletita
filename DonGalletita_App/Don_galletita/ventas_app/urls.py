@@ -3,7 +3,7 @@ from .views import (
     ListaVentasView, CrearVentaView, EditarVentaView, EliminarVentaView,
     CrearDetalleVentaView, EditarDetalleVentaView, EliminarDetalleVentaView,
     CorteVentasDiarioView, TicketVentaView, DetalleVentaView,
-    ExportarReportePDFView, ExportarReporteExcelView, ConfirmarVentaView
+    ExportarReportePDFView, ExportarReporteExcelView, ConfirmarVentaView, DashboardPresentacionesAlertasView
 )
 
 urlpatterns = [
@@ -27,4 +27,8 @@ urlpatterns = [
 
     # URL para confirmar ventas
     path('confirmar_venta/<int:venta_id>/', ConfirmarVentaView.as_view(), name='confirmar_venta'),
+
+    #Dashboard
+     path('dashboard/presentaciones-alertas/', DashboardPresentacionesAlertasView.as_view(), 
+         name='dashboard_presentaciones_alertas'),
 ]

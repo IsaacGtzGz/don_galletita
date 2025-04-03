@@ -6,26 +6,71 @@
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
     <link rel="stylesheet" href="{% static 'css/custom.css' %}" />
     <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'css/receta.css' %}" />
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    <script src="{% static 'js/insumos.js' %}"></script>
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css" rel="stylesheet">
   </head>
+
   <body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
+    <nav class="navbar navbar-expand-lg ">
       <div class="container">
         <a class="navbar-brand" href="{% url 'home' %}">DON GALLETITA</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
         <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ml-auto">
+          <ul class="navbar-nav ms-auto">
             <li class="nav-item">
               <a class="nav-link" href="{% url 'home' %}">Home</a>
             </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'lista_proveedores' %}">Proveedores</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'lista_usuarios' %}">Usuarios</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'lista_clientes' %}">Clientes</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'lista_insumo' %}">Insumos</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'lista_ventas' %}">Ventas</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'corte_ventas_diario' %}">Corte de Ventas</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'lista_receta' %}">Recetario</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'lista_produccion' %}">Producción</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'lista_productos' %}">Productos</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'catalogo' %}">Catálogo</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'dashboard_presentaciones_alertas' %}">
+                Dashboard Presentaciones y Alertas</a>
+            </li>
 
             {% if user.is_authenticated %}
-              {% if user.groups.filter(name__in=['Empleado', 'Administrador']).exists %}
+              {% if user.is_staff %}
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'lista_proveedores' %}">Proveedores</a>
+                  <a class="nav-link" href="{% url 'admin:index' %}">Panel Admin</a>
+                </li>
+              {% else %}
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'ver_carrito' %}">
+                    <i class="fa-solid fa-cart-shopping"></i> Carrito
+                    {% if request.session.carrito %}
+                      <span class="badge bg-danger">{{ request.session.carrito|length }}</span>
+                    {% endif %}
+                  </a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="{% url 'lista_clientes' %}">Clientes</a>
@@ -53,51 +98,49 @@
                 </li>
               {% endif %}
 
-              {% if user.groups.filter(name='Administrador').exists %}
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'lista_usuarios' %}">Usuarios</a>
-                </li>
-              {% endif %}
+              <li class="nav-item">
+                <span class="navbar-text text-light">Bienvenido, {{ user.username }}</span>
+              </li>
+              <li class="nav-item">
+                <form id="logout-form" method="post" action="{% url 'logout' %}">
+                  {% csrf_token %}
+                  <button type="submit" class="nav-link btn btn-link text-light">Cerrar Sesión</button>
+                </form>
+              </li>
+            {% else %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'registro_cliente' %}">Registrarse</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'login' %}">Iniciar Sesión</a>
+              </li>
             {% endif %}
           </ul>
         </div>
       </div>
     </nav>
 
-    {# Mostrar mensajes #}
     {% if messages %}
       <div class="container mt-3">
         {% for message in messages %}
-          <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
             {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
           </div>
         {% endfor %}
       </div>
     {% endif %}
 
-    {% block content %}
+    <main class="container mt-4">
+      {% block content %}{% endblock %}
+    </main>
 
-    {% endblock %}
-
-    <footer class="footer">
+    <footer class="footer  text-white text-center py-3 mt-4">
       <p>&copy; 2025 Don Galletita. Todos los derechos reservados.</p>
     </footer>
 
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
-    <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        const toggler = document.querySelector('.navbar-toggler')
-        const navbar = document.querySelector('#navbarNav')
-      
-        toggler.addEventListener('click', function () {
-          navbar.classList.toggle('show')
-        })
-      })
-    </script>
 
-    {% block scripts %}
-
-    {% endblock %}
+    {% block scripts %}{% endblock %}
   </body>
 </html>

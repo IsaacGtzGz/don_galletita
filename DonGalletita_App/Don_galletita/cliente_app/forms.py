@@ -254,7 +254,7 @@ class CarritoForm(forms.Form):
         widget=forms.HiddenInput()
     )
     unidad_medida = forms.ChoiceField(
-        choices=DetalleVenta.UNIDADES_MEDIDA,
+        choices=DetalleVenta.unidad_medida,
         widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
         label='Unidad de medida'
     )
