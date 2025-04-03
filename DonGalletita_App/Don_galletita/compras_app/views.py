@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from .forms import CompraRegistrarForm, DetalleCompraFormSet
 from .models import Compra
+from insumos_app.models import Insumos
 from django.views.generic import TemplateView
 
 # Listar compras
@@ -13,7 +14,7 @@ class ListaComprasView(TemplateView):
         query = self.request.GET.get('q', '')  # Obtén el parámetro de búsqueda
         if query:
             # Filtra las compras cuya fecha_compra contiene el texto ingresado
-            context['lista'] = Compra.objects.filter(fecha_compra__icontains=query)
+            context['lista'] = Compra.objects.filter(fecha_compra__icontains(query))
         else:
             # Muestra todas las compras si no hay búsqueda
             context['lista'] = Compra.objects.all()
@@ -34,6 +35,11 @@ def CrearCompraView(request):
             for detalle in detalles:
                 detalle.compra = compra
                 detalle.save()
+
+                # Actualizar la cantidad disponible del insumo
+                insumo = detalle.insumo
+                insumo.cantidad_disponible += detalle.cantidad
+                insumo.save()
 
             return redirect(reverse_lazy('lista_compras'))
 
