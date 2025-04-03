@@ -14,13 +14,16 @@ urlpatterns = [
     path('carrito/eliminar/<int:item_id>/', views.eliminar_del_carrito, name='eliminar_del_carrito'),  # Eliminar un producto
     path('carrito/actualizar/<int:item_id>/', views.actualizar_carrito, name='actualizar_carrito'),  # Modificar cantidad
     path('carrito/limpiar/', views.limpiar_carrito, name='limpiar_carrito'), 
-    path('carrito/historial/', views.historial_compras, name='historial_compras'),
     path('carrito/catalogo/', views.catalogo, name='catalogo'),
-    path('carrito/confirmar/', views.confirmar_compra, name='confirmar_compra'),
     
 
     # Portal del cliente
     path('portal/registro/', views.registro_cliente, name='registro_cliente'),
     path('portal/perfil/', views.perfil_cliente, name='perfil_cliente'),
-    
+
+
+    path('carrito/confirmar/', views.confirmar_compra, name='confirmar_compra'),
+    path('carrito/ticket/<int:venta_id>/', views.generar_ticket, name='generar_ticket'),
+    path('carrito/historial/', views.historial_compras, name='historial_compras'),
+
 ]

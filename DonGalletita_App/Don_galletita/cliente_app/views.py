@@ -1,10 +1,11 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render,reverse, redirect, get_object_or_404
 from decimal import Decimal
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Spacer, Paragraph
 from reportlab.lib.units import inch
-from reportlab.lib.styles import getSampleStyleSheet
+from django.utils import timezone
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from django.core.exceptions import ValidationError
 from django.contrib.auth import login
 from django.db.models import Q
@@ -94,9 +95,16 @@ def registro_cliente(request):
                 login(request, usuario)
                 cliente = usuario.cliente
                 messages.success(request, f'¡Registro exitoso! Tu ID de cliente es {cliente.cliente_id}')
+                
+                # Verificar si hay un producto pendiente para agregar al carrito
+                producto_id = request.session.pop('producto_a_agregar', None)
+                if producto_id:
+                    return redirect('agregar_al_carrito', producto_id=producto_id)
+                
                 return redirect('perfil_cliente')
     else:
         form = RegistroClienteForm()
+    
     return render(request, 'portal/registro.html', {'form': form})
 
 @login_required
@@ -148,25 +156,46 @@ def perfil_cliente(request):
     })
 
 def agregar_al_carrito(request, producto_id):
-    producto = Producto.objects.get(producto_id=producto_id)  # Asegúrate de usar el campo correcto
-    cantidad = int(request.POST.get('cantidad', 1))  # Obtiene la cantidad del formulario, por defecto 1
+    if not request.user.is_authenticated:
+        request.session['producto_a_agregar'] = producto_id
+        messages.warning(request, 'Debes iniciar sesión para agregar productos')
+        return redirect('registro_cliente')
+    
+    producto = get_object_or_404(Producto, producto_id=producto_id)
+    cantidad = int(request.POST.get('cantidad', 1))
+
+    # Validar stock disponible
+    if cantidad > producto.cantidad_disponible:
+        messages.error(
+            request, 
+            f'No hay suficientes galletas de {producto.nombre}. '
+            f'Quedan {producto.cantidad_disponible} unidades disponibles.'
+        )
+        return redirect('catalogo')
 
     carrito = request.session.get('carrito', {})
 
     if str(producto_id) in carrito:
-        carrito[str(producto_id)]['cantidad'] += cantidad  # Incrementa por la cantidad seleccionada
+        # Validar que al sumar no exceda el stock
+        nueva_cantidad = carrito[str(producto_id)]['cantidad'] + cantidad
+        if nueva_cantidad > producto.cantidad_disponible:
+            disponibles = producto.cantidad_disponible - carrito[str(producto_id)]['cantidad']
+            msg = (f'Solo puedes agregar {disponibles} más de {producto.nombre} ' 
+                   f'(hay {producto.cantidad_disponible} disponibles)')
+            messages.warning(request, msg)
+            return redirect('catalogo')
+        carrito[str(producto_id)]['cantidad'] = nueva_cantidad
     else:
         carrito[str(producto_id)] = {
             'nombre': producto.nombre,
-            'precio_unitario': str(producto.precio_unitario),  # Guarda como string para evitar problemas
-            'cantidad': cantidad,  # Usa la cantidad seleccionada por el usuario
+            'precio_unitario': str(producto.precio_unitario),
+            'cantidad': cantidad,
+            'unidad_medida': producto.unidad_medida,
         }
 
-    request.session['carrito'] = carrito  # Guarda el carrito en la sesión
-    request.session.modified = True  # Asegura que Django guarde los cambios
-    print("Carrito después de agregar:", request.session['carrito'])  # <-- Agrega este print para ver si se guarda
-
-    return redirect('ver_carrito')
+    request.session['carrito'] = carrito
+    messages.success(request, f'"{producto.nombre}" agregado al carrito')
+    return redirect('catalogo')
 
 
 
@@ -211,14 +240,6 @@ def confirmar_venta(request):
     
     return redirect('carrito/historial_compras')
 
-@login_required
-def historial_compras(request):
-    ventas = Venta.objects.filter(persona__usuario=request.user).prefetch_related("detalles").order_by('-fecha_venta')
-
-    for venta in ventas:
-        venta.total = sum(detalle.precio_unitario * detalle.cantidad for detalle in venta.detalles.all())
-
-    return render(request, 'carrito/historial_compras.html', {'ventas': ventas})
 
 
 @login_required
@@ -299,20 +320,6 @@ def generar_ticket_reportlab(request, venta_id):
 
     return response
 
-@login_required
-def ver_carrito(request):
-    carrito = request.session.get('carrito', {})
-    total = 0
-
-    for item in carrito.values():
-        precio = float(item['precio_unitario'])
-        cantidad = int(item['cantidad'])
-        total += precio * cantidad
-
-    # 🔥 Verifica qué datos tiene el carrito antes de renderizar la vista
-    print("📦 Contenido del carrito:", carrito)
-
-    return render(request, 'carrito/carrito.html', {'carrito': carrito, 'total': total})
 
 @login_required
 def limpiar_carrito(request):
@@ -334,60 +341,306 @@ def eliminar_del_carrito(request, item_id):
 @login_required
 def actualizar_carrito(request, item_id):
     if request.method == "POST":
-        nueva_cantidad = request.POST.get("cantidad")
-
-        # Validar que la cantidad es un número válido
         try:
-            nueva_cantidad = Decimal(nueva_cantidad)
+            nueva_cantidad = int(request.POST.get("cantidad"))
             if nueva_cantidad <= 0:
-                raise ValueError("Cantidad inválida")
+                raise ValueError
         except (ValueError, TypeError):
-            return redirect("carrito_compras")  # Redirigir sin cambios si la cantidad es inválida
+            messages.error(request, "Cantidad debe ser un número positivo")
+            return redirect('ver_carrito')
 
+        producto = get_object_or_404(Producto, producto_id=item_id)
         carrito = request.session.get("carrito", {})
 
         if str(item_id) in carrito:
-            carrito[str(item_id)]["cantidad"] = float(nueva_cantidad)  # Guardar como número
+            # Validar stock disponible
+            if nueva_cantidad > producto.cantidad_disponible:
+                messages.error(
+                    request,
+                    f'No hay suficientes galletas de {producto.nombre}. '
+                    f'Quedan {producto.cantidad_disponible} unidades disponibles.'
+                )
+                return redirect('ver_carrito')
+            
+            carrito[str(item_id)]["cantidad"] = nueva_cantidad
+            request.session["carrito"] = carrito
+            messages.success(request, "Cantidad actualizada correctamente")
 
-        request.session["carrito"] = carrito  # Guardar cambios en la sesión
+    return redirect('ver_carrito')
 
-    return redirect("carrito/carrito") 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, Http404
+from django.contrib import messages
+from django.db import transaction
+from django.urls import reverse
+from decimal import Decimal
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import mm
+from reportlab.lib import colors
+from .models import Venta, DetalleVenta
+from productos_app.models import Producto
+
+@login_required
+def ver_carrito(request):
+    carrito = request.session.get('carrito', {})
+    productos_sin_stock = []
+    total = 0
+    
+    # Verificar stock y calcular total
+    for item_id, item in carrito.items():
+        producto = Producto.objects.get(producto_id=item_id)
+        item['subtotal'] = float(item['precio_unitario']) * float(item['cantidad'])
+        total += item['subtotal']
+        
+        # Verificar stock
+        if item['cantidad'] > producto.cantidad_disponible:
+            productos_sin_stock.append({
+                'nombre': producto.nombre,
+                'disponible': producto.cantidad_disponible,
+                'solicitado': item['cantidad']
+            })
+    
+    # Mostrar mensajes de stock insuficiente
+    for producto in productos_sin_stock:
+        messages.warning(
+            request,
+            f'No hay suficientes galletas de {producto["nombre"]}. '
+            f'Quedan {producto["disponible"]} unidades (solicitadas: {producto["solicitado"]})'
+        )
+    
+    return render(request, 'carrito/carrito.html', {
+        'carrito': carrito,
+        'total': total,
+        'fecha_pedido': timezone.now().strftime("%d/%m/%Y %H:%M"),
+        'bloquear_compra': len(productos_sin_stock) > 0
+    })
+
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.contrib import messages
+from django.shortcuts import redirect, reverse  # Añade reverse aquí
+from decimal import Decimal
+from .models import Venta, DetalleVenta
+from productos_app.models import Producto
 
 @login_required
 def confirmar_compra(request):
-    # Obtener el carrito desde la sesión
     carrito = request.session.get('carrito', {})
-
+    
     if not carrito:
-        # Si el carrito está vacío, redirigir al carrito
         return redirect('ver_carrito')
 
-    # Crear la venta con estado "Pagado" directamente
-    venta = Venta(persona=request.user.cliente, estatus_venta='Pagada')
-    venta.save()  # Guarda la venta
-
-    # Agregar los productos del carrito a la venta
+    # Validar stock antes de procesar la compra
+    productos_sin_stock = []
     for item_id, item in carrito.items():
-        producto_id = item_id  # El ID del producto (clave del carrito)
-        producto = Producto.objects.get(producto_id=producto_id)  # Obtener el producto del carrito
+        producto = Producto.objects.get(producto_id=item_id)
+        if item['cantidad'] > producto.cantidad_disponible:
+            productos_sin_stock.append({
+                'nombre': producto.nombre,
+                'disponible': producto.cantidad_disponible,
+                'solicitado': item['cantidad']
+            })
 
-        # Crear el detalle de la venta (esto guarda cada producto vendido)
-        detalle = DetalleVenta(
-            venta=venta,
-            producto=producto,
-            cantidad=item['cantidad'],
-            precio_unitario=item['precio_unitario']
-        )
-        detalle.save()  # Guarda el detalle de la venta
+    if productos_sin_stock:
+        for producto in productos_sin_stock:
+            messages.error(
+                request, 
+                f"No hay suficientes galletas de {producto['nombre']}. "
+                f"Quedan {producto['disponible']} unidades disponibles."
+            )
+        return redirect('ver_carrito')
 
-        # Actualizar el inventario
-        producto.cantidad_disponible -= item['cantidad']
-        producto.save()
+    # Procesar la compra si todo está bien
+    try:
+        with transaction.atomic():
+            venta = Venta(
+                persona=request.user.cliente,
+                estatus_venta='Pagado',
+                estado_entrega='entregado',
+                metodo_pago='efectivo'
+            )
+            venta.save()
 
-    # Vaciar el carrito después de la compra
-    request.session['carrito'] = {}
+            for item_id, item in carrito.items():
+                producto = Producto.objects.get(producto_id=item_id)
+                
+                DetalleVenta.objects.create(
+                    venta=venta,
+                    producto=producto,
+                    cantidad=item['cantidad'],
+                    unidad_medida=item.get('unidad_medida', 'pz'),
+                    precio_unitario=item['precio_unitario']
+                )
 
-    # Redirigir al historial de compras
-    messages.success(request, f'¡Compra confirmada y pagada exitosamente!')
+                producto.cantidad_disponible -= Decimal(item['cantidad'])
+                producto.save()
 
-    return redirect('historial_compras')
+            # Vaciar carrito
+            request.session['carrito'] = {}
+            
+            # Guardar el ID de la venta en la sesión para mostrar el mensaje
+            request.session['venta_reciente'] = venta.id
+            return redirect('historial_compras')
+
+    except Exception as e:
+        messages.error(request, f'Ocurrió un error al procesar tu compra: {str(e)}')
+        return redirect('ver_carrito')
+
+@login_required
+def generar_ticket(request, venta_id):
+    try:
+        venta = get_object_or_404(Venta, id=venta_id, persona__usuario=request.user)
+        detalles = venta.detalles.select_related('producto').all()
+        
+        # Calcular subtotales y total
+        for detalle in detalles:
+            detalle.subtotal = float(detalle.precio_unitario) * float(detalle.cantidad)
+        total = sum(d.subtotal for d in detalles)
+        
+        # Si se solicita descarga PDF
+        if 'download' in request.GET:
+            return generar_pdf(request, venta, detalles, total)
+        
+        # Vista normal HTML
+        context = {
+            'venta': venta,
+            'detalles': detalles,
+            'total': total,
+            'fecha': venta.fecha_venta.strftime("%d/%m/%Y %H:%M")
+        }
+        return render(request, 'carrito/ticket.html', context)
+        
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        raise Http404("Error al generar el ticket")
+
+from reportlab.lib.units import mm
+from reportlab.lib import colors
+
+def generar_pdf(request, venta, detalles, total):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="ticket_{venta.id}.pdf"'
+    
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=(80*mm, 200*mm))
+    
+    # Configuración inicial
+    width, height = 80*mm, 200*mm
+    y_position = height - 10*mm  # Comenzamos desde la parte superior
+    
+    # Encabezado
+    p.setFont("Helvetica-Bold", 14)
+    p.drawCentredString(width/2, y_position, "DON GALLETITA")
+    y_position -= 8*mm
+    
+    p.setFont("Helvetica", 10)
+    p.drawCentredString(width/2, y_position, "Universidad Tecnologica de Leon")
+    y_position -= 5*mm
+    p.drawCentredString(width/2, y_position, "San Carlos, la roncha")
+    y_position -= 5*mm
+    p.drawCentredString(width/2, y_position, "Leon Guanajuato")
+    y_position -= 10*mm
+    
+    # Línea divisoria
+    p.line(5*mm, y_position, width-5*mm, y_position)
+    y_position -= 8*mm
+    
+    # Datos del cliente
+    p.setFont("Helvetica-Bold", 10)
+    p.drawString(10*mm, y_position, f"Cliente: {venta.persona.nombre}")
+    y_position -= 6*mm
+    p.drawString(10*mm, y_position, f"Ticket: {venta.id}")
+    y_position -= 6*mm
+    
+    # Estado de pago y entrega (MODIFICADO PARA MOSTRAR CORRECTAMENTE)
+    estado_pago = "Pagado" if venta.estatus_venta == 'Pagado' else "Pendiente"
+    p.drawString(10*mm, y_position, f"Pago: {estado_pago}")
+    y_position -= 6*mm
+    p.drawString(10*mm, y_position, f"Entrega: {venta.estado_entrega.capitalize()}")
+    y_position -= 10*mm
+    
+    # Línea divisoria
+    p.line(5*mm, y_position, width-5*mm, y_position)
+    y_position -= 8*mm
+    
+    # Tabla de productos
+    p.setFont("Helvetica-Bold", 10)
+    p.drawString(10*mm, y_position, "Producto")
+    p.drawString(40*mm, y_position, "Cant")
+    p.drawString(50*mm, y_position, "Precio")
+    p.drawString(65*mm, y_position, "Total")
+    y_position -= 6*mm
+    
+    p.setFont("Helvetica", 9)
+    for detalle in detalles:
+        # Ajuste para evitar salto de página
+        if y_position < 30*mm:
+            p.showPage()
+            y_position = height - 10*mm
+            p.setFont("Helvetica", 9)
+        
+        p.drawString(10*mm, y_position, detalle.producto.nombre[:15])  # Limitar longitud del nombre
+        p.drawString(40*mm, y_position, f"{detalle.cantidad} {detalle.unidad_medida}")
+        p.drawString(50*mm, y_position, f"${detalle.precio_unitario:.2f}")
+        p.drawString(65*mm, y_position, f"${detalle.subtotal:.2f}")
+        y_position -= 6*mm
+    
+    # Línea divisoria
+    y_position -= 4*mm
+    p.line(5*mm, y_position, width-5*mm, y_position)
+    y_position -= 8*mm
+    
+    # Total
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(40*mm, y_position, "TOTAL:")
+    p.drawString(65*mm, y_position, f"${total:.2f}")
+    y_position -= 12*mm
+    
+    # Fecha
+    p.setFont("Helvetica", 9)
+    p.drawCentredString(width/2, y_position, f"Fecha: {venta.fecha_venta.strftime('%d/%m/%Y %H:%M')}")
+    y_position -= 10*mm
+    
+    # Mensaje final
+    p.setFont("Helvetica", 10)
+    p.drawCentredString(width/2, y_position, "¡Gracias por su compra!")
+    y_position -= 6*mm
+    p.drawCentredString(width/2, y_position, "Por favor vuelva pronto")
+    y_position -= 6*mm
+    p.setFont("Helvetica-Bold", 10)
+    p.drawCentredString(width/2, y_position, "Don Galletita")
+    
+    # Finalizar PDF
+    p.showPage()
+    p.save()
+    
+    # Obtener PDF y cerrar buffer
+    pdf = buffer.getvalue()
+    buffer.close()
+    
+    # Escribir en la respuesta
+    response.write(pdf)
+    return response
+
+@login_required
+def historial_compras(request):
+    ventas = Venta.objects.filter(
+        persona__usuario=request.user
+    ).prefetch_related('detalles__producto').order_by('-fecha_venta')
+    
+    ventas_con_detalle = []
+    for venta in ventas:
+        detalles = venta.detalles.all()
+        total = sum(d.precio_unitario * d.cantidad for d in detalles)
+        ventas_con_detalle.append({
+            'venta': venta,
+            'detalles': detalles,
+            'total': total,
+            'fecha': venta.fecha_venta.strftime("%d/%m/%Y %H:%M")
+        })
+    
+    return render(request, 'carrito/historial_compras.html', {
+        'ventas_con_detalle': ventas_con_detalle
+    })

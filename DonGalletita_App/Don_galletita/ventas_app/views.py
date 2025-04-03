@@ -5,6 +5,15 @@ from django.urls import reverse_lazy
 from .models import Venta, DetalleVenta
 from .forms import VentaForm, DetalleVentaForm
 from reportlab.pdfgen import canvas
+from django.views.generic import TemplateView
+from django.shortcuts import get_object_or_404
+from django.http import FileResponse
+from io import BytesIO
+import base64
+from reportlab.lib.pagesizes import inch
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
 import base64
 from io import BytesIO
 from django.http import FileResponse
@@ -247,21 +256,139 @@ class CorteVentasDiarioView(TemplateView):
         })
 
 # Clase para generar y descargar el ticket
+# Clase para generar y descargar el ticket
 class TicketVentaView(TemplateView):
     def generar_ticket(self, venta):
+        # Configuración del tamaño del ticket (más ancho para nombres largos)
+        ticket_width = 4.0 * inch
+        ticket_height = 8 * inch
+        custom_size = (ticket_width, ticket_height)
+        
         buffer = BytesIO()
-        c = canvas.Canvas(buffer)
-        c.drawString(100, 800, f"Ticket de Venta - ID: {venta.id}")
-        c.drawString(100, 780, f"Cliente: {venta.persona}")
-        c.drawString(100, 760, f"Fecha: {venta.fecha_venta}")
-        c.drawString(100, 740, "Detalles:")
+        pdf = SimpleDocTemplate(buffer, pagesize=custom_size, 
+                               leftMargin=0.2*inch, rightMargin=0.2*inch,
+                               topMargin=0.2*inch, bottomMargin=0.2*inch)
+        
+        styles = getSampleStyleSheet()
+        
+        # Estilos personalizados
+        large_bold_style = ParagraphStyle(
+            name='LargeBold',
+            parent=styles['Normal'],
+            fontName='Helvetica-Bold',
+            fontSize=14,
+            alignment=1,  # Centrado
+            spaceAfter=12
+        )
+        
+        bold_centered_style = ParagraphStyle(
+            name='BoldCentered',
+            parent=styles['Normal'],
+            fontName='Helvetica-Bold',
+            fontSize=12,
+            alignment=1,
+            spaceAfter=6
+        )
+        
+        centered_style = ParagraphStyle(
+            name='Centered',
+            parent=styles['Normal'],
+            alignment=1,
+            spaceAfter=6,
+            fontSize=10
+        )
+        
+        product_style = ParagraphStyle(
+            name='ProductStyle',
+            parent=styles['Normal'],
+            fontSize=8,
+            alignment=0,  # Alineado a la izquierda
+            leading=9,    # Espacio entre líneas
+            wordWrap='LTR'
+        )
+        
+        elements = []
 
-        y = 720
+        # Encabezado del Ticket
+        elements.append(Paragraph("DON GALLETITA", large_bold_style))
+        elements.append(Spacer(1, 12))
+        
+        # Información de la tienda (personaliza con tus datos)
+        elements.append(Paragraph("Universidad Tecnologica de Leon", centered_style))
+        elements.append(Paragraph("San Carlos, la roncha", centered_style))
+        elements.append(Paragraph("Leon Guanajuato", centered_style))
+        elements.append(Spacer(1, 12))
+        
+        # Información del cliente/venta
+        elements.append(Paragraph(f"Cliente: {venta.persona}", centered_style))
+        elements.append(Paragraph(f"Ticket: {venta.id}", centered_style))
+        elements.append(Spacer(1, 12))
+        
+        # Línea de separación
+        elements.append(Paragraph("--------------------------------", centered_style))
+        
+        # Tabla de productos
+        data = [["Producto", "Cantidad", "Precio", "Total"]]
+        total = 0
+
         for detalle in venta.detalles.all():
-            c.drawString(100, y, f"Producto: {detalle.producto.nombre}, Cantidad: {detalle.cantidad} {detalle.unidad_medida}, Precio: {detalle.precio_unitario}")
-            y -= 20
+            subtotal = detalle.precio_unitario * detalle.cantidad
+            total += subtotal
+            
+            # Usamos Paragraph para permitir múltiples líneas en nombres largos
+            product_name = Paragraph(detalle.producto.nombre, product_style)
+            
+            data.append([
+                product_name,
+                Paragraph(f"{int(detalle.cantidad)}", centered_style),
+                Paragraph(f"${detalle.precio_unitario:.2f}", centered_style),
+                Paragraph(f"${subtotal:.2f}", centered_style)
+            ])
 
-        c.save()
+        
+        col_widths = [
+            ticket_width*0.30,  
+            ticket_width*0.20,  
+            ticket_width*0.20, 
+            ticket_width*0.30  
+        ]
+        
+        table = Table(data, colWidths=col_widths)
+        table.setStyle(TableStyle([
+            # Estilo para la fila de encabezados
+            ('BACKGROUND', (0, 0), (-1, 0), colors.Color(0.8, 0.8, 0.8)),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+            
+            # Estilo para el contenido
+            ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('FONTSIZE', (0, 1), (-1, -1), 8),
+            ('LEADING', (0, 1), (-1, -1), 9),
+            ('TOPPADDING', (0, 1), (-1, -1), 1),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 2),
+        ]))
+        
+        elements.append(table)
+        elements.append(Spacer(1, 6))
+        
+        # Total
+        elements.append(Paragraph(f"<b>Total:</b> ${total:.2f}", centered_style))
+        elements.append(Paragraph("--------------------------------", centered_style))
+        
+        # Información de la transacción
+        elements.append(Paragraph(f"Fecha: {venta.fecha_venta.strftime('%d/%m/%Y %H:%M')}", centered_style))
+        elements.append(Spacer(1, 12))
+        
+        # Mensajes finales
+        elements.append(Paragraph("¡Gracias por su compra!", centered_style))
+        elements.append(Paragraph("Por favor vuelva pronto", centered_style))
+        elements.append(Spacer(1, 6))
+        elements.append(Paragraph("Don Galletita", centered_style))
+        
+        pdf.build(elements)
         buffer.seek(0)
         venta.ticket = base64.b64encode(buffer.read()).decode('utf-8')
         venta.save()
@@ -269,6 +396,7 @@ class TicketVentaView(TemplateView):
     def get(self, request, *args, **kwargs):
         venta_id = kwargs.get('venta_id')
         venta = get_object_or_404(Venta, id=venta_id)
+
         if not venta.ticket:
             self.generar_ticket(venta)
 

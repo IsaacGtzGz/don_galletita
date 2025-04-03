@@ -18,6 +18,7 @@
           <th>Peso por Unidad</th>
           <th>Fecha de Caducidad</th>
           <th>Acciones</th>
+          <th>Imagen</th>
         </tr>
       </thead>
       <tbody>
@@ -30,6 +31,12 @@
             <td>{{ producto.precio_unitario }}</td>
             <td>{{ producto.peso_unidad }}</td>
             <td>{{ producto.fecha_caducidad }}</td>
+            <td>
+              {% if producto.imagen_producto %}
+                  <img src="{{ producto.imagen_producto.url }}" alt="{{ producto.nombre }}" style="max-height: 50px;">
+              {% else %}
+                  Sin imagen
+              {% endif %}
             <td>
               <a href="{% url 'editar_producto' producto.producto_id %}" class="btn btn-warning btn-sm">Editar</a>
               <a href="{% url 'eliminar_producto' producto.producto_id %}" class="btn btn-danger btn-sm">Eliminar</a>

@@ -7,7 +7,7 @@
         Editar Producto
       </div>
       <div class="card-body" style="padding: 40px;">
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
           {% csrf_token %}
           <div class="form-group mb-3">{{ form.as_p }}</div>
           <div class="text-center mt-4">
@@ -22,4 +22,31 @@
       </div>
     </div>
   </div>
+  <!-- (Al final del archivo, antes de cerrar el bloque content) -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const camposNumericos = [
+          { id: 'id_cantidad_disponible', min: 1 },
+          { id: 'id_precio_unitario', min: 0.01 },
+          { id: 'id_peso_unidad', min: 0.01 }
+      ];
+  
+      camposNumericos.forEach(campo => {
+          const input = document.getElementById(campo.id);
+          if (input) {
+              input.addEventListener('input', function() {
+                  const valor = parseFloat(this.value);
+                  if (isNaN(valor) {
+                      this.setCustomValidity('Ingrese un número válido');
+                  } else if (valor < campo.min) {
+                      this.setCustomValidity(`El valor debe ser mayor o igual a ${campo.min}`);
+                  } else {
+                      this.setCustomValidity('');
+                  }
+                  this.reportValidity(); // Muestra la alerta en el campo
+              });
+          }
+      });
+  });
+  </script>
 {% endblock %}
