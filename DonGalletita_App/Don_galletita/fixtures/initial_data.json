@@ -1,0 +1,81 @@
+[
+    {
+        "model": "usuarios_app.usuario",
+        "pk": 1,
+        "fields": {
+            "nombre_usuario": "admin",
+            "contrasenia": "pbkdf2_sha256$260000$...",
+            "rol": "admin",
+            "estatus_user": 1,
+            "is_active": true,
+            "is_staff": true,
+            "fecha_registro": "2025-04-03T00:00:00Z"
+        }
+    },
+    {
+        "model": "proveedores_app.proveedor",
+        "pk": 1,
+        "fields": {
+            "nombre": "Proveedor 1",
+            "apellido_paterno": "Apellido1",
+            "apellido_materno": "Apellido2",
+            "telefono": "1234567890",
+            "direccion": "Calle Falsa 123",
+            "fecha_registro": "2025-04-03T00:00:00Z"
+        }
+    },
+    {
+        "model": "productos_app.producto",
+        "pk": 1,
+        "fields": {
+            "nombre": "Producto 1",
+            "descripcion": "Descripción del producto 1",
+            "unidad_medida": "kg",
+            "cantidad_disponible": 100,
+            "precio_unitario": "50.00",
+            "peso_unidad": "1.00",
+            "fecha_caducidad": "2025-12-31"
+        }
+    },
+    {
+        "model": "insumos_app.insumos",
+        "pk": 1,
+        "fields": {
+            "nombre_insumo": "Insumo 1",
+            "unidad_medida": "kg",
+            "cantidad_disponible": 50
+        }
+    },
+    {
+        "model": "recetas_app.receta",
+        "pk": 1,
+        "fields": {
+            "producto": 1,
+            "preparacion": "Mezclar todos los ingredientes y hornear.",
+            "porciones_galletas": 10
+        }
+    },
+    {
+        "model": "recetas_app.recetainsumo",
+        "pk": 1,
+        "fields": {
+            "receta": 1,
+            "insumo": 1,
+            "cantidad_necesaria": 5,
+            "unidad_medida": "kg"
+        }
+    },
+    {
+        "model": "cliente_app.cliente",
+        "pk": 1,
+        "fields": {
+            "usuario": 1,
+            "nombre": "Cliente 1",
+            "apellido_paterno": "Apellido1",
+            "apellido_materno": "Apellido2",
+            "telefono": "0987654321",
+            "direccion": "Calle Verdadera 456",
+            "fecha_registro": "2025-04-03T00:00:00Z"
+        }
+    }
+]
