@@ -67,9 +67,7 @@
             {% if user.is_authenticated %}
               {% if user.rol == 'admin' %}
                 <!-- Menú para administradores -->
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'catalogo' %}"><i class="fas fa-store"></i> Catálogo</a>
-                </li>
+               
                 <li class="nav-item">
                   <a class="nav-link" href="{% url 'home' %}"><i class="fas fa-home"></i> Nosotros</a>
                 </li>
@@ -99,9 +97,19 @@
                 <li class="nav-item">
                   <a class="nav-link" href="{% url 'corte_ventas_diario' %}"><i class="fas fa-chart-line"></i> Corte Ventas</a>
                 </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'dashboard_presentaciones_alertas' %}">Dashboard Presentaciones y Alertas</a>
+                <!-- Dropdown para Dashboard -->
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="dashboardDropdown" role="button" data-bs-toggle="dropdown"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+              <ul class="dropdown-menu">
+                <li>
+                  <a class="dropdown-item" href="{% url 'dashboard_presentaciones_alertas' %}">Presentaciones y Alertas</a>
                 </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'dashboard_metricas_ventas' %}">Metricas de Ventas</a>
+                </li>
+              </ul>
+            </li>
+          </ul>
               {% elif user.rol == 'cliente' %}
                 <!-- Menú para clientes -->
                 <li class="nav-item">

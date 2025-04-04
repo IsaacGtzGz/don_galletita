@@ -13,7 +13,7 @@
             <h5 class="card-title text-success"><i class="fas fa-dollar-sign"></i> Ventas del Día</h5>
             <h2 class="text-success">${{ total_ventas_hoy|floatformat:2 }} MXN</h2>
             {% if total_ventas_hoy == 0 %}
-              <p class="text-muted">*Comparación no disponible por falta de datos anteriores.*</p>
+              <p class="text-muted">Comparación no disponible por falta de datos anteriores.</p>
             {% endif %}
           </div>
         </div>
@@ -131,4 +131,12 @@
       }
     })
   </script>
+  <style>
+    #ventasPorHoraChart,
+    #productosMasVendidosChart {
+      max-width: 400px;
+      max-height: 300px;
+      margin: auto;
+    }
+  </style>
 {% endblock %}
