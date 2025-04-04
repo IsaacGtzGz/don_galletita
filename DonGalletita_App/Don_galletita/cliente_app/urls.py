@@ -13,7 +13,7 @@ urlpatterns = [
     path('carrito/eliminar/<int:item_id>/', login_required(views.eliminar_del_carrito), name='eliminar_del_carrito'),
     path('carrito/actualizar/<int:item_id>/', login_required(views.actualizar_carrito), name='actualizar_carrito'),
     path('carrito/limpiar/', login_required(views.limpiar_carrito), name='limpiar_carrito'),
-    path('carrito/catalogo/', views.catalogo, name='catalogo'),  # Catalogo can be public
+    path('carrito/catalogo/', views.catalogo, name='catalogo'),  
 
     # Portal del cliente
     path('portal/registro/', views.registro_cliente, name='registro_cliente'),  # Registration can be public
