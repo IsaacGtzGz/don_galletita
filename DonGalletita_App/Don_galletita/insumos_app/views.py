@@ -33,8 +33,8 @@ class EditarInsumoView(FormView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        insumo_id = self.kwargs.get('insumo_id')
-        insumos = get_object_or_404(Insumos, id=insumo_id)
+        id = self.kwargs.get('id')
+        insumos = get_object_or_404(Insumos, id=id)
         kwargs['instance'] = insumos
         return kwargs
     

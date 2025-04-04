@@ -46,64 +46,6 @@
       </div>
     </div>
 
-    <!-- Sección de Ventas Diarias -->
-    <div class="row">
-      <div class="col-lg-6">
-        <div class="card border-left-primary shadow h-100 py-2">
-          <div class="card-body">
-            <div class="row no-gutters align-items-center">
-              <div class="col mr-2">
-                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Ventas Diarias (MXN)</div>
-                <div class="h5 mb-0 font-weight-bold text-gray-800">${{ ventas_diarias|default:'0.00' }}</div>
-              </div>
-              <div class="col-auto">
-                <i class="fas fa-cash-register fa-2x text-gray-300"></i>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Sección de Productos Más Vendidos -->
-    <div class="row">
-      <div class="col-lg-12">
-        <div class="card shadow mb-4">
-          <div class="card-header py-3" style="background-color: #FFF8E1;">
-            <h6 class="m-0 font-weight-bold" style="color: #5D4037;"><i class="fas fa-chart-pie fa-fw"></i> Productos Más Vendidos (Hoy)</h6>
-          </div>
-          <div class="card-body">
-            {% if productos_mas_vendidos %}
-              <div class="table-responsive">
-                <table class="table table-bordered table-hover" id="productosMasVendidosTable" width="100%" cellspacing="0">
-                  <thead style="background-color: #FFF3E0;">
-                    <tr>
-                      <th>Producto</th>
-                      <th>Cantidad Vendida</th>
-                      <th>Porcentaje de Ventas</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for producto in productos_mas_vendidos %}
-                      <tr>
-                        <td>{{ producto.nombre }}</td>
-                        <td>{{ producto.cantidad_vendida }}</td>
-                        <td>{{ producto.porcentaje_ventas }}%</td>
-                      </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              </div>
-            {% else %}
-              <div class="alert alert-info">
-                <i class="fas fa-info-circle fa-fw"></i> No hay datos de productos más vendidos para hoy.
-              </div>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Sección de Alertas -->
     <div class="row">
       <div class="col-lg-12">
@@ -154,6 +96,35 @@
                 <i class="fas fa-check-circle fa-fw"></i> ¡Excelente! No hay productos próximos a caducar.
               </div>
             {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Desglose por Tipo de Presentación -->
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card shadow mb-4">
+          <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Desglose por Tipo de Presentación</h6>
+          </div>
+          <div class="card-body">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Presentación</th>
+                  <th>Total Vendido</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for presentacion in desglose_presentaciones %}
+                  <tr>
+                    <td>{{ presentacion.unidad_medida }}</td>
+                    <td>{{ presentacion.total_vendido }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -265,9 +236,7 @@
                 '#2A9D8F', // Verde aguamarina
                 '#E9C46A', // Amarillo mostaza
                 '#E76F51', // Rojo coral
-                '#264653', // Azul oscuro
-                '#FF5733', // Nuevo color agregado
-                '#FFC300' // Otro nuevo color agregado
+                '#264653' // Azul oscuro
               ],
               borderColor: 'rgba(0, 0, 0, 0.1)',
               borderWidth: 1,
@@ -376,7 +345,7 @@
                   const value = context.raw || 0
                   const total = context.dataset.data.reduce((a, b) => a + b, 0)
                   const percentage = Math.round((value / total) * 100)
-                  return `${label}: ${value.toLocaleString()} (${percentage}%)`
+                  return label + ': ' + value.toLocaleString() + ' (' + percentage + '%)'
                 }
               }
             }
@@ -388,16 +357,6 @@
       // DataTable para alertas
       $('#alertasTable').DataTable({
         order: [[2, 'asc']], // Ordenar por fecha de caducidad
-        language: {
-          url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/es-MX.json'
-        },
-        dom: '<"top"f>rt<"bottom"lip><"clear">',
-        responsive: true
-      })
-    
-      // DataTable para productos más vendidos
-      $('#productosMasVendidosTable').DataTable({
-        order: [[1, 'desc']], // Ordenar por cantidad vendida
         language: {
           url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/es-MX.json'
         },

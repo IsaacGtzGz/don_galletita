@@ -45,14 +45,15 @@
       <table class="table table-striped">
         <thead>
           <tr>
-            <th>ID</th>
+            <th>Folio</th>
             <th>Cliente</th>
             <th>Fecha</th>
             <th>Total</th>
           </tr>
         </thead>
         <tbody>
-          {% for venta in ventas_pagadas %}
+          {% for venta in ventas_pagadas|dictsortreversed:'id' %}
+            <!-- Orden descendente por ID -->
             <tr>
               <td>{{ venta.id }}</td>
               <td>{{ venta.cliente }}</td>
@@ -73,7 +74,7 @@
       <table class="table table-striped">
         <thead>
           <tr>
-            <th>ID</th>
+            <th>Folio</th>
             <th>Cliente</th>
             <th>Fecha</th>
             <th>Estatus</th>
