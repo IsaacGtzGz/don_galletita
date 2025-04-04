@@ -568,3 +568,5 @@ class DashboardPresentacionesAlertasView(TemplateView):
             '700g': 'Promo Especial'
         }
         return presentation_names.get(unidad_medida, unidad_medida)
+    
+    
