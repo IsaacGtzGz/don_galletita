@@ -4,14 +4,19 @@ from django.views.generic import FormView, DeleteView
 from django.urls import reverse_lazy
 from proveedores_app.models import Proveedor
 from . import forms
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.utils.html import escape
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Lista de proveedores
-class ListaProveedoresView(TemplateView):
+class ListaProveedoresView(LoginRequiredMixin, TemplateView):
     template_name = 'lista_proveedores.html'
-
+    login_url = 'login'  
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        query = self.request.GET.get('q', '')  # Obtén el parámetro de búsqueda
+        query = escape(self.request.GET.get('q', ''))  # Obtén el parámetro de búsqueda
         if query:
             # Filtra los proveedores cuyo nombre contiene el texto ingresado
             context['lista'] = Proveedor.objects.filter(nombre__icontains=query)
@@ -56,12 +61,18 @@ class EliminarProveedorView(DeleteView):
 
     def get_object(self):
         id = self.kwargs.get('id')
-        return get_object_or_404(Proveedor, proveedor_id=id)
+        return get_object_or_404(Proveedor, proveedor_id=id, mensaje_error="Proveedor no encontrado.")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         proveedor = self.get_object()
         context['titulo'] = 'Eliminar Proveedor'
-        context['mensaje'] = f'¿Estás seguro de que deseas eliminar al proveedor "{proveedor.nombre}"?'
+        context['mensaje'] = '¿Estás seguro de que deseas eliminar este proveedor?'
         context['url_cancelar'] = reverse_lazy('lista_proveedores')
         return context
+
+    def form_valid(self, form):
+        id = self.kwargs.get('id')
+        proveedor = get_object_or_404(Proveedor, proveedor_id=id)
+        logger.info(f'Proveedor eliminado: {proveedor.nombre} (ID: {id}) por {self.request.user}')
+        return super().form_valid(form)
