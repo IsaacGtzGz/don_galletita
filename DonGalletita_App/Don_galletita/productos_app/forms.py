@@ -14,7 +14,10 @@ class ProductoForm(forms.ModelForm):
             "cantidad_disponible": forms.NumberInput(attrs={"class": "form-control"}),
             "precio_unitario": forms.NumberInput(attrs={"class": "form-control"}),
             "peso_unidad": forms.NumberInput(attrs={"class": "form-control"}),
-            "fecha_caducidad": forms.DateInput(attrs={"class": "form-control"}),
+            "fecha_caducidad": forms.DateInput(attrs={"class": "form-control","type": "date",  # Esto activará el date picker nativo
+                    "min": timezone.now().date().isoformat()  # Fecha mínima hoy
+                }
+            ),
         }
 
     def clean_nombre(self):
