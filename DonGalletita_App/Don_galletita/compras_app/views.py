@@ -4,10 +4,16 @@ from .forms import CompraRegistrarForm, DetalleCompraFormSet
 from .models import Compra
 from insumos_app.models import Insumos
 from django.views.generic import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+import logging
+from django.contrib.auth.decorators import login_required
+
+logger = logging.getLogger(__name__)
 
 # Listar compras
-class ListaComprasView(TemplateView):
+class ListaComprasView(LoginRequiredMixin, TemplateView):
     template_name = 'lista_compras.html'
+    login_url = 'login'  # Redirige a la página de inicio de sesión si no está autenticado
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -21,34 +27,29 @@ class ListaComprasView(TemplateView):
         return context
 
 # Crear una compra
+@login_required
 def CrearCompraView(request):
     if request.method == 'POST':
         compra_form = CompraRegistrarForm(request.POST)
         detalle_formset = DetalleCompraFormSet(request.POST, prefix='detalle_formset')
 
         if compra_form.is_valid() and detalle_formset.is_valid():
-            # Guardar la compra
             compra = compra_form.save()
-
-            # Guardar los detalles de la compra
             detalles = detalle_formset.save(commit=False)
             for detalle in detalles:
                 detalle.compra = compra
                 detalle.save()
-
-                # Actualizar la cantidad disponible del insumo
                 insumo = detalle.insumo
                 insumo.cantidad_disponible += detalle.cantidad
                 insumo.save()
 
+            logger.info(f"Compra creada por {request.user}: {compra}")
             return redirect(reverse_lazy('lista_compras'))
 
-        # Si hay errores, renderizar la página con los errores
         return render(request, 'crear_compra.html', {
             'form': compra_form,
             'detalle_formset': detalle_formset
         })
-
     else:
         compra_form = CompraRegistrarForm()
         detalle_formset = DetalleCompraFormSet(prefix='detalle_formset')
