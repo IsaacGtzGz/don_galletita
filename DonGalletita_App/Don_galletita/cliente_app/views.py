@@ -99,13 +99,35 @@ def registro_cliente(request):
                 # Verificar si hay un producto pendiente para agregar al carrito
                 producto_id = request.session.pop('producto_a_agregar', None)
                 if producto_id:
-                    return redirect('agregar_al_carrito', producto_id=producto_id)
+                    # Obtener el producto de la base de datos
+                    producto = get_object_or_404(Producto, id=producto_id)
+                    cantidad = 1  # Puedes usar una cantidad por defecto o agregar un campo en el formulario
+                    carrito = request.session.get('carrito', {})
+
+                    # Si ya existe el producto en el carrito, actualizar la cantidad
+                    if str(producto_id) in carrito:
+                        carrito[str(producto_id)]['cantidad'] += cantidad
+                    else:
+                        # Si no existe en el carrito, agregarlo
+                        carrito[str(producto_id)] = {
+                            'nombre': producto.nombre,
+                            'precio_unitario': str(producto.precio_unitario),
+                            'cantidad': cantidad,
+                            'unidad_medida': producto.unidad_medida,
+                        }
+
+                    request.session['carrito'] = carrito
+                    messages.success(request, f'"{producto.nombre}" agregado al carrito')
+                    
+                    # Redirigir a la vista del carrito
+                    return redirect('ver_carrito')
                 
-                return redirect('perfil_cliente')
+                return redirect('perfil_cliente')  # O cualquier otra vista que prefieras
     else:
         form = RegistroClienteForm()
     
     return render(request, 'portal/registro.html', {'form': form})
+
 
 @login_required
 def perfil_cliente(request):
@@ -160,28 +182,24 @@ def agregar_al_carrito(request, producto_id):
         request.session['producto_a_agregar'] = producto_id
         messages.warning(request, 'Debes iniciar sesión para agregar productos')
         return redirect('registro_cliente')
-    
+
     producto = get_object_or_404(Producto, producto_id=producto_id)
     cantidad = int(request.POST.get('cantidad', 1))
 
-    # Validar stock disponible
     if cantidad > producto.cantidad_disponible:
         messages.error(
             request, 
-            f'No hay suficientes galletas de {producto.nombre}. '
-            f'Quedan {producto.cantidad_disponible} unidades disponibles.'
+            f'No hay galletas, solo quedan {producto.cantidad_disponible} unidades de {producto.nombre}'
         )
         return redirect('catalogo')
 
     carrito = request.session.get('carrito', {})
 
     if str(producto_id) in carrito:
-        # Validar que al sumar no exceda el stock
         nueva_cantidad = carrito[str(producto_id)]['cantidad'] + cantidad
         if nueva_cantidad > producto.cantidad_disponible:
             disponibles = producto.cantidad_disponible - carrito[str(producto_id)]['cantidad']
-            msg = (f'Solo puedes agregar {disponibles} más de {producto.nombre} ' 
-                   f'(hay {producto.cantidad_disponible} disponibles)')
+            msg = f'No hay galletas, solo quedan {disponibles} unidades de {producto.nombre}'
             messages.warning(request, msg)
             return redirect('catalogo')
         carrito[str(producto_id)]['cantidad'] = nueva_cantidad
@@ -333,10 +351,12 @@ def eliminar_del_carrito(request, item_id):
     carrito = request.session.get("carrito", {})
 
     if str(item_id) in carrito:
+        producto_nombre = carrito[str(item_id)]['nombre']
         del carrito[str(item_id)]
-        request.session["carrito"] = carrito  # Guardar cambios en la sesión
+        request.session["carrito"] = carrito
+        messages.success(request, f'Producto "{producto_nombre}" eliminado del carrito')
 
-    return redirect("carrito/carrito")
+    return redirect("ver_carrito")  # Cambiado a 'ver_carrito' que es el nombre correcto de tu URL
 
 @login_required
 def actualizar_carrito(request, item_id):
@@ -346,27 +366,29 @@ def actualizar_carrito(request, item_id):
             if nueva_cantidad <= 0:
                 raise ValueError
         except (ValueError, TypeError):
-            messages.error(request, "Cantidad debe ser un número positivo")
+            messages.error(request, "La cantidad debe ser un número positivo")
             return redirect('ver_carrito')
 
         producto = get_object_or_404(Producto, producto_id=item_id)
         carrito = request.session.get("carrito", {})
 
         if str(item_id) in carrito:
-            # Validar stock disponible
             if nueva_cantidad > producto.cantidad_disponible:
                 messages.error(
                     request,
-                    f'No hay suficientes galletas de {producto.nombre}. '
-                    f'Quedan {producto.cantidad_disponible} unidades disponibles.'
+                    f'No hay galletas, solo quedan {producto.cantidad_disponible} unidades de {producto.nombre}'
                 )
                 return redirect('ver_carrito')
             
             carrito[str(item_id)]["cantidad"] = nueva_cantidad
+            # Actualizar subtotal
+            precio = Decimal(carrito[str(item_id)]["precio_unitario"])
+            carrito[str(item_id)]["subtotal"] = str(precio * Decimal(nueva_cantidad))
             request.session["carrito"] = carrito
             messages.success(request, "Cantidad actualizada correctamente")
 
     return redirect('ver_carrito')
+
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -382,40 +404,50 @@ from reportlab.lib import colors
 from .models import Venta, DetalleVenta
 from productos_app.models import Producto
 
+from decimal import Decimal, ROUND_HALF_UP
+from django.utils import timezone
+
 @login_required
 def ver_carrito(request):
     carrito = request.session.get('carrito', {})
     productos_sin_stock = []
-    total = 0
+    total = Decimal('0.00')
     
-    # Verificar stock y calcular total
     for item_id, item in carrito.items():
-        producto = Producto.objects.get(producto_id=item_id)
-        item['subtotal'] = float(item['precio_unitario']) * float(item['cantidad'])
-        total += item['subtotal']
+        try:
+            producto = Producto.objects.get(producto_id=int(item_id))
+            item['producto'] = producto
+        except Producto.DoesNotExist:
+            continue
+
+        cantidad = Decimal(str(item['cantidad'])).quantize(Decimal('0.01'))
+        precio_unitario = Decimal(item['precio_unitario']).quantize(Decimal('0.01'))
+        subtotal = (cantidad * precio_unitario).quantize(Decimal('0.01'))
         
-        # Verificar stock
-        if item['cantidad'] > producto.cantidad_disponible:
+        item['cantidad'] = f'{cantidad:.2f}'
+        item['precio_unitario'] = f'{precio_unitario:.2f}'
+        item['subtotal'] = f'{subtotal:.2f}'
+        total += subtotal
+
+        if cantidad > producto.cantidad_disponible:
             productos_sin_stock.append({
                 'nombre': producto.nombre,
-                'disponible': producto.cantidad_disponible,
-                'solicitado': item['cantidad']
+                'disponible': f'{producto.cantidad_disponible:.1f}',
             })
-    
-    # Mostrar mensajes de stock insuficiente
-    for producto in productos_sin_stock:
+
+    for p in productos_sin_stock:
         messages.warning(
             request,
-            f'No hay suficientes galletas de {producto["nombre"]}. '
-            f'Quedan {producto["disponible"]} unidades (solicitadas: {producto["solicitado"]})'
+            f'No hay galletas, solo quedan {p["disponible"]} unidades de {p["nombre"]}'
         )
-    
+
     return render(request, 'carrito/carrito.html', {
         'carrito': carrito,
-        'total': total,
+        'total': f'{total:.2f}',
         'fecha_pedido': timezone.now().strftime("%d/%m/%Y %H:%M"),
         'bloquear_compra': len(productos_sin_stock) > 0
     })
+
 
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -436,7 +468,7 @@ def confirmar_compra(request):
     productos_sin_stock = []
     for item_id, item in carrito.items():
         producto = Producto.objects.get(producto_id=item_id)
-        if item['cantidad'] > producto.cantidad_disponible:
+        if Decimal(item['cantidad']) > producto.cantidad_disponible:
             productos_sin_stock.append({
                 'nombre': producto.nombre,
                 'disponible': producto.cantidad_disponible,
@@ -457,8 +489,8 @@ def confirmar_compra(request):
         with transaction.atomic():
             venta = Venta(
                 persona=request.user.cliente,
-                estatus_venta='Pagado',
-                estado_entrega='entregado',
+                estatus_venta='Pendiente',  # Cambiado a Pendiente
+                estado_entrega='pendiente',
                 metodo_pago='efectivo'
             )
             venta.save()
@@ -474,9 +506,6 @@ def confirmar_compra(request):
                     precio_unitario=item['precio_unitario']
                 )
 
-                producto.cantidad_disponible -= Decimal(item['cantidad'])
-                producto.save()
-
             # Vaciar carrito
             request.session['carrito'] = {}
             
@@ -487,7 +516,7 @@ def confirmar_compra(request):
     except Exception as e:
         messages.error(request, f'Ocurrió un error al procesar tu compra: {str(e)}')
         return redirect('ver_carrito')
-
+    
 @login_required
 def generar_ticket(request, venta_id):
     try:
@@ -516,114 +545,142 @@ def generar_ticket(request, venta_id):
         print(f"Error: {str(e)}")
         raise Http404("Error al generar el ticket")
 
+from decimal import Decimal
+from io import BytesIO
+from django.http import HttpResponse
+from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm
-from reportlab.lib import colors
+
+from io import BytesIO
+from django.http import HttpResponse
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import mm
+from decimal import Decimal
 
 def generar_pdf(request, venta, detalles, total):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="ticket_{venta.id}.pdf"'
-    
+
+    # Configuración del tamaño del ticket (similar al de la imagen)
+    ticket_width = 80 * mm
+    # Altura base + espacio por productos (ajustado para coincidir con la imagen)
+    base_height = 120 * mm
+    extra_height = len(detalles) * 25 * mm
+    ticket_height = base_height + extra_height
+
     buffer = BytesIO()
-    p = canvas.Canvas(buffer, pagesize=(80*mm, 200*mm))
-    
-    # Configuración inicial
-    width, height = 80*mm, 200*mm
-    y_position = height - 10*mm  # Comenzamos desde la parte superior
-    
-    # Encabezado
+    p = canvas.Canvas(buffer, pagesize=(ticket_width, ticket_height))
+
+    width, height = ticket_width, ticket_height
+    y_position = height - 10 * mm  # Comenzamos desde arriba
+
+    # **Encabezado** (idéntico al de la imagen)
     p.setFont("Helvetica-Bold", 14)
     p.drawCentredString(width/2, y_position, "DON GALLETITA")
-    y_position -= 8*mm
-    
+    y_position -= 7 * mm
+
     p.setFont("Helvetica", 10)
-    p.drawCentredString(width/2, y_position, "Universidad Tecnologica de Leon")
-    y_position -= 5*mm
-    p.drawCentredString(width/2, y_position, "San Carlos, la roncha")
-    y_position -= 5*mm
-    p.drawCentredString(width/2, y_position, "Leon Guanajuato")
-    y_position -= 10*mm
-    
-    # Línea divisoria
-    p.line(5*mm, y_position, width-5*mm, y_position)
-    y_position -= 8*mm
-    
-    # Datos del cliente
+    p.drawCentredString(width/2, y_position, "Universidad Tecnológica de León")
+    y_position -= 5 * mm
+    p.drawCentredString(width/2, y_position, "San Carlos, La Roncha")
+    y_position -= 5 * mm
+    p.drawCentredString(width/2, y_position, "León, Guanajuato")
+    y_position -= 10 * mm
+
+
+    # **Datos del Cliente** (solo nombre y ticket como en la imagen)
     p.setFont("Helvetica-Bold", 10)
-    p.drawString(10*mm, y_position, f"Cliente: {venta.persona.nombre}")
-    y_position -= 6*mm
-    p.drawString(10*mm, y_position, f"Ticket: {venta.id}")
-    y_position -= 6*mm
-    
-    # Estado de pago y entrega (MODIFICADO PARA MOSTRAR CORRECTAMENTE)
+    p.drawString(10 * mm, y_position, f"Cliente: {venta.persona.nombre}")
+    y_position -= 6 * mm
+    p.drawString(10 * mm, y_position, f"Ticket: {venta.id}")
+    y_position -= 6 * mm
     estado_pago = "Pagado" if venta.estatus_venta == 'Pagado' else "Pendiente"
     p.drawString(10*mm, y_position, f"Pago: {estado_pago}")
     y_position -= 6*mm
-    p.drawString(10*mm, y_position, f"Entrega: {venta.estado_entrega.capitalize()}")
-    y_position -= 10*mm
-    
-    # Línea divisoria
-    p.line(5*mm, y_position, width-5*mm, y_position)
-    y_position -= 8*mm
-    
-    # Tabla de productos
-    p.setFont("Helvetica-Bold", 10)
-    p.drawString(10*mm, y_position, "Producto")
-    p.drawString(40*mm, y_position, "Cant")
-    p.drawString(50*mm, y_position, "Precio")
-    p.drawString(65*mm, y_position, "Total")
-    y_position -= 6*mm
-    
+
+    ancho_linea = 50 * mm
+    x_inicio = (width - ancho_linea) / 2
+    p.setDash(2, 2)
+    p.line(x_inicio, y_position, x_inicio + ancho_linea, y_position)
+    p.setDash()
+    y_position -= 8 * mm    
+
+    # **Encabezado de Productos** (formato de tabla como en la imagen)
+    p.setFont("Helvetica-Bold", 9)
+    p.drawString(5 * mm, y_position, "Producto")
+    p.drawString(35 * mm, y_position, "Cantidad")
+    p.drawString(50 * mm, y_position, "Precio")
+    p.drawString(65 * mm, y_position, "Total")
+    y_position -= 6 * mm
+
     p.setFont("Helvetica", 9)
     for detalle in detalles:
-        # Ajuste para evitar salto de página
-        if y_position < 30*mm:
-            p.showPage()
-            y_position = height - 10*mm
-            p.setFont("Helvetica", 9)
+        nombre_producto = detalle.producto.nombre
+        # Formatear cantidad sin decimales si es entero
+        cantidad = str(int(detalle.cantidad)) if detalle.cantidad == int(detalle.cantidad) else str(detalle.cantidad)
+        precio_unitario = f"${Decimal(str(detalle.precio_unitario)).quantize(Decimal('0.00'))}"
+        subtotal = f"${Decimal(str(detalle.subtotal)).quantize(Decimal('0.00'))}"
+
+        # Manejo de nombres largos (divide si es necesario)
+        if len(nombre_producto) > 20:
+            p.drawString(5 * mm, y_position, nombre_producto[:20])
+            y_position -= 4 * mm
+            remaining_text = nombre_producto[20:40] + "..." if len(nombre_producto) > 40 else nombre_producto[20:]
+            p.drawString(5 * mm, y_position, remaining_text)
+            y_position -= 2 * mm
+        else:
+            p.drawString(5 * mm, y_position, nombre_producto)
         
-        p.drawString(10*mm, y_position, detalle.producto.nombre[:15])  # Limitar longitud del nombre
-        p.drawString(40*mm, y_position, f"{detalle.cantidad} {detalle.unidad_medida}")
-        p.drawString(50*mm, y_position, f"${detalle.precio_unitario:.2f}")
-        p.drawString(65*mm, y_position, f"${detalle.subtotal:.2f}")
-        y_position -= 6*mm
+        p.drawString(35 * mm, y_position, cantidad)
+        p.drawString(50 * mm, y_position, precio_unitario)
+        p.drawString(65 * mm, y_position, subtotal)
+        y_position -= 8 * mm  # Espaciado entre productos
+
+         # **Total** (formato idéntico al de la imagen)
+    p.setFont("Helvetica-Bold", 10)
+
+# Calcular el ancho total del texto "Total: $XX.XX"
+    total_text = f"Total: ${Decimal(str(total)).quantize(Decimal('0.00'))}"
+    text_width = p.stringWidth(total_text, "Helvetica-Bold", 10)
+
+# Dibujar el texto centrado
+    p.drawCentredString(width/2, y_position, total_text)
+    y_position -= 12 * mm
+
+
+    # **Línea divisoria antes del Total**
+    ancho_linea = 50 * mm
+    x_inicio = (width - ancho_linea) / 2
+    p.setDash(2, 2)
+    p.line(x_inicio, y_position, x_inicio + ancho_linea, y_position)
+    p.setDash()
+    y_position -= 8 * mm
     
-    # Línea divisoria
-    y_position -= 4*mm
-    p.line(5*mm, y_position, width-5*mm, y_position)
-    y_position -= 8*mm
-    
-    # Total
-    p.setFont("Helvetica-Bold", 12)
-    p.drawString(40*mm, y_position, "TOTAL:")
-    p.drawString(65*mm, y_position, f"${total:.2f}")
-    y_position -= 12*mm
-    
-    # Fecha
+    # **Fecha** (formato dd/mm/yyyy HH:MM como en la imagen)
     p.setFont("Helvetica", 9)
-    p.drawCentredString(width/2, y_position, f"Fecha: {venta.fecha_venta.strftime('%d/%m/%Y %H:%M')}")
-    y_position -= 10*mm
-    
-    # Mensaje final
+    fecha_formateada = venta.fecha_venta.strftime('%d/%m/%Y %H:%M')
+    p.drawCentredString(width/2, y_position, f"Fecha: {fecha_formateada}")
+    y_position -= 10 * mm
+
+    # **Mensaje final** (texto idéntico al de la imagen)
     p.setFont("Helvetica", 10)
     p.drawCentredString(width/2, y_position, "¡Gracias por su compra!")
-    y_position -= 6*mm
+    y_position -= 6 * mm
     p.drawCentredString(width/2, y_position, "Por favor vuelva pronto")
-    y_position -= 6*mm
+    y_position -= 6 * mm
     p.setFont("Helvetica-Bold", 10)
     p.drawCentredString(width/2, y_position, "Don Galletita")
-    
-    # Finalizar PDF
+
+    # **Finalizar PDF**
     p.showPage()
     p.save()
-    
-    # Obtener PDF y cerrar buffer
+
     pdf = buffer.getvalue()
     buffer.close()
-    
-    # Escribir en la respuesta
     response.write(pdf)
     return response
 
+    
 @login_required
 def historial_compras(request):
     ventas = Venta.objects.filter(

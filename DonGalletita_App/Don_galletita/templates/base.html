@@ -122,10 +122,16 @@
                     {% endif %}
                   </a>
                 </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'historial_compras' %}"><i class="fas fa-store"></i> Historial</a>
+                </li>
                 
               {% endif %}
             {% else %}
               <!-- Menú para usuarios no autenticados -->
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'catalogo' %}"><i class="fas fa-store"></i> Catálogo</a>
+              </li>
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'registro_cliente' %}"><i class="fas fa-user-plus"></i> Registrarse</a>
               </li>
