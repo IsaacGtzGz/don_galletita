@@ -43,8 +43,8 @@ class Venta(models.Model):
                     elif detalle.unidad_medida == 'pz':
                         cantidad_a_descontar *= producto.peso_unidad  # Usar el peso por unidad del producto
 
-                    # Aplicar merma (2%)
-                    cantidad_a_descontar += cantidad_a_descontar * Decimal('0.02')
+                    # Eliminación de la lógica de merma
+                    # cantidad_a_descontar += cantidad_a_descontar * Decimal('0.02')
 
                     if producto.cantidad_disponible >= cantidad_a_descontar:
                         producto.cantidad_disponible -= cantidad_a_descontar
@@ -60,8 +60,8 @@ class DetalleVenta(models.Model):
     producto = models.ForeignKey('productos_app.Producto', on_delete=models.CASCADE)
     cantidad = models.DecimalField(max_digits=10, decimal_places=3, validators=[MinValueValidator(0)])
     unidad_medida = models.CharField(
-        max_length=2,
-        choices=[('kg', 'kg'), ('g', 'g'), ('pz', 'pz')]
+        max_length=6,  # Ajustado para soportar '700gr'
+        choices=[('kg', 'kg'), ('g', 'g'), ('pz', 'pz'), ('1kg', '1kg'), ('700gr', '700gr')]
     )
     precio_unitario = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
 
