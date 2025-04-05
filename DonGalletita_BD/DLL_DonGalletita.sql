@@ -12,6 +12,11 @@ USE don_galletita_bd;
 -- Tablas
 -- ============================================
 
+SELECT * FROM usuarios_app_usuario;
+SELECT * FROM auth_group;
+
+DESCRIBE proveedores_app_proveedor;
+
 -- Tabla de usuario
 CREATE TABLE usuario (
     usuario_id INT PRIMARY KEY AUTO_INCREMENT,

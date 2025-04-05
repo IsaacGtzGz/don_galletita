@@ -12,7 +12,9 @@ class Insumos(models.Model):
         ('g', 'Gramos'),
         ('kg', 'Kilogramos'),
         ('litros', 'Litros'),
+        ('ml', 'Mililitros'),
         ('bultos', 'Bultos'),
+        ('pz', 'Piezas'),
     ]
 
     nombre_insumo = models.CharField(max_length=200)

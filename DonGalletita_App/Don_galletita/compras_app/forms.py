@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.timezone import now
 from django.forms.models import inlineformset_factory
 from .models import Compra, DetalleCompra, Insumos, Proveedor
 
@@ -45,6 +46,24 @@ class DetalleCompraForm(forms.ModelForm):
             "unidad_medida": forms.Select(attrs={"class": "form-control"}),
             "fecha_caducidad": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
         }
+
+    def clean_cantidad(self):
+        cantidad = self.cleaned_data.get('cantidad')
+        if cantidad is not None and cantidad <= 0:
+            raise forms.ValidationError("La cantidad debe ser un valor positivo.")
+        return cantidad
+
+    def clean_precio_unitario(self):
+        precio_unitario = self.cleaned_data.get('precio_unitario')
+        if precio_unitario is not None and precio_unitario <= 0:
+            raise forms.ValidationError("El precio unitario debe ser un valor positivo.")
+        return precio_unitario
+
+    def clean_fecha_caducidad(self):
+        fecha_caducidad = self.cleaned_data.get('fecha_caducidad')
+        if fecha_caducidad and fecha_caducidad < now().date():
+            raise forms.ValidationError("La fecha de caducidad no puede ser anterior a la fecha actual.")
+        return fecha_caducidad
 
 
 DetalleCompraFormSet = inlineformset_factory(

@@ -5,6 +5,32 @@ from django.urls import reverse_lazy
 from .models import Venta, DetalleVenta
 from .forms import VentaForm, DetalleVentaForm
 from reportlab.pdfgen import canvas
+from django.http import FileResponse, JsonResponse, HttpResponse
+from io import BytesIO
+import base64
+from reportlab.lib.pagesizes import inch, letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+from django.db.models.functions import TruncDate
+from django.utils.timezone import now, localtime, timezone
+from datetime import timedelta
+import io
+import openpyxl
+from openpyxl.styles import Font
+from django.db import transaction
+from django.db.models import Sum, Count
+from productos_app.models import Producto
+import json
+import requests
+from math import floor
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.generic.base import TemplateView
+from django.views.generic import FormView, DeleteView
+from django.urls import reverse_lazy
+from .models import Venta, DetalleVenta
+from .forms import VentaForm, DetalleVentaForm
+from reportlab.pdfgen import canvas
 from django.views.generic import TemplateView
 from django.shortcuts import get_object_or_404
 from django.http import FileResponse
@@ -36,6 +62,41 @@ from reportlab.lib.pagesizes import inch
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 import json
+    
+from django.views.generic import TemplateView
+from django.utils import timezone
+from django.db.models import Sum, Count
+from ventas_app.models import DetalleVenta, Venta
+from productos_app.models import Producto
+from datetime import timedelta
+
+
+def obtener_detalle_producto(request, producto_id, unidad_medida, cantidad):
+    try:
+        producto = Producto.objects.get(producto_id=producto_id)  # Corregido para usar producto_id
+        cantidades_disponibles = []
+
+        # Ajustar el cálculo de cantidades disponibles para evitar opciones inválidas
+        if unidad_medida == 'g':
+            max_gramos = producto.cantidad_disponible * producto.peso_unidad
+            cantidades_disponibles = [i for i in range(int(producto.peso_unidad), int(max_gramos) + 1, int(producto.peso_unidad)) if i <= max_gramos]
+        elif unidad_medida == '1kg':
+            max_kilos = floor((producto.cantidad_disponible * producto.peso_unidad) / 1000)
+            cantidades_disponibles = [i for i in range(1, max_kilos + 1)]
+        elif unidad_medida == '700gr':
+            max_paquetes = floor((producto.cantidad_disponible * producto.peso_unidad) / 700)
+            cantidades_disponibles = [i for i in range(1, max_paquetes + 1)]
+        else:  # 'pz'
+            cantidades_disponibles = [i for i in range(1, int(producto.cantidad_disponible) + 1)]
+
+        detalle = {
+            'cantidades_disponibles': cantidades_disponibles,
+            'peso_unidad': producto.peso_unidad,
+            'cantidad_disponible': producto.cantidad_disponible
+        }
+        return JsonResponse({'detalle': detalle})
+    except Producto.DoesNotExist:
+        return JsonResponse({'error': 'Producto no encontrado.'}, status=404)
 
 # Listar ventas
 class ListaVentasView(TemplateView):
@@ -43,10 +104,12 @@ class ListaVentasView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        lista_pagadas = Venta.objects.filter(estatus_venta='Pagado')
-        lista_otros = Venta.objects.exclude(estatus_venta='Pagado')
+        lista_pagadas = Venta.objects.filter(estatus_venta='Pagado').order_by('-id')
+        lista_pendientes = Venta.objects.filter(estatus_venta='Pendiente').order_by('-id')
+        lista_canceladas = Venta.objects.filter(estatus_venta='Cancelado').order_by('-id')
         context['lista_pagadas'] = lista_pagadas
-        context['lista_otros'] = lista_otros
+        context['lista_pendientes'] = lista_pendientes
+        context['lista_canceladas'] = lista_canceladas
         return context
     
 # Crear una venta
@@ -100,8 +163,66 @@ class CrearDetalleVentaView(FormView):
         venta = get_object_or_404(Venta, id=venta_id)
         detalle_venta = form.save(commit=False)
         detalle_venta.venta = venta
+
+        # Calcular cuántas piezas se necesitan según la unidad de medida
+        producto = detalle_venta.producto
+        if detalle_venta.unidad_medida == 'g':
+            piezas_necesarias = detalle_venta.cantidad / producto.peso_unidad
+        elif detalle_venta.unidad_medida == '1kg':
+            piezas_necesarias = (1000 / producto.peso_unidad) * detalle_venta.cantidad
+        elif detalle_venta.unidad_medida == '700gr':
+            piezas_necesarias = (700 / producto.peso_unidad) * detalle_venta.cantidad
+        else:
+            piezas_necesarias = detalle_venta.cantidad
+
+        # Validar inventario
+        if producto.cantidad_disponible < piezas_necesarias:
+            form.add_error('cantidad', 'No hay suficiente inventario para esta venta.')
+            return self.form_invalid(form)
+
+        # Descontar del inventario
+        producto.cantidad_disponible -= piezas_necesarias
+        producto.save()
+
+        # Asignar el precio unitario del producto al detalle de la venta
+        detalle_venta.precio_unitario = producto.precio_unitario
+
+        # Crear el detalle de la venta
         detalle_venta.save()
+
+        # Incluir el token CSRF en la petición a producción
+        csrf_token = self.request.META.get('CSRF_COOKIE', '')
+        headers = {'X-CSRFToken': csrf_token}
+        if producto.cantidad_disponible < 80:
+            cantidad_a_producir = 150 - producto.cantidad_disponible
+            response = requests.post(
+                'http://127.0.0.1:8000/produccion/crear/',
+                data={
+                    'producto_id': producto.producto_id,
+                    'cantidad_necesaria': cantidad_a_producir
+                },
+                headers=headers
+            )
+            if response.status_code != 200:
+                form.add_error(None, 'No se pudo realizar la producción por falta de stock o error en el servidor.')
+                return self.form_invalid(form)
+
+        # Verificar si se necesita producción automática
+        if producto.cantidad_disponible < 80:
+            cantidad_a_producir = 150 - producto.cantidad_disponible
+            try:
+                from produccion_app.views import crear_produccion_automatica
+                crear_produccion_automatica(producto.producto_id, cantidad_a_producir)
+            except ValueError as e:
+                form.add_error(None, f"Error al crear producción automática: {str(e)}")
+                return self.form_invalid(form)
+
         return redirect('detalle_venta', venta_id=venta.id)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['venta_id'] = self.kwargs.get('venta_id')
+        return context
 
 # Editar detalle de venta
 class EditarDetalleVentaView(FormView):
@@ -146,10 +267,16 @@ class CorteVentasDiarioView(TemplateView):
         # Filtrar ventas del día actual
         hoy_inicio = localtime().replace(hour=0, minute=0, second=0, microsecond=0)
         hoy_fin = localtime().replace(hour=23, minute=59, second=59, microsecond=999999)
-        ventas_diarias = Venta.objects.filter(fecha_venta__range=(hoy_inicio, hoy_fin))
+        ventas_diarias = Venta.objects.filter(fecha_venta__range=(hoy_inicio, hoy_fin)).order_by('-id')
 
-        # Consolidar totales
-        total_ventas = ventas_diarias.aggregate(total=Sum('detalles__precio_unitario'))['total'] or 0
+        # Filtrar solo ventas pagadas para el total del día
+        # Calcular el total de ventas solo para ventas pagadas
+        total_ventas = sum(
+            sum(detalle.cantidad * detalle.precio_unitario for detalle in venta.detalles.all())
+            for venta in ventas_diarias.filter(estatus_venta='Pagado')
+        )
+        total_ventas = round(total_ventas, 2)
+
         total_transacciones = ventas_diarias.count()
 
         # Totales por tipo de presentación
@@ -172,17 +299,9 @@ class CorteVentasDiarioView(TemplateView):
                 elif detalle.unidad_medida == '700gr':
                     totales_por_categoria['gr700'] += detalle.cantidad
 
-                # Contabilizar productos más vendidos
-                if detalle.producto.nombre not in productos_vendidos:
-                    productos_vendidos[detalle.producto.nombre] = 0
-                productos_vendidos[detalle.producto.nombre] += detalle.cantidad
-
-        # Productos más vendidos (top 5)
-        top_productos = sorted(productos_vendidos.items(), key=lambda x: x[1], reverse=True)[:5]
-
         # Comparativa con el día anterior
         dia_anterior = hoy - timedelta(days=1)
-        ventas_dia_anterior = Venta.objects.filter(fecha_venta__date=dia_anterior)
+        ventas_dia_anterior = Venta.objects.filter(fecha_venta__date=dia_anterior).order_by('-id')
         total_dia_anterior = ventas_dia_anterior.aggregate(total=Sum('detalles__precio_unitario'))['total'] or 0
 
         ventas_con_totales = []
@@ -225,7 +344,6 @@ class CorteVentasDiarioView(TemplateView):
             'total_ventas': total_ventas,
             'total_transacciones': total_transacciones,
             'totales_por_categoria': totales_por_categoria,
-            'top_productos': top_productos,
             'total_dia_anterior': total_dia_anterior
         }
         
@@ -261,7 +379,6 @@ class CorteVentasDiarioView(TemplateView):
             'success': 'Corte diario completado exitosamente.'
         })
 
-# Clase para generar y descargar el ticket
 # Clase para generar y descargar el ticket
 class TicketVentaView(TemplateView):
     def generar_ticket(self, venta):
@@ -445,7 +562,6 @@ class DetalleVentaView(TemplateView):
             'detalles': detalles_con_subtotal,
             'total_a_pagar': total_a_pagar
         }
-
 # Exportar reporte en PDF
 class ExportarReportePDFView(TemplateView):
     def get(self, request, *args, **kwargs):
@@ -453,35 +569,87 @@ class ExportarReportePDFView(TemplateView):
         from django.db.models import Sum
         hoy_inicio = localtime().replace(hour=0, minute=0, second=0, microsecond=0)
         hoy_fin = localtime().replace(hour=23, minute=59, second=59, microsecond=999999)
-        ventas_diarias = Venta.objects.filter(fecha_venta__range=(hoy_inicio, hoy_fin))
+        ventas_diarias = Venta.objects.filter(fecha_venta__range=(hoy_inicio, hoy_fin)).order_by('-id')
 
         total_ventas = ventas_diarias.aggregate(total=Sum('detalles__precio_unitario'))['total'] or 0
         total_transacciones = ventas_diarias.count()
 
         buffer = io.BytesIO()
-        p = canvas.Canvas(buffer, pagesize=letter)
+        pdf = SimpleDocTemplate(buffer, pagesize=letter,
+                                 leftMargin=0.5 * inch, rightMargin=0.5 * inch,
+                                 topMargin=0.5 * inch, bottomMargin=0.5 * inch)
 
-        # Título del reporte
-        p.drawString(100, 750, "Reporte Diario de Ventas")
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            name='Title',
+            fontName='Helvetica-Bold',
+            fontSize=16,
+            alignment=1,  # Centrado
+            spaceAfter=12
+        )
+        subtitle_style = ParagraphStyle(
+            name='Subtitle',
+            fontName='Helvetica',
+            fontSize=12,
+            alignment=1,
+            spaceAfter=6
+        )
+        table_style = TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ])
 
-        # Datos del reporte
-        p.drawString(100, 730, f"Total Ventas: ${total_ventas}")
-        p.drawString(100, 710, f"Total Transacciones: {total_transacciones}")
-
-        # Detalles de las ventas
-        y = 690
-        for venta in ventas_diarias:
+        elements = []
+        elements.append(Paragraph("DON GALLETITA", title_style))
+        elements.append(Paragraph("Universidad Tecnológica de León", subtitle_style))
+        elements.append(Paragraph("San Carlos, La Roncha, León, Guanajuato", subtitle_style))
+        elements.append(Spacer(1, 12))
+        elements.append(Paragraph(f"Reporte Diario de Ventas - Fecha: {localtime().strftime('%d/%m/%Y')}", subtitle_style))
+        elements.append(Spacer(1, 12))
+        
+        # Tabla de Ventas Pagadas
+        elements.append(Paragraph("Ventas Pagadas", title_style))
+        elements.append(Spacer(1, 12))
+        data_pagadas = [["ID", "Cliente", "Fecha", "Total"]]
+        for venta in ventas_diarias.filter(estatus_venta='Pagado'):
             total_venta = sum(
                 detalle.cantidad * detalle.precio_unitario
                 for detalle in venta.detalles.all()
             )
-            p.drawString(100, y, f"ID: {venta.id}, Cliente: {venta.persona}, Fecha: {venta.fecha_venta}, Total: ${total_venta}")
-            y -= 20
+            data_pagadas.append([venta.id, str(venta.persona), str(venta.fecha_venta), f"${total_venta:.2f}"])
 
-        # Finalizar y guardar
-        p.showPage()
-        p.save()
+        table_pagadas = Table(data_pagadas, colWidths=[1.5 * inch, 2.5 * inch, 2.5 * inch, 1.5 * inch])
+        table_pagadas.setStyle(table_style)
+        elements.append(table_pagadas)
+        elements.append(Spacer(1, 12))
 
+        # Tabla de Ventas Pendientes y Canceladas
+        elements.append(Paragraph("Ventas Pendientes y Canceladas", title_style))
+        elements.append(Spacer(1, 12))
+        data_otros = [["ID", "Cliente", "Fecha", "Estatus", "Total"]]
+        for venta in ventas_diarias.exclude(estatus_venta='Pagado'):
+            total_venta = sum(
+                detalle.cantidad * detalle.precio_unitario
+                for detalle in venta.detalles.all()
+            )
+            data_otros.append([venta.id, str(venta.persona), str(venta.fecha_venta), venta.estatus_venta, f"${total_venta:.2f}"])
+
+        table_otros = Table(data_otros, colWidths=[1.5 * inch, 2.5 * inch, 2.5 * inch, 1.5 * inch, 1.5 * inch])
+        table_otros.setStyle(table_style)
+        elements.append(table_otros)
+
+        elements.append(Spacer(1, 12))
+        elements.append(Paragraph(f"Total Ventas: ${total_ventas:.2f}", subtitle_style))
+        elements.append(Paragraph(f"Total Transacciones: {total_transacciones}", subtitle_style))
+        elements.append(Spacer(1, 12))
+        elements.append(Paragraph("¡Mejorando la calidad de nuestros productos!", subtitle_style))
+
+        pdf.build(elements)
         buffer.seek(0)
         response = HttpResponse(buffer, content_type='application/pdf')
         response['Content-Disposition'] = 'attachment; filename="reporte_diario.pdf"'
@@ -494,7 +662,7 @@ class ExportarReporteExcelView(TemplateView):
         from django.db.models import Sum
         hoy_inicio = localtime().replace(hour=0, minute=0, second=0, microsecond=0)
         hoy_fin = localtime().replace(hour=23, minute=59, second=59, microsecond=999999)
-        ventas_diarias = Venta.objects.filter(fecha_venta__range=(hoy_inicio, hoy_fin))
+        ventas_diarias = Venta.objects.filter(fecha_venta__range=(hoy_inicio, hoy_fin)).order_by('-id')
 
         # Crear un libro de Excel
         wb = openpyxl.Workbook()
@@ -553,15 +721,10 @@ class ConfirmarVentaView(TemplateView):
 
         return redirect('detalle_venta', venta_id=venta.id)
     
-from django.views.generic import TemplateView
-from django.utils import timezone
-from django.db.models import Sum, Count
-from ventas_app.models import DetalleVenta, Venta
-from productos_app.models import Producto
-from datetime import timedelta
-
 
  # Dashboard de presentaciones y alertas
+
+#Dashboard de presentaciones y alertas
 class DashboardPresentacionesAlertasView(TemplateView):
     template_name = 'dashboard_presentaciones_alertas.html'
      
@@ -570,7 +733,8 @@ class DashboardPresentacionesAlertasView(TemplateView):
          
         # --- Gráfico de Presentaciones Más Vendidas ---
         ventas_30_dias = Venta.objects.filter(
-            fecha_venta__gte=timezone.now() - timedelta(days=30))
+            fecha_venta__gte=timezone.now() - timedelta(days=30)
+        ).order_by('-id')
          
         detalles = DetalleVenta.objects.filter(venta__in=ventas_30_dias)
          
@@ -615,6 +779,7 @@ class DashboardPresentacionesAlertasView(TemplateView):
         }
         return presentation_names.get(unidad_medida, unidad_medida)
 
+# Dashboard de métricas de ventas
 class DashboardMetricasVentasView(TemplateView):
     template_name = 'dashboard_metricas_ventas.html'
 
@@ -624,7 +789,7 @@ class DashboardMetricasVentasView(TemplateView):
         hoy_fin = localtime().replace(hour=23, minute=59, second=59, microsecond=999999)
 
         # Ventas del día actual
-        ventas_hoy = Venta.objects.filter(fecha_venta__range=(hoy_inicio, hoy_fin))
+        ventas_hoy = Venta.objects.filter(fecha_venta__range=(hoy_inicio, hoy_fin)).order_by('-id')
         total_ventas_hoy = ventas_hoy.aggregate(total=Sum('detalles__precio_unitario'))['total'] or 0
         total_transacciones = ventas_hoy.count()
         ticket_promedio = float(total_ventas_hoy) / total_transacciones if total_transacciones > 0 else 0

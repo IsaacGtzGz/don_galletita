@@ -2,6 +2,8 @@ from django import forms
 from django.forms import inlineformset_factory
 from recetas_app.models import Receta, RecetaInsumo
 from insumos_app.models import Insumos
+import os
+from django.core.files.uploadedfile import UploadedFile
 
 class SelectInsumo(forms.ModelChoiceField):
     def label_from_instance(self, obj):
@@ -75,6 +77,21 @@ class RecetasRegistrarForm(forms.ModelForm):
             raise forms.ValidationError("Las porciones deben ser al menos 1.")
         return porciones
     
+    def clean_foto_receta(self):
+        foto = self.cleaned_data.get('foto_receta')
+        if foto:
+            # Validar tipo de contenido
+            main, sub = foto.content_type.split('/')
+            if not (main == 'image' and sub in ['jpeg', 'png']):
+                raise forms.ValidationError("Solo se permiten imágenes JPG o PNG.")
+            
+            # Validar extensión del archivo
+            ext = os.path.splitext(foto.name)[1].lower()
+            if ext not in ['.jpg', '.jpeg', '.png']:
+                raise forms.ValidationError("Extensión de archivo no permitida.")
+        
+        return foto
+    
     def clean(self):
         cleaned_data = super().clean()
         preparacion = cleaned_data.get('preparacion')
@@ -99,3 +116,24 @@ class RecetaEditarForm(forms.ModelForm):
             'porciones_galletas': forms.NumberInput(attrs={'class': 'form-control'}),
             'preparacion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
         }
+
+    def clean_porciones_galletas(self):
+        porciones = self.cleaned_data.get('porciones_galletas')
+        if porciones < 1:
+            raise forms.ValidationError("Las porciones deben ser al menos 1.")
+        return porciones
+    
+    def clean_foto_receta(self):
+        foto = self.cleaned_data.get('foto_receta')
+        if foto and isinstance(foto, UploadedFile):  # Verifica si es un archivo cargado
+            # Validar tipo de contenido
+            main, sub = foto.content_type.split('/')
+            if not (main == 'image' and sub in ['jpeg', 'png']):
+                raise forms.ValidationError("Solo se permiten imágenes JPG o PNG.")
+            
+            # Validar extensión del archivo
+            ext = os.path.splitext(foto.name)[1].lower()
+            if ext not in ['.jpg', '.jpeg', '.png']:
+                raise forms.ValidationError("Extensión de archivo no permitida.")
+        
+        return foto

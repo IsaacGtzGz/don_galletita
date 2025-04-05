@@ -65,13 +65,6 @@
                             <div class="col-md-6">
                                 <p class="mb-1"><strong>Método de Pago:</strong> {{ venta.metodo_pago }}</p>
                             </div>
-                            <div class="col-md-6">
-                                <p class="mb-1"><strong>Estado de Entrega:</strong> 
-                                    <span class="badge bg-{% if venta.estado_entrega == 'entregado' %}success{% else %}warning{% endif %} text-white">
-                                        {{ venta.get_estado_entrega_display }}
-                                    </span>
-                                </p>
-                            </div>
                         </div>
                         {% if venta.observaciones %}
                         <p class="mt-2"><strong>Observaciones:</strong> {{ venta.observaciones }}</p>

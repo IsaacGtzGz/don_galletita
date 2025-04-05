@@ -34,7 +34,6 @@ urlpatterns = [
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='registration/password_reset_confirm.html'), name='password_reset_confirm'),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name='registration/password_reset_complete.html'), name='password_reset_complete'),
     path('registro/', views.registro, name='registro'),
-
     path('', include('usuarios_app.urls')),
     path('insumos/', include('insumos_app.urls'), name='lista_insumo'),
     path('proveedores/', include('proveedores_app.urls')),
@@ -45,3 +44,6 @@ urlpatterns = [
     path('ventas/', include('ventas_app.urls')),
     path('recetas/', include('recetas_app.urls')),
 ]+ static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
+
+handler404 = views.custom_404
+handler500 = views.custom_500

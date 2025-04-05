@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Error 500</title>
-</head>
-<body>
-    Error en el servidor 
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <h1 class="display-4" style="color: #A67C52; font-family: 'Arial', sans-serif;">Error 500</h1>
+    <p class="lead" style="color: #5C3D2E;">Lo sentimos, ha ocurrido un error en el servidor.</p>
+    <a href="/" class="btn btn-primary mt-3" style="background-color: #A67C52; border-color: #A67C52;">Volver al inicio</a>
+</div>
+{% endblock %}
