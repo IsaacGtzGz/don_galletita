@@ -1,6 +1,7 @@
 from django.db import models
 from insumos_app.models import Insumos
 from productos_app.models import Producto
+from django.core.exceptions import ValidationError
 
 UNIDADES_CHOICES = (
     ('kg', 'Kilogramos'),
@@ -10,10 +11,19 @@ UNIDADES_CHOICES = (
     ('pz', 'Piezas'),
 )
 
+def validate_image_extension(value):
+    valid_extensions = ['.jpg', '.jpeg', '.png']
+    if not any(value.name.endswith(ext) for ext in valid_extensions):
+        raise ValidationError('El archivo debe ser una imagen en formato JPG, JPEG o PNG.')
+
 class Receta(models.Model):
     receta_id = models.AutoField(primary_key=True)
     producto = producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    foto_receta = models.ImageField(upload_to='recetas/', null=True, blank=True)
+    foto_receta = models.ImageField(
+        upload_to='recetas/', 
+        null=True, 
+        blank=True,
+        validators=[validate_image_extension])
     preparacion = models.TextField(default="Sin descripción")
     porciones_galletas = models.IntegerField(default=1)
 
