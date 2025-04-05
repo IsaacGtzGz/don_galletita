@@ -4,7 +4,7 @@
         "pk": 1,
         "fields": {
             "nombre_usuario": "admin",
-            "contrasenia": "pbkdf2_sha256$260000$...",
+            "contrasenia": "pbkdf2_sha256$260000$u1J9X1z5W1q9J7z$9F9+8X8z8X8z8X8z8X8z8X8z8X8z8X8z8X8z8X8z8X8=",
             "rol": "admin",
             "estatus_user": 1,
             "is_active": true,
@@ -31,7 +31,7 @@
             "nombre": "Producto 1",
             "descripcion": "Descripción del producto 1",
             "unidad_medida": "kg",
-            "cantidad_disponible": 100,
+            "cantidad_disponible": 1000,
             "precio_unitario": "50.00",
             "peso_unidad": "1.00",
             "fecha_caducidad": "2025-12-31"

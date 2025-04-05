@@ -7,6 +7,7 @@ from .views import (
     ExportarReportePDFView, ExportarReporteExcelView, ConfirmarVentaView,
     DashboardPresentacionesAlertasView, DashboardMetricasVentasView
 )
+from . import views
 
 urlpatterns = [
     # URL para crear, editar y eliminar ventas
@@ -33,4 +34,7 @@ urlpatterns = [
     # Dashboard
     path('dashboard/', login_required(DashboardPresentacionesAlertasView.as_view()), name='dashboard_presentaciones_alertas'),
     path('dashboard_metricas/', login_required(DashboardMetricasVentasView.as_view()), name='dashboard_metricas_ventas'),
+
+    # URL para obtener detalle de producto
+    path('obtener_detalle_producto/<int:producto_id>/<str:unidad_medida>/<int:cantidad>/', views.obtener_detalle_producto, name='obtener_detalle_producto'),
 ]
