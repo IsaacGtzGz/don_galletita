@@ -35,7 +35,7 @@
           {% for produccion in producciones %}
             <tr>
               <td>{{ produccion.produccion_id }}</td>
-              <td>{{ produccion.producto.nombre }}</td>
+              <td>{{ produccion.receta.producto.nombre }}</td>
               <td>{{ produccion.fecha_inicio|date:"d/m/Y H:i" }}</td>
               <td>{{ produccion.cantidad_producida }} {{ produccion.producto.unidad_medida }}</td>
               <td>

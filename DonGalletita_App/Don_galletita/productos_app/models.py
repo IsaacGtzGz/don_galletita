@@ -10,10 +10,16 @@ class Producto(models.Model):
         ('g', 'Gramos'), 
         ('pz', 'Piezas')
     ])
-    cantidad_disponible = models.IntegerField(default=0)
+    cantidad_disponible = models.DecimalField(max_digits=10, decimal_places=3, default=0)
     precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
     peso_unidad = models.DecimalField(max_digits=5, decimal_places=2)
     fecha_caducidad = models.DateField(blank=True, null=True)
+    imagen_producto = models.ImageField(upload_to='productos/', blank=True, null=True)  
+
+    def save(self, *args, **kwargs):
+        if self.cantidad_disponible < 0:
+            raise ValueError("La cantidad disponible no puede ser negativa.")
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.nombre

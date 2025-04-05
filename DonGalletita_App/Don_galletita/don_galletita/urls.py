@@ -24,21 +24,24 @@ from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('usuarios_app.urls')), 
     path('', views.home, name='home'),
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('cuentas/', include('django.contrib.auth.urls')),
+    path('cuentas/registro/', views.registro, name="registro"),
     path('password_reset/', auth_views.PasswordResetView.as_view(template_name='registration/password_reset_form.html'), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(template_name='registration/password_reset_done.html'), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='registration/password_reset_confirm.html'), name='password_reset_confirm'),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name='registration/password_reset_complete.html'), name='password_reset_complete'),
     path('registro/', views.registro, name='registro'),
+
+    path('', include('usuarios_app.urls')),
     path('insumos/', include('insumos_app.urls'), name='lista_insumo'),
-    path('recetas/', include('recetas_app.urls'), name='lista_receta'),
-    path('cuentas/', include('django.contrib.auth.urls')),
-    path('cuentas/registro/', views.registro, name="registro"),
     path('proveedores/', include('proveedores_app.urls')),
     path('productos/', include('productos_app.urls')),
     path('produccion/', include('produccion_app.urls')),
     path('clientes/', include('cliente_app.urls')),
+    path('compras/', include('compras_app.urls')),
+    path('ventas/', include('ventas_app.urls')),
+    path('recetas/', include('recetas_app.urls')),
 ]+ static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)

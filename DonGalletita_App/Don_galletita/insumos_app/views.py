@@ -5,6 +5,7 @@ from django.views.generic import FormView
 from django.views.generic.edit import DeleteView
 from . import forms
 from django.urls import reverse_lazy
+from datetime import date, timedelta
 
 # Create your views here.
 
@@ -54,5 +55,5 @@ class EditarInsumoView(FormView):
 
 class EliminarInsumoView(DeleteView):
     model = Insumos
-    template_name = 'confirmar_eliminar.html'
+    template_name = 'eliminar_insumo.html'
     success_url = reverse_lazy('lista_insumo')
