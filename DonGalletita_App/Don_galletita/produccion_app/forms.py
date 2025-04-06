@@ -1,7 +1,7 @@
 from django import forms
 from produccion_app.models import Produccion, LoteProduccion
 from recetas_app.models import Receta
-
+from django.utils.timezone import now
 from django import forms
 from .models import Produccion
 from recetas_app.models import Receta
@@ -28,6 +28,15 @@ class ProduccionForm(forms.ModelForm):
                 'type': 'datetime-local'
             }),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        fecha_inicio = cleaned_data.get('fecha_inicio')
+        fecha_finalizacion = cleaned_data.get('fecha_finalizacion')
+
+        if fecha_inicio and fecha_finalizacion and fecha_finalizacion < fecha_inicio:
+            raise forms.ValidationError("La fecha de finalización no puede ser anterior a la fecha de inicio.")
+
 
 class LoteProduccionForm(forms.ModelForm):
     class Meta:

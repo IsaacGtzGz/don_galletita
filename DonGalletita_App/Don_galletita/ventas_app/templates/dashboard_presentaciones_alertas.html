@@ -1,0 +1,368 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+      <h1 class="h3 mb-0 text-gray-800">Dashboard de Ventas - Galletas Deliciosas</h1>
+      <div class="small text-muted">
+        Actualizado:{% now 'SHORT_DATETIME_FORMAT' %}
+      </div>
+    </div>
+
+    <!-- Sección de Gráficos Principales -->
+    <div class="row">
+      <!-- Gráfico de Barras -->
+      <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+          <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between" style="background-color: #FFF8E1;">
+            <h6 class="m-0 font-weight-bold" style="color: #5D4037;"><i class="fas fa-chart-bar fa-fw"></i> Presentaciones Más Vendidas (Últimos 30 días)</h6>
+          </div>
+          <div class="card-body">
+            <div class="chart-bar">
+              <canvas id="presentacionesChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráfico Circular -->
+      <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+          <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between" style="background-color: #FFF8E1;">
+            <h6 class="m-0 font-weight-bold" style="color: #5D4037;"><i class="fas fa-chart-pie fa-fw"></i> Distribución de Ventas</h6>
+          </div>
+          <div class="card-body">
+            <div class="chart-pie pt-4 pb-2">
+              <canvas id="distribucionChart"></canvas>
+            </div>
+            <div class="mt-4 text-center small">
+              <span class="mr-2"><i class="fas fa-circle" style="color: #F4A261;"></i> Bolsas 1kg</span>
+              <span class="mr-2"><i class="fas fa-circle" style="color: #2A9D8F;"></i> Granel</span>
+              <span class="mr-2"><i class="fas fa-circle" style="color: #E9C46A;"></i> Individuales</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección de Alertas -->
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card shadow mb-4">
+          <div class="card-header py-3" style="background-color: #FFEBEE;">
+            <h6 class="m-0 font-weight-bold" style="color: #C62828;"><i class="fas fa-exclamation-triangle fa-fw"></i> Alertas de Caducidad (Próximos 2 días)</h6>
+          </div>
+          <div class="card-body">
+            {% if productos_proximos_caducar %}
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="alertasTable" width="100%" cellspacing="0">
+                  <thead style="background-color: #FFF3E0;">
+                    <tr>
+                      <th>Producto</th>
+                      <th>Presentación</th>
+                      <th>Fecha Caducidad</th>
+                      <th>Stock</th>
+                      <th>Días Restantes</th>
+                      <th>Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for producto in productos_proximos_caducar %}
+                      <tr>
+                        <td>{{ producto.nombre }}</td>
+                        <td>{{ producto.unidad_medida }}</td>
+                        <td>{{ producto.fecha_caducidad|date:'SHORT_DATE_FORMAT' }}</td>
+                        <td>{{ producto.cantidad_disponible }}</td>
+                        <td>
+                          {% with dias=producto.fecha_caducidad|timeuntil:timezone.now.date %}
+                            {% if 'day' in dias %}
+                              {{ dias|slice:':9' }} {# Esto mostrará solo la parte de los días #}
+                            {% else %}
+                              ¡Hoy!
+                            {% endif %}
+                          {% endwith %}
+                        </td>
+                        <td>
+                          <button class="btn btn-sm btn-warning"><i class="fas fa-bullhorn fa-sm"></i> Notificar</button>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="alert alert-success">
+                <i class="fas fa-check-circle fa-fw"></i> ¡Excelente! No hay productos próximos a caducar.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Desglose por Tipo de Presentación -->
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card shadow mb-4">
+          <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Desglose por Tipo de Presentación</h6>
+          </div>
+          <div class="card-body">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Presentación</th>
+                  <th>Total Vendido</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for presentacion in desglose_presentaciones %}
+                  <tr>
+                    <td>{{ presentacion.unidad_medida }}</td>
+                    <td>{{ presentacion.total_vendido }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tarjetas Resumen -->
+    <div class="row">
+      <!-- Tarjeta Ventas Totales -->
+      <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+          <div class="card-body">
+            <div class="row no-gutters align-items-center">
+              <div class="col mr-2">
+                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Ventas Totales (30 días)</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_ventas|default:'0' }} unidades</div>
+              </div>
+              <div class="col-auto">
+                <i class="fas fa-cookie-bite fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta Presentación Más Popular -->
+      <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+          <div class="card-body">
+            <div class="row no-gutters align-items-center">
+              <div class="col mr-2">
+                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Presentación Más Popular</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ presentacion_popular|default:'-' }}</div>
+              </div>
+              <div class="col-auto">
+                <i class="fas fa-star fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta Productos por Caducar -->
+      <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+          <div class="card-body">
+            <div class="row no-gutters align-items-center">
+              <div class="col mr-2">
+                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Productos por Caducar</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ productos_proximos_caducar.count }}</div>
+              </div>
+              <div class="col-auto">
+                <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta Rotación de Inventario -->
+      <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+          <div class="card-body">
+            <div class="row no-gutters align-items-center">
+              <div class="col mr-2">
+                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Rotación de Inventario</div>
+                <div class="row no-gutters align-items-center">
+                  <div class="col-auto">
+                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{ rotacion_inventario|default:'0' }}%</div>
+                  </div>
+                  <div class="col">
+                    <div class="progress progress-sm mr-2">
+                      <div class="progress-bar bg-info" role="progressbar" style="width: {{ rotacion_inventario|default:'0' }}%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-auto">
+                <i class="fas fa-sync-alt fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- DataTables -->
+  <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
+
+  <script>
+    $(document).ready(function () {
+      // Gráfico de barras - Presentaciones más vendidas
+      var ctx = document.getElementById('presentacionesChart').getContext('2d')
+      var barChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: JSON.parse('{{ presentaciones_chart.labels|escapejs }}'),
+          datasets: [
+            {
+              label: 'Unidades Vendidas',
+              data: JSON.parse('{{ presentaciones_chart.data|escapejs }}'),
+              backgroundColor: [
+                '#F4A261', // Naranja terracota
+                '#2A9D8F', // Verde aguamarina
+                '#E9C46A', // Amarillo mostaza
+                '#E76F51', // Rojo coral
+                '#264653' // Azul oscuro
+              ],
+              borderColor: 'rgba(0, 0, 0, 0.1)',
+              borderWidth: 1,
+              borderRadius: 8
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Presentaciones Más Vendidas - Galletas Deliciosas',
+              font: {
+                size: 16,
+                family: "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif"
+              },
+              padding: {
+                top: 10,
+                bottom: 20
+              }
+            },
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: '#5D4037',
+              titleFont: {
+                size: 14,
+                weight: 'bold'
+              },
+              bodyFont: {
+                size: 12
+              },
+              callbacks: {
+                label: function (context) {
+                  return context.parsed.y.toLocaleString() + ' unidades vendidas'
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                drawBorder: false
+              },
+              title: {
+                display: true,
+                text: 'Cantidad Vendida',
+                font: {
+                  weight: 'bold'
+                }
+              },
+              ticks: {
+                stepSize: 50
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              },
+              title: {
+                display: true,
+                text: 'Tipos de Presentación',
+                font: {
+                  weight: 'bold'
+                }
+              }
+            }
+          }
+        }
+      })
+    
+      // Gráfico circular - Distribución
+      var pieCtx = document.getElementById('distribucionChart').getContext('2d')
+      var pieChart = new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+          labels: JSON.parse('{{ presentaciones_chart.labels|escapejs }}'),
+          datasets: [
+            {
+              data: JSON.parse('{{ presentaciones_chart.data|escapejs }}'),
+              backgroundColor: [
+                '#F4A261', // Naranja terracota
+                '#2A9D8F', // Verde aguamarina
+                '#E9C46A', // Amarillo mostaza
+                '#E76F51', // Rojo coral
+                '#264653' // Azul oscuro
+              ],
+              borderWidth: 0,
+              hoverOffset: 15
+            }
+          ]
+        },
+        options: {
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  const label = context.label || ''
+                  const value = context.raw || 0
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0)
+                  const percentage = Math.round((value / total) * 100)
+                  return label + ': ' + value.toLocaleString() + ' (' + percentage + '%)'
+                }
+              }
+            }
+          },
+          cutout: '70%'
+        }
+      })
+    
+      // DataTable para alertas
+      $('#alertasTable').DataTable({
+        order: [[2, 'asc']], // Ordenar por fecha de caducidad
+        language: {
+          url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/es-MX.json'
+        },
+        dom: '<"top"f>rt<"bottom"lip><"clear">',
+        responsive: true
+      })
+    })
+  </script>
+{% endblock %}

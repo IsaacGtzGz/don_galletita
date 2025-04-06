@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from usuarios_app.models import Usuario
+from productos_app.models import Producto
+from ventas_app.models import Venta, DetalleVenta
 
 # Create your models here.
 class Cliente(models.Model):
@@ -27,61 +29,21 @@ class Cliente(models.Model):
         verbose_name_plural = 'Clientes'
         ordering = ['cliente_id']
     
-class Producto(models.Model):
-    UNIDADES_MEDIDA = (
-        ('kg', 'Kilogramos'),
-        ('g', 'Gramos'),
-        ('pz', 'Piezas')
+    ventas = models.ManyToManyField(
+        'ventas_app.Venta',
+        blank=True,
+        related_name='clientes'
     )
-    
-    producto_id = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=50, unique=True)
-    descripcion = models.TextField(blank=True, null=True)
-    unidad_medida = models.CharField(max_length=2, choices=UNIDADES_MEDIDA)
-    cantidad_disponible = models.IntegerField()
-    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
-    peso_unidad = models.DecimalField(max_digits=5, decimal_places=2)
-    fecha_caducidad = models.DateField()
-    imagen = models.ImageField(upload_to='productos/', null=True, blank=True)
 
-    class Meta:
-        db_table = 'producto'
-
-class Venta(models.Model):
-    ESTADOS = (
-        ('Pagado', 'Pagado'),
-        ('Pendiente', 'Pendiente'),
-        ('Cancelado', 'Cancelado')
-    )
-    
-    venta_id = models.AutoField(primary_key=True)
-    cliente = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    fecha_venta = models.DateTimeField(auto_now_add=True)
-    estatus_venta = models.CharField(max_length=10, choices=ESTADOS, default='Pendiente')
-    
-    class Meta:
-        db_table = 'venta'
-    
-    def calcular_total(self):
-        return sum(d.subtotal for d in self.detalleventa_set.all())
-
-class DetalleVenta(models.Model):
-    UNIDADES_MEDIDA = (
-        ('kg', 'Kilogramos'),
-        ('g', 'Gramos'),
-        ('pz', 'Piezas')
-    )
-    
-    detalle_venta_id = models.AutoField(primary_key=True)
-    venta = models.ForeignKey(Venta, on_delete=models.CASCADE)
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+class Carrito(models.Model):
+    cliente = models.ForeignKey('cliente_app.Cliente', on_delete=models.CASCADE)
+    producto = models.ForeignKey('productos_app.Producto', on_delete=models.CASCADE)
     cantidad = models.DecimalField(max_digits=10, decimal_places=3)
-    unidad_medida = models.CharField(max_length=2, choices=UNIDADES_MEDIDA)
-    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
-    
-    class Meta:
-        db_table = 'detalle_venta'
-    
-    @property
-    def subtotal(self):
-        return self.cantidad * self.precio_unitario
+    unidad_medida = models.CharField(
+        max_length=2,
+        choices=[('kg', 'kg'), ('g', 'g'), ('pz', 'pz')]
+    )
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Carrito de {self.cliente.nombre} con {self.cantidad} de {self.producto.nombre}"

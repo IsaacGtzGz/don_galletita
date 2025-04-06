@@ -2,6 +2,8 @@ from django.db import models
 from recetas_app.models import Receta
 from insumos_app.models import Insumos
 from usuarios_app.models import Usuario
+from django.core.exceptions import ValidationError
+from django.utils.timezone import now
 
 # Create your models here.
 class Produccion(models.Model):
@@ -10,14 +12,18 @@ class Produccion(models.Model):
     fecha_inicio = models.DateTimeField(auto_now_add=True)
     fecha_finalizacion = models.DateTimeField(null=True, blank=True)
     cantidad_producida = models.PositiveIntegerField(default=0)  # Se calculará a partir de la receta
-    costo_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     
     def calcular_cantidad_producida(self):
         """Calcula la cantidad total de galletas producidas basado en la receta."""
         return self.receta.porciones_galletas
     
     def save(self, *args, **kwargs):
-        self.cantidad_producida = self.calcular_cantidad_producida()
+        if not self.fecha_inicio:
+            self.fecha_inicio = now()
+
+        if self.fecha_finalizacion and self.fecha_inicio and self.fecha_finalizacion < self.fecha_inicio:
+            raise ValidationError("La fecha de finalización no puede ser anterior a la fecha de inicio.")
+
         super().save(*args, **kwargs)
     
     def __str__(self):

@@ -10,6 +10,10 @@ from insumos_app.models import Insumos
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
+from django.utils.timezone import now, timedelta
+from productos_app.models import Producto
+from recetas_app.models import Receta
+from .models import Produccion
 
 class ListaProduccionView(ListView):
     model = Produccion
@@ -26,7 +30,6 @@ class CrearProduccionView(CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['recetas'] = Receta.objects.filter(producto__isnull=False).select_related('producto')
-        context['lote_form'] = LoteProduccionForm()  # Formulario para fecha de caducidad
         return context
 
     def form_valid(self, form):
@@ -36,9 +39,9 @@ class CrearProduccionView(CreateView):
                 receta_id = self.request.POST.get('receta_id')
                 cantidad_galletas = int(self.request.POST.get('porciones_galletas', 0))
                 fecha_finalizacion = form.cleaned_data['fecha_finalizacion']
-                
-                # 2. Obtener fecha de caducidad específica para el lote
                 fecha_caducidad_str = self.request.POST.get('fecha_caducidad')
+                
+                # 2. Validar fecha de caducidad
                 if not fecha_caducidad_str:
                     messages.error(self.request, "La fecha de caducidad es obligatoria")
                     return self.form_invalid(form)
@@ -148,3 +151,32 @@ class EliminarProduccionView(DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Producción eliminada correctamente")
         return super().delete(request, *args, **kwargs)
+
+def crear_produccion_automatica(producto_id, cantidad_necesaria):
+    try:
+        producto = Producto.objects.get(producto_id=producto_id)
+        receta = Receta.objects.get(producto=producto)
+
+        if not receta:
+            raise ValueError("El producto no tiene una receta asociada.")
+
+        # Crear un registro de producción
+        fecha_finalizacion = now() + timedelta(days=1)  # Asumimos que la producción tarda 1 día
+        fecha_caducidad = fecha_finalizacion + timedelta(days=30)  # Caducidad 30 días después
+
+        produccion = Produccion.objects.create(
+            receta=receta,
+            cantidad_producida=cantidad_necesaria,
+            fecha_finalizacion=fecha_finalizacion,
+            fecha_caducidad=fecha_caducidad
+        )
+
+        # Actualizar el inventario del producto
+        producto.cantidad_disponible += cantidad_necesaria
+        producto.save()
+
+        return produccion
+    except Producto.DoesNotExist:
+        raise ValueError("El producto especificado no existe.")
+    except Exception as e:
+        raise ValueError(f"Error al crear la producción automática: {str(e)}")

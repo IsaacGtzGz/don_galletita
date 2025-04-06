@@ -45,5 +45,5 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'nombre_usuario'
     REQUIRED_FIELDS = []
 
-    def str(self):
+    def _str_(self):
         return self.nombre_usuario

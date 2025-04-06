@@ -6,7 +6,7 @@
     <div class="card" style="max-width: 100%; margin: auto; border: 1px solid #D4A373; border-radius: 10px; padding: 20px; background-color: #FFF8DC;">
       <div class="card-header text-center" style="background-color: #D4A373; font-size: 28px; font-weight: bold; color: #FFFFFF;">Nuevo Producto</div>
       <div class="card-body" style="padding: 40px;">
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
           {% csrf_token %}
           <div class="form-group mb-3">
             {{ form.as_p }}
@@ -19,4 +19,31 @@
       </div>
     </div>
   </div>
+  <!-- (Al final del archivo, antes de cerrar el bloque content) -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const camposNumericos = [
+          { id: 'id_cantidad_disponible', min: 1 },
+          { id: 'id_precio_unitario', min: 0.01 },
+          { id: 'id_peso_unidad', min: 0.01 }
+      ];
+  
+      camposNumericos.forEach(campo => {
+          const input = document.getElementById(campo.id);
+          if (input) {
+              input.addEventListener('input', function() {
+                  const valor = parseFloat(this.value);
+                  if (isNaN(valor) {
+                      this.setCustomValidity('Ingrese un número válido');
+                  } else if (valor < campo.min) {
+                      this.setCustomValidity(`El valor debe ser mayor o igual a ${campo.min}`);
+                  } else {
+                      this.setCustomValidity('');
+                  }
+                  this.reportValidity(); // Muestra la alerta en el campo
+              });
+          }
+      });
+  });
+  </script>
 {% endblock %}

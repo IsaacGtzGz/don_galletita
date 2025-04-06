@@ -12,14 +12,16 @@ UNIDADES_CHOICES = (
 
 class Receta(models.Model):
     receta_id = models.AutoField(primary_key=True)
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    producto = producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
     foto_receta = models.ImageField(upload_to='recetas/', null=True, blank=True)
     preparacion = models.TextField(default="Sin descripción")
     porciones_galletas = models.IntegerField(default=1)
- 
-    def __str__(self):
-        return f"Receta para {self.producto.nombre} (ID: {self.receta_id})"
 
+    def get_receta_id(self):
+        return self.receta_id
+ 
+    def _str_(self):
+        return f"Receta {self.receta_id}-{self.producto.nombre}"
 
 class RecetaInsumo(models.Model):
     recetasinsumo_id = models.AutoField(primary_key=True)
@@ -28,5 +30,5 @@ class RecetaInsumo(models.Model):
     cantidad_necesaria = models.IntegerField(default=0)
     unidad_medida = models.CharField(max_length=10, choices=Insumos.UNIDADES_CHOICES, null=True, blank=True)
 
-    def __str__(self):
-        return f"{self.receta.producto.nombre}-{self.insumo.nombre_insumo}-{self.cantidad_necesaria}-{self.unidad_medida}"
+    def _str_(self):
+        return f"{self.recetasinsumo_id}-{self.receta.producto.nombre}-{self.insumo.nombre_insumo}-{self.cantidad_necesaria}-{self.unidad_medida}"

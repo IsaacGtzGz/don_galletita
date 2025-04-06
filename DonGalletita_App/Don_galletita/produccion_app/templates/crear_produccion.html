@@ -10,6 +10,14 @@
       <div class="card-body" style="padding: 40px;">
         <form method="post" class="needs-validation" novalidate>
           {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+              {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+
           
           <!-- Selección de Receta -->
           <div class="form-group mb-3">
@@ -42,16 +50,9 @@
             <div class="invalid-feedback">Ingresa la fecha de finalización.</div>
           </div>
 
-          <!-- Añadir esto después del campo de fecha_finalizacion -->
           <div class="form-group mb-3">
-            <label for="id_fecha_caducidad" class="form-label">Fecha de caducidad del producto:</label>
-            <input type="date" id="id_fecha_caducidad" name="fecha_caducidad" 
-                  class="form-control" required
-                  min="{% now 'Y-m-d' %}">
-            <small class="form-text text-muted">
-                Establezca la fecha en que este lote de galletas caducará (normalmente 30 días después de producción)
-            </small>
-            <div class="invalid-feedback">Por favor ingrese una fecha de caducidad válida (posterior a hoy).</div>
+            <label class="form-label">Fecha de caducidad estimada:</label>
+            <input type="text" id="id_fecha_caducidad" name="fecha_caducidad" class="form-control" readonly>
           </div>
 
           <div class="text-center mt-4">
@@ -90,6 +91,26 @@
         var selectedOption = this.options[this.selectedIndex];
         var porcionesGalletas = selectedOption.getAttribute('data-porciones');
         document.getElementById('id_porciones_galletas').value = porcionesGalletas || '';
+    });
+
+    // Script para calcular y mostrar la fecha de caducidad automática
+    document.getElementById('id_fecha_finalizacion').addEventListener('change', function() {
+      if (this.value) {
+          // Crear objeto Date a partir del input datetime-local
+          const fechaProduccion = new Date(this.value);
+          
+          // Sumar 30 días
+          const fechaCaducidad = new Date(fechaProduccion);
+          fechaCaducidad.setDate(fechaCaducidad.getDate() + 30);
+          
+          // Formatear como YYYY-MM-DD para mostrar
+          const formattedDate = fechaCaducidad.toISOString().split('T')[0];
+          
+          // Mostrar la fecha calculada
+          document.getElementById('id_fecha_caducidad').value = formattedDate;
+      } else {
+          document.getElementById('id_fecha_caducidad').value = '';
+      }
     });
   </script>
 {% endblock %}

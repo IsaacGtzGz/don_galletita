@@ -1,9 +1,13 @@
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.http import JsonResponse
 from .models import Producto
 from .forms import ProductoForm
 from datetime import timedelta
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ListaProductosView(ListView):
     model = Producto
@@ -44,6 +48,12 @@ class EditarProductoView(UpdateView):
     success_message = "Producto actualizado exitosamente"
     pk_url_kwarg = 'producto_id'
     
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        # ¡Forzar la carga de la instancia existente!
+        kwargs['instance'] = self.get_object()  
+        return kwargs
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['titulo'] = f'Editar {self.object.nombre}'
@@ -61,3 +71,10 @@ class EliminarProductoView(DeleteView):
         context = super().get_context_data(**kwargs)
         context['titulo'] = f'Eliminar {self.object.nombre}'
         return context
+
+def obtener_precio_producto(request, producto_id):
+    try:
+        producto = Producto.objects.get(producto_id=producto_id)  # Cambiado de 'id' a 'producto_id'
+        return JsonResponse({'precio': producto.precio_unitario})
+    except Producto.DoesNotExist:
+        return JsonResponse({'error': 'Producto no encontrado'}, status=404)
