@@ -10,9 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
     <script src="{% static 'js/insumos.js' %}"></script>
-    <script src="{% static 'js/recetas.js' %}"></script
 
-    <!-- Agrega este bloque de estilos en tu archivo base.html -->
     <style>
       .navbar-nav .nav-link {
         font-size: 0.8rem; /* Reduce aún más el tamaño de la fuente */
@@ -138,7 +136,7 @@
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'historial_compras' %}"><i class="fas fa-store"></i> Historial</a>
+                  <a class="nav-link" href="{% url 'historial_compras' %}"><i class="fas fa-store"></i> Mis Compras</a>
                 </li>
                 
               {% endif %}
