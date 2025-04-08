@@ -9,10 +9,14 @@
 
     {% if productos_por_caducar %}
       <div id="alerta-caducidad" class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
-        <strong>¡Atención!</strong> Los siguientes productos caducan en 2 días:
+        <strong>¡Atención!</strong> Los siguientes lotes caducan pronto:
         <ul>
-          {% for producto in productos_por_caducar %}
-            <li>{{ producto.nombre }} - Fecha de caducidad: {{ producto.fecha_caducidad }}</li>
+          {% for producto, datos in productos_por_caducar.items %}
+            <li>
+              {{ producto.nombre }} - 
+              {{ datos.cantidad }} piezas - 
+              Caduca: {{ datos.fecha_caducidad|date:"d/m/Y" }}
+            </li>
           {% endfor %}
         </ul>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -29,7 +33,7 @@
           <th>Cantidad Disponible</th>
           <th>Precio Unitario</th>
           <th>Peso por Unidad</th>
-          <th>Fecha de Caducidad</th>
+          <th>Próxima Caducidad</th>
           <th>Acciones</th>
           <th>Imagen</th>
         </tr>
@@ -43,7 +47,18 @@
             <td>{{ producto.cantidad_disponible }}</td>
             <td>{{ producto.precio_unitario }}</td>
             <td>{{ producto.peso_unidad }}</td>
-            <td>{{ producto.fecha_caducidad }}</td>
+            <td>
+              {% if producto.fecha_caducidad_proxima %}
+                {{ producto.fecha_caducidad_proxima|date:"d/m/Y" }}
+                {% with cantidad=producto.cantidad_por_caducar %}
+                  {% if cantidad > 0 %}
+                    <br><small>({{ cantidad }} pz por caducar)</small>
+                  {% endif %}
+                {% endwith %}
+              {% else %}
+                Sin lotes activos
+              {% endif %}
+            </td>
             <td>
               {% if producto.imagen_producto %}
                   <img src="{{ producto.imagen_producto.url }}" alt="{{ producto.nombre }}" style="max-height: 50px;">
