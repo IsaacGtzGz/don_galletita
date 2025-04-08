@@ -4,7 +4,7 @@
   <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h1>Lista de Usuarios</h1>
-      <a href="#" class="btn btn-success">Nuevo Usuario</a>
+      <a href="{% url 'registrar_usuario' %}" class="btn btn-success">Nuevo Usuario</a>
     </div>
 
     <div class="mb-3">
@@ -31,15 +31,17 @@
         </thead>
         <tbody>
           {% for usuario in usuarios %}
-            <tr>
-              <td>{{ usuario.usuario_id }}</td>
-              <td>{{ usuario.nombre_usuario }}</td>
-              <td>{{ usuario.rol }}</td>
-              <td>
-                <a href="{% url 'editar_usuario' usuario.usuario_id %}" class="btn btn-warning btn-sm">Editar</a>
-                <a href="{% url 'eliminar_usuario' usuario.usuario_id %}" class="btn btn-danger btn-sm">Eliminar</a>
-              </td>
-            </tr>
+            {% if usuario.rol != 'cliente' %}
+              <tr>
+                <td>{{ usuario.usuario_id }}</td>
+                <td>{{ usuario.nombre_usuario }}</td>
+                <td>{{ usuario.rol }}</td>
+                <td>
+                  <a href="{% url 'editar_usuario' usuario.usuario_id %}" class="btn btn-warning btn-sm">Editar</a>
+                  <a href="{% url 'eliminar_usuario' usuario.usuario_id %}" class="btn btn-danger btn-sm">Eliminar</a>
+                </td>
+              </tr>
+            {% endif %}
           {% empty %}
             <tr>
               <td colspan="4" class="text-center">No hay usuarios registrados</td>

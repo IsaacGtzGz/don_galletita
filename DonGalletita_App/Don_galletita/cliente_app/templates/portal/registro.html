@@ -1,8 +1,9 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-5">
+  <div class="container mt-5">
     <div class="card" style="max-width: 100%; margin: auto; border: 1px solid #D4A373; border-radius: 10px; padding: 20px; background-color: #FFF8DC;">
+<<<<<<< HEAD
         <div class="card-header text-center" style="background-color: #D4A373; font-size: 28px; font-weight: bold; color: #FFFFFF;">
             Registro de Cliente
         </div>
@@ -120,3 +121,69 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 });
 </script>
+=======
+      <div class="card-header text-center" style="background-color: #D4A373; font-size: 28px; font-weight: bold; color: #FFFFFF;">Registro de Cliente</div>
+      <div class="card-body" style="padding: 40px;">
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Nombre de usuario*</label>
+              {{ form.nombre_usuario }}
+              {{ form.nombre_usuario.errors }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Teléfono*</label>
+              {{ form.telefono }}
+              {{ form.telefono.errors }}
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label class="form-label">Nombre*</label>
+              {{ form.nombre }}
+              {{ form.nombre.errors }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Apellido Paterno*</label>
+              {{ form.apellido_paterno }}
+              {{ form.apellido_paterno.errors }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Apellido Materno*</label>
+              {{ form.apellido_materno }}
+              {{ form.apellido_materno.errors }}
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Contraseña*</label>
+              {{ form.password1 }}
+              {{ form.password1.errors }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Confirmar Contraseña*</label>
+              {{ form.password2 }}
+              {{ form.password2.errors }}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Dirección*</label>
+            {{ form.direccion }}
+            {{ form.direccion.errors }}
+          </div>
+
+          <div class="text-center mt-4">
+            <button type="submit" class="btn btn-success me-2" style="background-color: #8B5E3C; color: #FFFFFF; border: none;">Registrarse</button>
+            <a href="{% url 'login' %}" class="btn btn-secondary" style="background-color: #C9A66B; color: #FFFFFF; border: none;">¿Ya tienes cuenta? Inicia sesión</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+>>>>>>> origin/isaac

@@ -91,44 +91,27 @@ def registro_cliente(request):
         form = RegistroClienteForm(request.POST)
         if form.is_valid():
             with transaction.atomic():
-                # Guardar el usuario y asociarlo con un cliente
-                usuario = form.save()
-                login(request, usuario)  # Iniciar sesión automáticamente
-                cliente = usuario.cliente
+                usuario = form.save(commit=False)
+                usuario.rol = 'cliente'  # Aseguramos que el rol sea cliente
+                usuario.save()
+
+                # Crear el perfil de cliente asociado
+                cliente = Cliente.objects.create(
+                    usuario=usuario,
+                    nombre=form.cleaned_data['nombre'],
+                    apellido_paterno=form.cleaned_data['apellido_paterno'],
+                    apellido_materno=form.cleaned_data['apellido_materno'],
+                    telefono=form.cleaned_data['telefono'],
+                    direccion=form.cleaned_data['direccion']
+                )
+
+                login(request, usuario)
                 messages.success(request, f'¡Registro exitoso! Tu ID de cliente es {cliente.cliente_id}')
-                
-                # Verificar si hay un producto pendiente para agregar al carrito
-                producto_id = request.session.pop('producto_a_agregar', None)
-                if producto_id:
-                    # Obtener el producto de la base de datos
-                    producto = get_object_or_404(Producto, id=producto_id)
-                    cantidad = 1  # Cantidad por defecto
-                    carrito = request.session.get('carrito', {})
 
-                    # Si ya existe el producto en el carrito, actualizar la cantidad
-                    if str(producto_id) in carrito:
-                        carrito[str(producto_id)]['cantidad'] += cantidad
-                    else:
-                        # Si no existe en el carrito, agregarlo
-                        carrito[str(producto_id)] = {
-                            'nombre': producto.nombre,
-                            'precio_unitario': str(producto.precio_unitario),
-                            'cantidad': cantidad,
-                            'unidad_medida': producto.unidad_medida,
-                        }
-
-                    # Guardar el carrito en la sesión
-                    request.session['carrito'] = carrito
-                    messages.success(request, f'"{producto.nombre}" agregado al carrito')
-                    
-                    # Redirigir a la vista del carrito
-                    return redirect('ver_carrito')
-                
-                # Redirigir al perfil del cliente después del registro
                 return redirect('perfil_cliente')
     else:
         form = RegistroClienteForm()
-    
+
     return render(request, 'portal/registro.html', {'form': form})
 
 @login_required
