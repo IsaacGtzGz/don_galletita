@@ -50,20 +50,22 @@ class RegistroClienteForm(UserCreationForm):
         ]
     )
     telefono = forms.CharField(
-        max_length=10,
-        required=True,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': '10 dígitos'
-        }),
-        validators=[
-            MinLengthValidator(10),
-            RegexValidator(
-                regex='^[0-9]+$',
-                message='Solo números permitidos'
-            )
-        ]
-    )
+    max_length=10,
+    required=True,
+    widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': '10 dígitos',
+        'pattern': '^[0-9]{10}$',  # Solo números, exactamente 10 dígitos
+        'title': 'El teléfono debe contener exactamente 10 dígitos numéricos.'
+    }),
+    validators=[
+        MinLengthValidator(10, message='El teléfono debe tener exactamente 10 dígitos.'),
+        RegexValidator(
+            regex='^[0-9]+$',
+            message='Solo números permitidos.'
+        )
+    ]
+)
     direccion = forms.CharField(
         widget=forms.Textarea(attrs={
             'class': 'form-control',
@@ -148,7 +150,7 @@ class RegistroClienteForm(UserCreationForm):
     def clean_telefono(self):
         telefono = self.cleaned_data['telefono']
         if not telefono.isdigit() or len(telefono) != 10:
-            raise forms.ValidationError("El teléfono debe tener 10 dígitos numéricos")
+            raise forms.ValidationError("El teléfono debe tener exactamente 10 dígitos numéricos.")
         return telefono
 
     def save(self, commit=True):

@@ -3,6 +3,11 @@ from django.views.generic.base import TemplateView
 from django.views.generic import FormView, DeleteView
 from django.urls import reverse_lazy
 from .models import Venta, DetalleVenta
+from django.http import HttpResponse
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
+from openpyxl.utils import get_column_letter
+from django.utils.timezone import localtime
 from .forms import VentaForm, DetalleVentaForm
 from reportlab.pdfgen import canvas
 from django.http import FileResponse, JsonResponse, HttpResponse
@@ -697,40 +702,79 @@ class ExportarReportePDFView(TemplateView):
 # Exportar reporte en Excel
 class ExportarReporteExcelView(TemplateView):
     def get(self, request, *args, **kwargs):
-        from django.utils.timezone import localtime
-        from django.db.models import Sum
         hoy_inicio = localtime().replace(hour=0, minute=0, second=0, microsecond=0)
         hoy_fin = localtime().replace(hour=23, minute=59, second=59, microsecond=999999)
         ventas_diarias = Venta.objects.filter(fecha_venta__range=(hoy_inicio, hoy_fin)).order_by('-id')
 
-        # Crear un libro de Excel
         wb = openpyxl.Workbook()
         ws = wb.active
         ws.title = "Reporte Diario"
 
-        # Título del reporte
-        ws.merge_cells("A1:D1")
-        ws["A1"] = "Reporte Diario de Ventas"
-        ws["A1"].font = Font(bold=True, size=14)
+        # ☕ Estilos en tonos café
+        title_font = Font(bold=True, size=16, color="FFFFFF")
+        header_font = Font(bold=True, color="3E2723")  # Café oscuro
+        header_fill = PatternFill(start_color="D7CCC8", end_color="D7CCC8", fill_type="solid")  # Caramelo claro
+        alt_fill = PatternFill(start_color="EFEBE9", end_color="EFEBE9", fill_type="solid")     # Galleta suave
+        title_fill = PatternFill(start_color="5D4037", end_color="5D4037", fill_type="solid")   # Chocolate oscuro
+        border = Border(
+            left=Side(style='thin', color='8D6E63'),
+            right=Side(style='thin', color='8D6E63'),
+            top=Side(style='thin', color='8D6E63'),
+            bottom=Side(style='thin', color='8D6E63')
+        )
 
-        # Encabezados
+        # 🍪 Título
+        ws.merge_cells("A1:D1")
+        title_cell = ws["A1"]
+        title_cell.value = "🍪 Reporte Diario de Ventas 🍪"
+        title_cell.font = title_font
+        title_cell.fill = title_fill
+        title_cell.alignment = Alignment(horizontal="center", vertical="center")
+
+        # 📋 Encabezados
         headers = ["ID", "Cliente", "Fecha", "Total"]
         ws.append(headers)
+        for col in range(1, len(headers) + 1):
+            cell = ws.cell(row=2, column=col)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.border = border
+            cell.alignment = Alignment(horizontal="center")
 
-        # Datos del reporte
-        for venta in ventas_diarias:
+        # 📊 Datos
+        for idx, venta in enumerate(ventas_diarias, start=3):
             total_venta = sum(
                 detalle.cantidad * detalle.precio_unitario
                 for detalle in venta.detalles.all()
             )
-            ws.append([venta.id, str(venta.persona), str(venta.fecha_venta), total_venta])
+            row = [venta.id, str(venta.persona), str(venta.fecha_venta), total_venta]
+            for col, value in enumerate(row, start=1):
+                cell = ws.cell(row=idx, column=col)
+                cell.value = value
+                if idx % 2 == 0:
+                    cell.fill = alt_fill
+                cell.border = border
+                cell.alignment = Alignment(horizontal="center")
 
-        # Guardar el archivo en memoria
+        # 📏 Ajustar ancho de columnas
+        for col_idx, column_cells in enumerate(ws.columns, start=1):
+            max_length = 0
+            for cell in column_cells:
+                if cell.value:
+                    try:
+                        max_length = max(max_length, len(str(cell.value)))
+                    except:
+                        pass
+            adjusted_width = max_length + 2
+            col_letter = get_column_letter(col_idx)
+            ws.column_dimensions[col_letter].width = adjusted_width
+
+        # 📤 Exportar
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = 'attachment; filename="reporte_diario.xlsx"'
         wb.save(response)
         return response
-
+    
 # Confirmar venta
 class ConfirmarVentaView(TemplateView):
     def post(self, request, *args, **kwargs):

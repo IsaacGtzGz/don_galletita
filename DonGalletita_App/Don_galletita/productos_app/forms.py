@@ -2,22 +2,18 @@ from django import forms
 from .models import Producto
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from datetime import timedelta
+from django.core.validators import FileExtensionValidator
 
 class ProductoForm(forms.ModelForm):
     class Meta:
         model = Producto
-        fields = ['nombre', 'descripcion', 'unidad_medida', 'cantidad_disponible', 'precio_unitario', 'peso_unidad', 'fecha_caducidad', 'imagen_producto']
+        fields = ['nombre', 'descripcion', 'unidad_medida', 'cantidad_disponible', 'precio_unitario', 'peso_unidad', 'imagen_producto']
         widgets = {
             "nombre": forms.TextInput(attrs={"class": "form-control"}),
             "descripcion": forms.Textarea(attrs={"class": "form-control"}),
             "unidad_medida": forms.Select(attrs={"class": "form-control"}),
             "cantidad_disponible": forms.NumberInput(attrs={"class": "form-control"}),
-            "precio_unitario": forms.NumberInput(attrs={"class": "form-control"}),
-            "peso_unidad": forms.NumberInput(attrs={"class": "form-control"}),
-            "fecha_caducidad": forms.DateInput(attrs={"class": "form-control","type": "date",  # Esto activará el date picker nativo
-                    "min": timezone.now().date().isoformat()  # Fecha mínima hoy
-                }
-            ),
             "imagen_producto": forms.FileInput(attrs={"class": "form-control"}), 
                         "cantidad_disponible": forms.NumberInput(attrs={
                 "class": "form-control",
@@ -44,12 +40,7 @@ class ProductoForm(forms.ModelForm):
             if self.instance.pk is None:  # Solo validar si es una creación
                 raise ValidationError('Este nombre de producto ya existe')
         return nombre.strip().title()
-
-    def clean_fecha_caducidad(self):
-        fecha = self.cleaned_data['fecha_caducidad']
-        if fecha and fecha < timezone.now().date():
-            raise ValidationError('La fecha de caducidad no puede ser en el pasado')
-        return fecha
+    
     def clean_cantidad_disponible(self):
         cantidad = self.cleaned_data['cantidad_disponible']
         if cantidad < 1:
@@ -67,3 +58,24 @@ class ProductoForm(forms.ModelForm):
         if peso <= 0:
             raise ValidationError('El peso debe ser mayor que 0')
         return peso
+    
+    imagen_producto = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/jpeg, image/png'
+        }),
+        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png'])]
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Protección contra XSS
+        self.fields['nombre'].strip = True
+        self.fields['descripcion'].strip = True
+    
+    def clean_imagen_producto(self):
+        imagen = self.cleaned_data.get('imagen_producto')
+        if imagen and imagen.size > 2*1024*1024:  # 2MB máximo
+            raise ValidationError("La imagen no puede superar 2MB")
+        return imagen

@@ -2,7 +2,6 @@
 {% load static %}
 {% block content %}
 
-
 <div class="container mt-5">
     <div class="card" style="max-width: 100%; margin: auto; border: 1px solid #D4A373; border-radius: 10px; padding: 20px; background-color: #FFF8DC;">
       <div class="card-header text-center" style="background-color: #D4A373; font-size: 28px; font-weight: bold; color: #FFFFFF;">Nueva Receta</div>
@@ -48,8 +47,8 @@
           <div class="insumos-section">
             <div class="d-flex align-items-center mb-3">
               <h4 class="mb-0" style="color: #8B5E3C;">Insumos</h4>
-              <button type="button" class="btn btn-add-insumo">
-                <i class="fas fa-plus"></i>
+              <button type="button" class="btn btn-add-insumo" style="background-color: #8B5E3C; color: white; border: none; margin-left: 10px;">
+                <i class="fas fa-plus"></i> Agregar
               </button>
             </div>
 
@@ -65,11 +64,21 @@
                   <div class="card-body">
                     <div class="row g-3">
                       {{ form.id }}
-                      {{ form.DELETE|default:"" }}
                       <div class="col-md-5">
                         <div class="form-group">
                           {{ form.insumo.label_tag }}
-                          {{ form.insumo }}
+                          <select name="{{ form.insumo.html_name }}" id="{{ form.insumo.id_for_label }}" class="form-control select-insumo">
+                            {% for choice in form.insumo.field.choices %}
+                              <option value="{{ choice.0 }}" 
+                                      {% if choice.0|stringformat:"s" == form.insumo.value|stringformat:"s" %}selected{% endif %}
+                                      data-unidad="{% for insumo in formset.empty_form.insumo.field.queryset %}{% if insumo.pk == choice.0 %}{{ insumo.unidad_medida }}{% endif %}{% endfor %}">
+                                {{ choice.1 }}
+                              </option>
+                            {% endfor %}
+                          </select>
+                          {% if form.insumo.errors %}
+                            <div class="text-danger">{{ form.insumo.errors }}</div>
+                          {% endif %}
                         </div>
                       </div>
                       
@@ -77,6 +86,9 @@
                         <div class="form-group">
                           {{ form.cantidad_necesaria.label_tag }}
                           {{ form.cantidad_necesaria }}
+                          {% if form.cantidad_necesaria.errors %}
+                            <div class="text-danger">{{ form.cantidad_necesaria.errors }}</div>
+                          {% endif %}
                         </div>
                       </div>
 
@@ -86,13 +98,15 @@
                           {{ form.unidad_medida }}
                         </div>
                       </div>
-                      {% if formset.can_delete and not forloop.first %}
-                        <div class="col-md-1 d-flex align-items-end">
-                          <button type="button" class="btn btn-sm btn-remove-insumo">
-                            <i class="fas fa-trash"></i>
-                          </button>
-                        </div>
-                      {% endif %}
+
+                      <div class="col-md-1 d-flex align-items-end">
+                        {% if formset.can_delete %}
+                          {{ form.DELETE }}
+                        {% endif %}
+                        <button type="button" class="btn btn-sm btn-remove-insumo" style="background-color: #dc3545; color: white; border: none;">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -107,9 +121,9 @@
                     <div class="col-md-5">
                       <div class="form-group">
                         <label for="id_insumos-__prefix__-insumo">Insumo:</label>
-                        <select name="insumos-__prefix__-insumo" class="form-control" id="id_insumos-__prefix__-insumo">
+                        <select name="insumos-__prefix__-insumo" class="form-control select-insumo" id="id_insumos-__prefix__-insumo">
                           {% for insumo in formset.empty_form.insumo.field.queryset %}
-                            <option value="{{ insumo.id }}">{{ insumo.nombre_insumo }}</option>
+                            <option value="{{ insumo.id }}" data-unidad="{{ insumo.unidad_medida }}">{{ insumo.nombre_insumo }}</option>
                           {% endfor %}
                         </select>
                       </div>
@@ -117,21 +131,17 @@
                     <div class="col-md-3">
                       <div class="form-group">
                         <label for="id_insumos-__prefix__-cantidad_necesaria">Cantidad necesaria:</label>
-                        <input type="number" name="insumos-__prefix__-cantidad_necesaria" step="0.001" class="form-control" id="id_insumos-__prefix__-cantidad_necesaria">
+                        <input type="number" name="insumos-__prefix__-cantidad_necesaria" step="0.001" min="0.01" class="form-control" id="id_insumos-__prefix__-cantidad_necesaria">
                       </div>
                     </div>
                     <div class="col-md-3">
                       <div class="form-group">
-                        <label for="id_insumos-__prefix__-unidad_medida">Unidad medida:</label>
-                        <select name="insumos-__prefix__-unidad_medida" class="form-control" id="id_insumos-__prefix__-unidad_medida">
-                          {% for option in formset.empty_form.unidad_medida.field.choices %}
-                            <option value="{{ option.0 }}">{{ option.1 }}</option>
-                          {% endfor %}
-                        </select>
+                        <label for="id_insumos-__prefix__-unidad_medida">Unidad de medida:</label>
+                        <input type="text" name="insumos-__prefix__-unidad_medida" class="form-control" id="id_insumos-__prefix__-unidad_medida" readonly>
                       </div>
                     </div>
                     <div class="col-md-1 d-flex align-items-end">
-                      <button type="button" class="btn btn-sm btn-remove-insumo">
+                      <button type="button" class="btn btn-sm btn-remove-insumo" style="background-color: #dc3545; color: white; border: none;">
                         <i class="fas fa-trash"></i>
                       </button>
                     </div>
@@ -150,7 +160,6 @@
       </div>
     </div>
   </div>
-{% block scripts %}
-  <script src="{% static 'js/recetas.js' %}"></script>
-{% endblock %}
+
+
 {% endblock %}

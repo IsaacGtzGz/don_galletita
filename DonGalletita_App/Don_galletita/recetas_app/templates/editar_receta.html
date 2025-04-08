@@ -85,130 +85,139 @@
         </div>
         
         <!-- Sección de insumos -->
-        <h4 class="mt-4 mb-3 border-bottom pb-2 d-flex justify-content-between align-items-center">
-          <span>Insumos</span>
-          <button type="button" class="btn btn-primary btn-add-insumo" id="add-insumo-btn">
-            <i class="fas fa-plus"></i> Agregar Insumo
-          </button>
-        </h4>
+        <div class="insumos-section">
+            <div class="d-flex align-items-center mb-3">
+              <h4 class="mt-4 mb-3 border-bottom pb-2 d-flex justify-content-between align-items-center">
+                <span>Insumos</span>
+              <button type="button" class="btn btn-add-insumo">
+                <i class="fas fa-plus"></i>
+              </button>
+              </h4>
+            </div>
+            
 
-        {{ formset.management_form }}
-        
-        <div id="insumos-container">
-          {% for form in formset %}
-            <div class="card-insumo mb-3 p-3 {% if form.errors %}border-danger{% endif %}" 
-                 style="border: 2px solid {% if form.errors %}#dc3545{% else %}#D4A373{% endif %}; 
-                        border-radius: 5px; 
-                        background-color: #F9F4E8;
-                        {% if form.DELETE.value %}opacity: 0.5; background-color: #ffebee;{% endif %}"
-                 data-form-prefix="{{ form.prefix }}">
-              
-              <!-- Campos ocultos -->
-              {{ form.recetasinsumo_id }}
+          {{ formset.management_form }}
+          
+          <div id="insumos-container">
+            {% for form in formset %}
+              <div class="card-insumo mb-3 p-3 {% if form.errors %}border-danger{% endif %}" 
+                  style="border: 2px solid {% if form.errors %}#dc3545{% else %}#D4A373{% endif %}; 
+                          border-radius: 5px; 
+                          background-color: #F9F4E8;
+                          {% if form.DELETE.value %}opacity: 0.5; background-color: #ffebee;{% endif %}"
+                  data-form-prefix="{{ form.prefix }}">
+                
+                <!-- Campos ocultos -->
+                {{ form.recetasinsumo_id }}
+                {{ form.receta }}
+                {{ form.DELETE|default:"" }}
 
-              {{ form.receta }}
+                <div class="row g-3 align-items-center">
+                  <div class="col-md-5">
+                    <div class="form-group">
+                      <label class="form-label">Insumo</label>
+                      {{ form.insumo }}
+                      {% if form.insumo.errors %}
+                        <div class="invalid-feedback d-block">
+                          {{ form.insumo.errors|join:", " }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+          
+                  <div class="col-md-2">
+                    <div class="form-group">
+                      <label class="form-label">Cantidad</label>
+                      {{ form.cantidad_necesaria }}
+                      {% if form.cantidad_necesaria.errors %}
+                        <div class="invalid-feedback d-block">
+                          {{ form.cantidad_necesaria.errors|join:", " }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+          
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      {{ form.unidad_medida.label_tag }}
+                      {{ form.unidad_medida }}
+                      {% if form.unidad_medida.errors %}
+                        <div class="invalid-feedback d-block">
+                          {{ form.unidad_medida.errors|join:", " }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
 
-              <input type="hidden" name="{{ form.prefix }}-DELETE" id="{{ form.prefix }}-DELETE" 
-                     value="{% if form.DELETE.value %}on{% endif %}" class="delete-input">
+                </div>
+                
+                {% if form.errors %}
+                <div class="alert alert-danger mt-2">
+                  <strong>Errores en este insumo:</strong>
+                  <ul class="mb-0">
+                    {% for field, errors in form.errors.items %}
+                      {% if field != "id" and field != "receta" and field != "DELETE" %}
+                        <li>{{ field|title }}: {{ errors|join:", " }}</li>
+                      {% endif %}
+                    {% endfor %}
+                  </ul>
+                </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+
+          <!-- Template para nuevos insumos -->
+          <div id="empty-insumo-form" style="display: none;">
+            <div class="card-insumo mb-3 p-3" style="border: 1px solid #D4A373; border-radius: 5px; background-color: #F9F4E8;">
+            
+              {{ formset.empty_form.recetasinsumo_id }}
+              {{ formset.empty_form.receta }}
+              {{ formset.empty_form.DELETE }}
               
               <div class="row g-3 align-items-center">
+
                 <div class="col-md-5">
                   <div class="form-group">
                     <label class="form-label">Insumo</label>
-                    {{ form.insumo }}
-                    {% if form.insumo.errors %}
-                      <div class="invalid-feedback d-block">
-                        {{ form.insumo.errors|join:", " }}
-                      </div>
-                    {% endif %}
+                    {{ formset.empty_form.insumo }}
                   </div>
                 </div>
-        
+                
                 <div class="col-md-2">
                   <div class="form-group">
                     <label class="form-label">Cantidad</label>
-                    {{ form.cantidad_necesaria }}
-                    {% if form.cantidad_necesaria.errors %}
-                      <div class="invalid-feedback d-block">
-                        {{ form.cantidad_necesaria.errors|join:", " }}
-                      </div>
-                    {% endif %}
+                    {{ formset.empty_form.cantidad_necesaria }}
                   </div>
                 </div>
-        
+                
                 <div class="col-md-3">
                   <div class="form-group">
-                    <label class="form-label">Unidad medida</label>
-                    {{ form.unidad_medida }}
-                    {% if form.unidad_medida.errors %}
-                      <div class="invalid-feedback d-block">
-                        {{ form.unidad_medida.errors|join:", " }}
-                      </div>
-                    {% endif %}
+                    <label for="id_insumos-__prefix__-unidad_medida">Unidad de medida:</label>
+                    <input type="text" name="insumos-__prefix__-unidad_medida" class="form-control" id="id_insumos-__prefix__-unidad_medida" readonly>
                   </div>
                 </div>
-              </div>
-              
-              {% if form.errors %}
-              <div class="alert alert-danger mt-2">
-                <strong>Errores en este insumo:</strong>
-                <ul class="mb-0">
-                  {% for field, errors in form.errors.items %}
-                    {% if field != "id" and field != "receta" and field != "DELETE" %}
-                      <li>{{ field|title }}: {{ errors|join:", " }}</li>
-                    {% endif %}
-                  {% endfor %}
-                </ul>
-              </div>
-              {% endif %}
-            </div>
-          {% endfor %}
-        </div>
 
-        <!-- Template para nuevos insumos -->
-        <div id="empty-insumo-form" style="display: none;">
-          <div class="card-insumo mb-3 p-3" style="border: 1px solid #D4A373; border-radius: 5px; background-color: #F9F4E8;">
-            {{ formset.empty_form.recetasinsumo_id }}
-            {{ formset.empty_form.receta }}
-            <input type="hidden" name="{{ formset.empty_form.prefix }}-DELETE" id="{{ formset.empty_form.prefix }}-DELETE" class="delete-input">
-            
-            <div class="row g-3 align-items-center">
-              <div class="col-md-5">
-                <div class="form-group">
-                  <label class="form-label">Insumo</label>
-                  {{ formset.empty_form.insumo }}
-                </div>
               </div>
-              
-              <div class="col-md-2">
-                <div class="form-group">
-                  <label class="form-label">Cantidad</label>
-                  {{ formset.empty_form.cantidad_necesaria }}
-                </div>
-              </div>
-              
-              <div class="col-md-3">
-                <div class="form-group">
-                  <label class="form-label">Unidad medida</label>
-                  {{ formset.empty_form.unidad_medida }}
-                </div>
-              </div>
+
             </div>
           </div>
-        </div>
 
-        <div class="text-center mt-4">
-          <button type="submit" class="btn btn-success me-2" style="background-color: #8B5E3C; color: #FFFFFF; border: none; padding: 10px 25px;">
-            <i class="fas fa-save"></i> Guardar Cambios
-          </button>
-          <a href="{% url 'lista_receta' %}" class="btn btn-secondary" style="background-color: #C9A66B; color: #FFFFFF; border: none; padding: 10px 25px;">
-            <i class="fas fa-times"></i> Cancelar
-          </a>
-        </div>
-      </form>
+          <div class="text-center mt-4">
+            <button type="submit" class="btn btn-success me-2" style="background-color: #8B5E3C; color: #FFFFFF; border: none; padding: 10px 25px;">
+              <i class="fas fa-save"></i> Guardar Cambios
+            </button>
+            <a href="{% url 'lista_receta' %}" class="btn btn-secondary" style="background-color: #C9A66B; color: #FFFFFF; border: none; padding: 10px 25px;">
+              <i class="fas fa-times"></i> Cancelar
+            </a>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
+  <div>
 </div>
+
+
 
 <style>
 .border-danger {

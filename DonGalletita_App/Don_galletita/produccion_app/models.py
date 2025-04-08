@@ -2,6 +2,9 @@ from django.db import models
 from recetas_app.models import Receta
 from insumos_app.models import Insumos
 from usuarios_app.models import Usuario
+from django.core.exceptions import ValidationError
+from django.utils.timezone import now
+from datetime import timedelta
 
 # Create your models here.
 class Produccion(models.Model):
@@ -10,14 +13,18 @@ class Produccion(models.Model):
     fecha_inicio = models.DateTimeField(auto_now_add=True)
     fecha_finalizacion = models.DateTimeField(null=True, blank=True)
     cantidad_producida = models.PositiveIntegerField(default=0)  # Se calculará a partir de la receta
-    costo_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     
     def calcular_cantidad_producida(self):
         """Calcula la cantidad total de galletas producidas basado en la receta."""
         return self.receta.porciones_galletas
     
     def save(self, *args, **kwargs):
-        self.cantidad_producida = self.calcular_cantidad_producida()
+        if not self.fecha_inicio:
+            self.fecha_inicio = now()
+
+        if self.fecha_finalizacion and self.fecha_inicio and self.fecha_finalizacion < self.fecha_inicio:
+            raise ValidationError("La fecha de finalización no puede ser anterior a la fecha de inicio.")
+
         super().save(*args, **kwargs)
     
     def __str__(self):
@@ -35,6 +42,15 @@ class LoteProduccion(models.Model):
     cantidad_galletas = models.PositiveIntegerField()
     fecha_caducidad = models.DateField()
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='disponible')
+
+    def save(self, *args, **kwargs):
+        # Actualizar estado según fecha de caducidad
+        hoy = now().date()
+        if (self.fecha_caducidad - hoy) <= timedelta(days=2):
+            self.estado = 'por_caducar'
+        elif self.fecha_caducidad <= hoy:
+            self.estado = 'caducado'
+        super().save(*args, **kwargs)
     
     def __str__(self):
         return f"Lote {self.lote_id} - {self.produccion.receta.producto.nombre} (Cad: {self.fecha_caducidad})"
