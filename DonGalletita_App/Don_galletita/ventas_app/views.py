@@ -74,26 +74,37 @@ from datetime import timedelta
 
 def obtener_detalle_producto(request, producto_id, unidad_medida, cantidad):
     try:
-        producto = Producto.objects.get(producto_id=producto_id)  # Corregido para usar producto_id
+        producto = Producto.objects.get(producto_id=producto_id)
         cantidades_disponibles = []
+        precio_unitario = 0
 
-        # Ajustar el cálculo de cantidades disponibles para evitar opciones inválidas
+        # Ajustar el cálculo de cantidades disponibles y precio unitario
         if unidad_medida == 'g':
             max_gramos = producto.cantidad_disponible * producto.peso_unidad
-            cantidades_disponibles = [i for i in range(int(producto.peso_unidad), int(max_gramos) + 1, int(producto.peso_unidad)) if i <= max_gramos]
+            cantidades_disponibles = [i for i in range(int(producto.peso_unidad), int(max_gramos) + 1, int(producto.peso_unidad))]
+            precio_unitario = producto.precio_unitario / producto.peso_unidad  # Precio por gramo correctamente calculado
         elif unidad_medida == '1kg':
             max_kilos = floor((producto.cantidad_disponible * producto.peso_unidad) / 1000)
             cantidades_disponibles = [i for i in range(1, max_kilos + 1)]
+            precio_unitario = producto.precio_unitario * (1000 / producto.peso_unidad)
         elif unidad_medida == '700gr':
             max_paquetes = floor((producto.cantidad_disponible * producto.peso_unidad) / 700)
             cantidades_disponibles = [i for i in range(1, max_paquetes + 1)]
+            precio_unitario = producto.precio_unitario * (700 / producto.peso_unidad)
         else:  # 'pz'
             cantidades_disponibles = [i for i in range(1, int(producto.cantidad_disponible) + 1)]
+            precio_unitario = producto.precio_unitario
+
+        # Ajustar las cantidades disponibles para gramos a múltiplos del peso por unidad
+        if unidad_medida == 'g':
+            cantidades_disponibles = [i for i in cantidades_disponibles if i % int(producto.peso_unidad) == 0]
+            precio_unitario = producto.precio_unitario / producto.peso_unidad  # Precio por gramo correctamente calculado
 
         detalle = {
             'cantidades_disponibles': cantidades_disponibles,
             'peso_unidad': producto.peso_unidad,
-            'cantidad_disponible': producto.cantidad_disponible
+            'cantidad_disponible': producto.cantidad_disponible,
+            'precio_unitario': round(precio_unitario, 2)  # Mostrar el precio proporcional por gramo
         }
         return JsonResponse({'detalle': detalle})
     except Producto.DoesNotExist:
@@ -140,8 +151,13 @@ class EditarVentaView(FormView):
         return kwargs
     
     def form_valid(self, form):
-        form.save()
-        return super().form_valid(form)
+        try:
+            venta = form.save(commit=False)
+            venta.save()  # Intentar guardar la venta
+            return super().form_valid(form)
+        except ValueError as e:
+            form.add_error(None, str(e))  # Agregar el mensaje de error al formulario
+            return self.form_invalid(form)
 
 # Eliminar una venta
 class EliminarVentaView(DeleteView):
@@ -154,7 +170,7 @@ class EliminarVentaView(DeleteView):
         return get_object_or_404(Venta, id=id)
 
 
-# Agregar detalle de venta
+# Eliminar la lógica de reserva de inventario y validar solo al guardar
 class CrearDetalleVentaView(FormView):
     template_name = 'crear_detalle_venta.html'
     form_class = DetalleVentaForm
@@ -173,8 +189,9 @@ class CrearDetalleVentaView(FormView):
 
         detalle_venta.cantidad = Decimal(cantidad_seleccionada)
 
-        # Validar inventario disponible (sin descontar)
+        # Validar inventario disponible al guardar
         producto = detalle_venta.producto
+
         if detalle_venta.unidad_medida == 'g':
             piezas_necesarias = detalle_venta.cantidad / producto.peso_unidad
         elif detalle_venta.unidad_medida == '1kg':
@@ -185,7 +202,7 @@ class CrearDetalleVentaView(FormView):
             piezas_necesarias = detalle_venta.cantidad
 
         if producto.cantidad_disponible < piezas_necesarias:
-            form.add_error(None, 'No hay suficiente inventario para esta cantidad.')
+            form.add_error(None, f'No hay suficiente inventario para esta cantidad. Genera más producto de {producto.nombre} para completar la compra.')
             return self.form_invalid(form)
 
         # Calcular el precio unitario dinámicamente según la unidad de medida con descuentos por volumen
@@ -279,6 +296,10 @@ class EditarDetalleVentaView(FormView):
     def get_object(self):
         id = self.kwargs.get('id')
         return get_object_or_404(DetalleVenta, id=id)
+
+    def get_success_url(self):
+        detalle_venta = self.get_form_kwargs()['instance']
+        return reverse_lazy('detalle_venta', kwargs={'venta_id': detalle_venta.venta.id})
 
 # Eliminar un detalle de venta
 class EliminarDetalleVentaView(DeleteView):
