@@ -91,8 +91,9 @@ def registro_cliente(request):
         form = RegistroClienteForm(request.POST)
         if form.is_valid():
             with transaction.atomic():
+                # Guardar el usuario y asociarlo con un cliente
                 usuario = form.save()
-                login(request, usuario)
+                login(request, usuario)  # Iniciar sesión automáticamente
                 cliente = usuario.cliente
                 messages.success(request, f'¡Registro exitoso! Tu ID de cliente es {cliente.cliente_id}')
                 
@@ -101,7 +102,7 @@ def registro_cliente(request):
                 if producto_id:
                     # Obtener el producto de la base de datos
                     producto = get_object_or_404(Producto, id=producto_id)
-                    cantidad = 1  # Puedes usar una cantidad por defecto o agregar un campo en el formulario
+                    cantidad = 1  # Cantidad por defecto
                     carrito = request.session.get('carrito', {})
 
                     # Si ya existe el producto en el carrito, actualizar la cantidad
@@ -116,18 +117,19 @@ def registro_cliente(request):
                             'unidad_medida': producto.unidad_medida,
                         }
 
+                    # Guardar el carrito en la sesión
                     request.session['carrito'] = carrito
                     messages.success(request, f'"{producto.nombre}" agregado al carrito')
                     
                     # Redirigir a la vista del carrito
                     return redirect('ver_carrito')
                 
-                return redirect('perfil_cliente')  # O cualquier otra vista que prefieras
+                # Redirigir al perfil del cliente después del registro
+                return redirect('perfil_cliente')
     else:
         form = RegistroClienteForm()
     
     return render(request, 'portal/registro.html', {'form': form})
-
 
 @login_required
 def perfil_cliente(request):
@@ -487,9 +489,12 @@ def confirmar_compra(request):
     # Procesar la compra si todo está bien
     try:
         with transaction.atomic():
+            # Determinar el estado de la venta
+            estado_venta = request.POST.get('estado_venta', 'Pendiente')  # Por defecto, 'Pendiente'
+
             venta = Venta(
                 persona=request.user.cliente,
-                estatus_venta='Pendiente',  # Cambiado a Pendiente
+                estatus_venta=estado_venta,  # Puede ser 'Pendiente', 'Pagado', o 'Cancelado'
                 estado_entrega='pendiente',
                 metodo_pago='efectivo'
             )
@@ -511,6 +516,12 @@ def confirmar_compra(request):
             
             # Guardar el ID de la venta en la sesión para mostrar el mensaje
             request.session['venta_reciente'] = venta.id
+
+            if estado_venta == 'Cancelado':
+                messages.warning(request, f'La compra #{venta.id} fue registrada como cancelada.')
+            else:
+                messages.success(request, f'¡Compra #{venta.id} registrada exitosamente!')
+
             return redirect('historial_compras')
 
     except Exception as e:
@@ -537,7 +548,8 @@ def generar_ticket(request, venta_id):
             'venta': venta,
             'detalles': detalles,
             'total': total,
-            'fecha': venta.fecha_venta.strftime("%d/%m/%Y %H:%M")
+            'fecha': venta.fecha_venta.strftime("%d/%m/%Y %H:%M"),
+            'estado': venta.estatus_venta
         }
         return render(request, 'carrito/ticket.html', context)
         
@@ -594,8 +606,18 @@ def generar_pdf(request, venta, detalles, total):
     y_position -= 6 * mm
     p.drawString(10 * mm, y_position, f"Ticket: {venta.id}")
     y_position -= 6 * mm
-    estado_pago = "Pagado" if venta.estatus_venta == 'Pagado' else "Pendiente"
-    p.drawString(10*mm, y_position, f"Pago: {estado_pago}")
+    if venta.estatus_venta == 'Pagado':
+        estado_color = colors.green
+    elif venta.estatus_venta == 'Pendiente':
+        estado_color = colors.orange
+    elif venta.estatus_venta == 'Cancelado':  # Corregido para asegurar que "Cancelado" se ponga rojo
+        estado_color = colors.red
+    else:
+        estado_color = colors.black  # Por si hay algún estado desconocido
+        
+    p.setFillColor(estado_color)
+    p.drawString(10*mm, y_position, f"Pago: {venta.estatus_venta}")
+    p.setFillColor(colors.black)
     y_position -= 6*mm
 
     ancho_linea = 50 * mm

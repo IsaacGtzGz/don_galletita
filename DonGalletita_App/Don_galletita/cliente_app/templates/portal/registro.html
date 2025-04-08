@@ -51,6 +51,7 @@
                         <label class="form-label">Confirmar Contraseña*</label>
                         {{ form.password2 }}
                         {{ form.password2.errors }}
+                        <small id="password-message" class="form-text"></small>
                     </div>
                 </div>
                 
@@ -73,3 +74,49 @@
     </div>
 </div>
 {% endblock %}
+<script>
+// Función para mostrar/ocultar contraseña
+document.addEventListener('DOMContentLoaded', function() {
+    const togglePassword = document.querySelectorAll('[data-toggle="password"]');
+    
+    togglePassword.forEach(function(element) {
+        const input = element;
+        const showPassword = document.createElement('button');
+        showPassword.type = 'button';
+        showPassword.innerHTML = '<i class="fa fa-eye"></i>';
+        showPassword.className = 'btn btn-outline-secondary';
+        showPassword.style.position = 'absolute';
+        showPassword.style.right = '10px';
+        showPassword.style.top = '50%';
+        showPassword.style.transform = 'translateY(-50%)';
+        showPassword.addEventListener('click', function() {
+            if (input.type === 'password') {
+                input.type = 'text';
+                this.innerHTML = '<i class="fa fa-eye-slash"></i>';
+            } else {
+                input.type = 'password';
+                this.innerHTML = '<i class="fa fa-eye"></i>';
+            }
+        });
+        
+        const parent = input.parentElement;
+        parent.style.position = 'relative';
+        parent.appendChild(showPassword);
+    });
+    
+    // Función para verificar coincidencia de contraseñas
+    window.checkPasswordMatch = function() {
+        const password1 = document.getElementById('password1');
+        const password2 = document.getElementById('password2');
+        const message = document.getElementById('password-message');
+        
+        if (password1.value !== password2.value) {
+            message.innerHTML = 'Las contraseñas no coinciden';
+            message.style.color = 'red';
+        } else {
+            message.innerHTML = 'Las contraseñas coinciden';
+            message.style.color = 'green';
+        }
+    };
+});
+</script>

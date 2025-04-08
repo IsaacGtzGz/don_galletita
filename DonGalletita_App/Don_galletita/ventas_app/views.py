@@ -19,7 +19,7 @@ import io
 import openpyxl
 from openpyxl.styles import Font
 from django.db import transaction
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, F
 from productos_app.models import Producto
 import json
 import requests

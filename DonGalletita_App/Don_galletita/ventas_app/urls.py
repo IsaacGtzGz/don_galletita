@@ -23,14 +23,14 @@ urlpatterns = [
     path('corte_ventas_diario/', login_required(CorteVentasDiarioView.as_view()), name='corte_ventas_diario'),
     path('ventas/ticket/<int:venta_id>/', login_required(TicketVentaView.as_view()), name='descargar_ticket'),
     path('detalle_venta/<int:venta_id>/', login_required(DetalleVentaView.as_view()), name='detalle_venta'),
-
+    
     # URL para exportar reportes
     path('exportar_reporte_pdf/', login_required(ExportarReportePDFView.as_view()), name='exportar_reporte_pdf'),
     path('exportar_reporte_excel/', login_required(ExportarReporteExcelView.as_view()), name='exportar_reporte_excel'),
 
     # URL para confirmar ventas
     path('confirmar_venta/<int:venta_id>/', login_required(ConfirmarVentaView.as_view()), name='confirmar_venta'),
-
+    
     # Dashboard
     path('dashboard/', login_required(DashboardPresentacionesAlertasView.as_view()), name='dashboard_presentaciones_alertas'),
     path('dashboard_metricas/', login_required(DashboardMetricasVentasView.as_view()), name='dashboard_metricas_ventas'),
