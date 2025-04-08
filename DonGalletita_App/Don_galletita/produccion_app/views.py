@@ -20,6 +20,17 @@ class ListaProduccionView(ListView):
     template_name = 'lista_produccion.html'
     context_object_name = 'producciones'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        query = self.request.GET.get('q', '')  # Obtén el parámetro de búsqueda
+        if query:
+            # Filtra las producciones cuyo nombre de receta contiene el texto ingresado
+            context['producciones'] = Produccion.objects.filter(receta__producto__nombre__icontains=query)
+        else:
+            # Muestra todas las producciones si no hay búsqueda
+            context['producciones'] = Produccion.objects.all()
+        return context
+
 # produccion_app/views.py
 class CrearProduccionView(CreateView):
     model = Produccion
