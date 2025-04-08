@@ -1,47 +1,10 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
+from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator, RegexValidator
 from .models import Cliente, DetalleVenta
 from usuarios_app.models import Usuario
-
-class ClienteForm(forms.ModelForm):
-    class Meta:
-        model = Cliente
-        fields = ['nombre', 'apellido_paterno', 'apellido_materno', 'telefono', 'direccion']
-        widgets = {
-            'nombre': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Ej. Juan'
-            }),
-            'apellido_paterno': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Ej. Pérez'
-            }),
-            'apellido_materno': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Ej. López'
-            }),
-            'telefono': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': '10 dígitos'
-            }),
-            'direccion': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Calle, número, colonia, ciudad'
-            }),
-        }
-        labels = {
-            'nombre': 'Nombre(s)',
-            'apellido_paterno': 'Apellido Paterno',
-            'apellido_materno': 'Apellido Materno',
-        }
-
-    def clean_telefono(self):
-        telefono = self.cleaned_data['telefono']
-        if not telefono.isdigit() or len(telefono) != 10:
-            raise forms.ValidationError("El teléfono debe tener 10 dígitos numéricos")
-        return telefono
+import re
 
 class RegistroClienteForm(UserCreationForm):
     nombre = forms.CharField(
@@ -112,7 +75,8 @@ class RegistroClienteForm(UserCreationForm):
 
     class Meta:
         model = Usuario
-        fields = ['nombre_usuario', 'password1', 'password2']
+        fields = ['nombre_usuario', 'password1', 'password2', 'nombre', 
+                  'apellido_paterno', 'apellido_materno', 'telefono', 'direccion']
         widgets = {
             'nombre_usuario': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -125,17 +89,67 @@ class RegistroClienteForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['password1'].widget.attrs.update({
+        
+        # Configuración para password1
+        self.fields['password1'].widget = forms.PasswordInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Contraseña segura'
+            'placeholder': 'Contraseña segura',
+            'autocomplete': 'new-password'
         })
-        self.fields['password2'].widget.attrs.update({
+        self.fields['password1'].help_text = """
+        <small class="form-text text-muted">
+            La contraseña debe contener al menos:
+            <ul>
+                <li>8 caracteres</li>
+                <li>1 letra mayúscula</li>
+                <li>1 número</li>
+                <li>1 carácter especial (~!@#$%^&*()_+{}":;'.[])</li>
+            </ul>
+        </small>
+        """
+        
+        # Configuración para password2
+        self.fields['password2'].widget = forms.PasswordInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Repite tu contraseña'
+            'placeholder': 'Repite tu contraseña',
+            'autocomplete': 'new-password'
         })
-        # Eliminar campo email si existe
-        if 'email' in self.fields:
-            del self.fields['email']
+
+    def clean_password1(self):
+        password1 = self.cleaned_data.get('password1')
+        
+        # Validar longitud mínima
+        if len(password1) < 8:
+            raise ValidationError("La contraseña debe tener al menos 8 caracteres.")
+            
+        # Validar mayúscula
+        if not any(char.isupper() for char in password1):
+            raise ValidationError("La contraseña debe contener al menos una letra mayúscula.")
+        
+        # Validar número
+        if not any(char.isdigit() for char in password1):
+            raise ValidationError("La contraseña debe contener al menos un número.")
+            
+        # Validar carácter especial
+        if not re.search(r"[~!@#$%^&*()_+{}\[\]:;\"'.]", password1):
+            raise ValidationError("La contraseña debe contener al menos un carácter especial: ~!@#$%^&*()_+{}[]:;\"'.")
+        
+        return password1
+
+    def clean_password2(self):
+        password1 = self.cleaned_data.get('password1')
+        password2 = self.cleaned_data.get('password2')
+        
+        if password1 and password2 and password1 != password2:
+            raise ValidationError("Las contraseñas no coinciden.")
+            
+        return password2
+
+    def clean_telefono(self):
+        telefono = self.cleaned_data['telefono']
+        if not telefono.isdigit() or len(telefono) != 10:
+            raise forms.ValidationError("El teléfono debe tener 10 dígitos numéricos")
+        return telefono
 
     def save(self, commit=True):
         usuario = super().save(commit=False)
@@ -152,102 +166,50 @@ class RegistroClienteForm(UserCreationForm):
                 telefono=self.cleaned_data['telefono'],
                 direccion=self.cleaned_data['direccion']
             )
-            cliente.save()  # Esto generará automáticamente el cliente_id
+            cliente.save()
         
         return usuario
-    
-    nombre = forms.CharField(
-        max_length=100,
-        required=True,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Tu nombre'
-        }),
-        validators=[
-            RegexValidator(
-                regex='^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$',
-                message='Solo se permiten letras y espacios'
-            )
-        ]
-    )
-    apellido_paterno = forms.CharField(
-        max_length=100,
-        required=True,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Apellido paterno'
-        })
-    )
-    apellido_materno = forms.CharField(
-        max_length=100,
-        required=True,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Apellido materno'
-        })
-    )
-    telefono = forms.CharField(
-        max_length=10,
-        required=True,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': '10 dígitos'
-        }),
-        validators=[
-            MinLengthValidator(10),
-            RegexValidator(
-                regex='^[0-9]+$',
-                message='Solo números permitidos'
-            )
-        ]
-    )
-    direccion = forms.CharField(
-        widget=forms.Textarea(attrs={
-            'class': 'form-control',
-            'rows': 3,
-            'placeholder': 'Dirección completa'
-        }),
-        required=True
-    )
 
+
+class ClienteForm(forms.ModelForm):
     class Meta:
-        model = Usuario
-        fields = ['nombre_usuario', 'password1', 'password2']
+        model = Cliente
+        fields = ['nombre', 'apellido_paterno', 'apellido_materno', 'telefono', 'direccion']
         widgets = {
-            'nombre_usuario': forms.TextInput(attrs={
+            'nombre': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Nombre de usuario único'
+                'placeholder': 'Ej. Juan'
+            }),
+            'apellido_paterno': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej. Pérez'
+            }),
+            'apellido_materno': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej. López'
+            }),
+            'telefono': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '10 dígitos'
+            }),
+            'direccion': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Calle, número, colonia, ciudad'
             }),
         }
-        help_texts = {
-            'nombre_usuario': 'Requerido. 150 caracteres o menos. Letras, dígitos y @/./+/-/_ solamente.',
+        labels = {
+            'nombre': 'Nombre(s)',
+            'apellido_paterno': 'Apellido Paterno',
+            'apellido_materno': 'Apellido Materno',
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['password1'].widget.attrs.update({
-            'class': 'form-control',
-            'placeholder': 'Contraseña segura'
-        })
-        self.fields['password2'].widget.attrs.update({
-            'class': 'form-control',
-            'placeholder': 'Repite tu contraseña'
-        })
+    def clean_telefono(self):
+        telefono = self.cleaned_data['telefono']
+        if not telefono.isdigit() or len(telefono) != 10:
+            raise forms.ValidationError("El teléfono debe tener 10 dígitos numéricos")
+        return telefono
 
-    def save(self, commit=True):
-        usuario = super().save(commit=False)
-        usuario.rol = 'cliente'
-        if commit:
-            usuario.save()
-            Cliente.objects.create(
-                usuario=usuario,
-                nombre=self.cleaned_data['nombre'],
-                apellido_paterno=self.cleaned_data['apellido_paterno'],
-                apellido_materno=self.cleaned_data['apellido_materno'],
-                telefono=self.cleaned_data['telefono'],
-                direccion=self.cleaned_data['direccion']
-            )
-        return usuario
 
 class CarritoForm(forms.Form):
     producto_id = forms.IntegerField(

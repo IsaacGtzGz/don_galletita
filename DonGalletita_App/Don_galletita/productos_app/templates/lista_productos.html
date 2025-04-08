@@ -7,11 +7,11 @@
     
     <a href="{% url 'crear_producto' %}" class="btn btn-primary">Registrar nuevo producto</a>
 
-    {% if productos_por_caducar %}
+    {% if productos_proximos_caducar %}
       <div id="alerta-caducidad" class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
         <strong>¡Atención!</strong> Los siguientes productos caducan en 2 días:
         <ul>
-          {% for producto in productos_por_caducar %}
+          {% for producto in productos_proximos_caducar %}
             <li>{{ producto.nombre }} - Fecha de caducidad: {{ producto.fecha_caducidad }}</li>
           {% endfor %}
         </ul>

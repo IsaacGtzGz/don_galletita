@@ -30,10 +30,10 @@
         "fields": {
             "nombre": "Producto 1",
             "descripcion": "Descripción del producto 1",
-            "unidad_medida": "kg",
+            "unidad_medida": "g",
             "cantidad_disponible": 1000,
             "precio_unitario": "50.00",
-            "peso_unidad": "1.00",
+            "peso_unidad": "40.00",
             "fecha_caducidad": "2025-12-31"
         }
     },

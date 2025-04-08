@@ -7,6 +7,7 @@ from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 import logging
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 
 logger = logging.getLogger(__name__)
 
@@ -61,3 +62,13 @@ def CrearCompraView(request):
 def VerDetallesView(request, compra_id):
     compra = get_object_or_404(Compra, compra_id=compra_id)
     return render(request, 'ver_detalles.html', {'compra': compra})
+
+def obtener_unidad_medida(request):
+    insumo_id = request.GET.get('insumo_id')
+    if insumo_id:
+        try:
+            insumo = Insumos.objects.get(id=insumo_id)
+            return JsonResponse({'unidad_medida': insumo.unidad_medida})
+        except Insumos.DoesNotExist:
+            return JsonResponse({'error': 'Insumo no encontrado'}, status=404)
+    return JsonResponse({'error': 'ID de insumo no proporcionado'}, status=400)

@@ -48,7 +48,34 @@
 </div>
 
 <!-- JavaScript Mejorado -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    $(document).ready(function () {
+        // Escucha el cambio en el combo box de insumos
+        $(document).on('change', 'select[name$="insumo"]', function () {
+            const insumoId = $(this).val(); // Obtiene el ID del insumo seleccionado
+            const unidadMedidaField = $(this).closest('.formset-item').find('input[name$="unidad_medida"]');
+
+            if (insumoId) {
+                // Realiza una solicitud AJAX para obtener la unidad de medida
+                $.ajax({
+                    url: "{% url 'obtener_unidad_medida' %}",
+                    data: { insumo_id: insumoId },
+                    success: function (data) {
+                        if (data.unidad_medida) {
+                            unidadMedidaField.val(data.unidad_medida); // Actualiza el campo
+                        }
+                    },
+                    error: function () {
+                        unidadMedidaField.val(''); // Limpia el campo en caso de error
+                    }
+                });
+            } else {
+                unidadMedidaField.val(''); // Limpia el campo si no hay insumo seleccionado
+            }
+        });
+    });
+
     document.addEventListener('DOMContentLoaded', function () {
         const formsetContainer = document.getElementById('formset-container');
         const addInsumoButton = document.getElementById('add-insumo');

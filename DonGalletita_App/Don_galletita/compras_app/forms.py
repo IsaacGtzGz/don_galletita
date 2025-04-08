@@ -36,6 +36,10 @@ class DetalleCompraForm(forms.ModelForm):
         empty_label="Seleccione un insumo",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
+    unidad_medida = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'})
+    )
 
     class Meta:
         model = DetalleCompra
@@ -43,9 +47,14 @@ class DetalleCompraForm(forms.ModelForm):
         widgets = {
             "cantidad": forms.NumberInput(attrs={"class": "form-control"}),
             "precio_unitario": forms.NumberInput(attrs={"class": "form-control"}),
-            "unidad_medida": forms.Select(attrs={"class": "form-control"}),
             "fecha_caducidad": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Inicializa el campo unidad_medida si la instancia tiene un insumo asociado
+        if self.instance and getattr(self.instance, 'insumo', None):
+            self.fields['unidad_medida'].initial = self.instance.insumo.unidad_medida
 
     def clean_cantidad(self):
         cantidad = self.cleaned_data.get('cantidad')
@@ -64,6 +73,15 @@ class DetalleCompraForm(forms.ModelForm):
         if fecha_caducidad and fecha_caducidad < now().date():
             raise forms.ValidationError("La fecha de caducidad no puede ser anterior a la fecha actual.")
         return fecha_caducidad
+
+    def save(self, commit=True):
+        # Antes de guardar, asegura que unidad_medida se actualice según el insumo seleccionado
+        instance = super().save(commit=False)
+        if instance.insumo:  # Verifica si hay un insumo seleccionado
+            instance.unidad_medida = instance.insumo.unidad_medida
+        if commit:
+            instance.save()
+        return instance
 
 
 DetalleCompraFormSet = inlineformset_factory(

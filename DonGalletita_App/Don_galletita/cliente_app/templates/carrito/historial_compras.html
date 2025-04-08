@@ -14,11 +14,18 @@
                     <small class="text-muted">{{ item.fecha }}</small>
                 </div>
                 <div>
-                    <span class="badge bg-{% if item.venta.estatus_venta == 'Pagado' %}success{% else %}warning{% endif %}">
+                    <span class="badge 
+                        {% if item.venta.estatus_venta == 'Pagado' %}
+                            bg-success
+                        {% elif item.venta.estatus_venta == 'Pendiente' %}
+                            bg-warning
+                        {% elif item.venta.estatus_venta == 'Cancelado' %}
+                            bg-danger
+                        {% else %}
+                            bg-secondary
+                        {% endif %}
+                    ">
                         {{ item.venta.get_estatus_venta_display }}
-                    </span>
-                    <span class="badge bg-{% if item.venta.estado_entrega == 'entregado' %}success{% else %}warning{% endif %}">
-                        {{ item.venta.get_estado_entrega_display }}
                     </span>
                     <span class="fw-bold">${{ item.total|floatformat:2 }}</span>
                 </div>

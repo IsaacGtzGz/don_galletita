@@ -19,11 +19,12 @@ import io
 import openpyxl
 from openpyxl.styles import Font
 from django.db import transaction
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, F
 from productos_app.models import Producto
 import json
 import requests
 from math import floor
+from decimal import Decimal
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic.base import TemplateView
 from django.views.generic import FormView, DeleteView
@@ -164,7 +165,15 @@ class CrearDetalleVentaView(FormView):
         detalle_venta = form.save(commit=False)
         detalle_venta.venta = venta
 
-        # Calcular cuántas piezas se necesitan según la unidad de medida
+        # Obtener la cantidad seleccionada desde el formulario
+        cantidad_seleccionada = self.request.POST.get('cantidad')
+        if not cantidad_seleccionada:
+            form.add_error(None, 'Debe seleccionar una cantidad válida.')
+            return self.form_invalid(form)
+
+        detalle_venta.cantidad = Decimal(cantidad_seleccionada)
+
+        # Validar inventario disponible (sin descontar)
         producto = detalle_venta.producto
         if detalle_venta.unidad_medida == 'g':
             piezas_necesarias = detalle_venta.cantidad / producto.peso_unidad
@@ -175,48 +184,22 @@ class CrearDetalleVentaView(FormView):
         else:
             piezas_necesarias = detalle_venta.cantidad
 
-        # Validar inventario
         if producto.cantidad_disponible < piezas_necesarias:
-            form.add_error('cantidad', 'No hay suficiente inventario para esta venta.')
+            form.add_error(None, 'No hay suficiente inventario para esta cantidad.')
             return self.form_invalid(form)
 
-        # Descontar del inventario
-        producto.cantidad_disponible -= piezas_necesarias
-        producto.save()
+        # Calcular el precio unitario dinámicamente según la unidad de medida con descuentos por volumen
+        if detalle_venta.unidad_medida == 'g':
+            detalle_venta.precio_unitario = (producto.precio_unitario / producto.peso_unidad) * 1000  # Precio por kilogramo
+        elif detalle_venta.unidad_medida == '1kg':
+            detalle_venta.precio_unitario = producto.precio_unitario * (1000 / producto.peso_unidad) * Decimal('0.90')  # 10% de descuento
+        elif detalle_venta.unidad_medida == '700gr':
+            detalle_venta.precio_unitario = producto.precio_unitario * (700 / producto.peso_unidad) * Decimal('0.95')  # 5% de descuento
+        elif detalle_venta.unidad_medida == 'pz':
+            detalle_venta.precio_unitario = producto.precio_unitario  # Precio por pieza, sin descuento
 
-        # Asignar el precio unitario del producto al detalle de la venta
-        detalle_venta.precio_unitario = producto.precio_unitario
-
-        # Crear el detalle de la venta
+        # Guardar el detalle de la venta sin descontar inventario
         detalle_venta.save()
-
-        # Incluir el token CSRF en la petición a producción
-        csrf_token = self.request.META.get('CSRF_COOKIE', '')
-        headers = {'X-CSRFToken': csrf_token}
-        if producto.cantidad_disponible < 80:
-            cantidad_a_producir = 150 - producto.cantidad_disponible
-            response = requests.post(
-                'http://127.0.0.1:8000/produccion/crear/',
-                data={
-                    'producto_id': producto.producto_id,
-                    'cantidad_necesaria': cantidad_a_producir
-                },
-                headers=headers
-            )
-            if response.status_code != 200:
-                form.add_error(None, 'No se pudo realizar la producción por falta de stock o error en el servidor.')
-                return self.form_invalid(form)
-
-        # Verificar si se necesita producción automática
-        if producto.cantidad_disponible < 80:
-            cantidad_a_producir = 150 - producto.cantidad_disponible
-            try:
-                from produccion_app.views import crear_produccion_automatica
-                crear_produccion_automatica(producto.producto_id, cantidad_a_producir)
-            except ValueError as e:
-                form.add_error(None, f"Error al crear producción automática: {str(e)}")
-                return self.form_invalid(form)
-
         return redirect('detalle_venta', venta_id=venta.id)
 
     def get_context_data(self, **kwargs):
@@ -238,8 +221,64 @@ class EditarDetalleVentaView(FormView):
         return kwargs
     
     def form_valid(self, form):
-        form.save()
+        detalle_venta = form.save(commit=False)
+
+        # Obtener la venta asociada al detalle
+        detalle_venta.venta = detalle_venta.venta  # Ya está asociado correctamente
+
+        # Obtener la cantidad seleccionada desde el formulario
+        cantidad_seleccionada = self.request.POST.get('cantidad')
+        if not cantidad_seleccionada:
+            form.add_error(None, 'Debe seleccionar una cantidad válida.')
+            return self.form_invalid(form)
+
+        detalle_venta.cantidad = Decimal(cantidad_seleccionada)
+
+        # Validar inventario disponible (sin descontar)
+        producto = detalle_venta.producto
+        if detalle_venta.unidad_medida == 'g':
+            piezas_necesarias = detalle_venta.cantidad / producto.peso_unidad
+        elif detalle_venta.unidad_medida == '1kg':
+            piezas_necesarias = (1000 / producto.peso_unidad) * detalle_venta.cantidad
+        elif detalle_venta.unidad_medida == '700gr':
+            piezas_necesarias = (700 / producto.peso_unidad) * detalle_venta.cantidad
+        else:
+            piezas_necesarias = detalle_venta.cantidad
+
+        if producto.cantidad_disponible < piezas_necesarias:
+            form.add_error(None, 'No hay suficiente inventario para esta cantidad.')
+            return self.form_invalid(form)
+
+        # Guardar el detalle de la venta sin descontar inventario
+        detalle_venta.save()
         return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        detalle_venta = self.get_object()
+        producto = detalle_venta.producto
+
+        # Calcular cantidades disponibles dinámicamente
+        if detalle_venta.unidad_medida == 'g':
+            max_gramos = producto.cantidad_disponible * producto.peso_unidad
+            context['cantidades_disponibles'] = [
+                i for i in range(int(producto.peso_unidad), int(max_gramos) + 1, int(producto.peso_unidad))
+            ]
+        elif detalle_venta.unidad_medida == '1kg':
+            max_kilos = floor((producto.cantidad_disponible * producto.peso_unidad) / 1000)
+            context['cantidades_disponibles'] = [i for i in range(1, max_kilos + 1)]
+        elif detalle_venta.unidad_medida == '700gr':
+            max_paquetes = floor((producto.cantidad_disponible * producto.peso_unidad) / 700)
+            context['cantidades_disponibles'] = [i for i in range(1, max_paquetes + 1)]
+        else:
+            context['cantidades_disponibles'] = [i for i in range(1, int(producto.cantidad_disponible) + 1)]
+
+        context['detalle_venta'] = detalle_venta
+        return context
+
+    def get_object(self):
+        id = self.kwargs.get('id')
+        return get_object_or_404(DetalleVenta, id=id)
 
 # Eliminar un detalle de venta
 class EliminarDetalleVentaView(DeleteView):

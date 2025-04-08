@@ -11,7 +11,6 @@
     <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
     <script src="{% static 'js/insumos.js' %}"></script>
 
-    <!-- Agrega este bloque de estilos en tu archivo base.html -->
     <style>
       .navbar-nav .nav-link {
         font-size: 0.8rem; /* Reduce aún más el tamaño de la fuente */
@@ -99,13 +98,13 @@
                   <a class="nav-link dropdown-toggle" href="#" id="produccionDropdown" role="button" data-bs-toggle="dropdown"><i class="fas fa-industry"></i> Producción</a>
                   <ul class="dropdown-menu">
                     <li>
+                      <a class="dropdown-item" href="{% url 'lista_productos' %}">Productos</a>
+                    </li>
+                    <li>
                       <a class="dropdown-item" href="{% url 'lista_receta' %}">Recetario</a>
                     </li>
                     <li>
                       <a class="dropdown-item" href="{% url 'lista_produccion' %}">Producción</a>
-                    </li>
-                    <li>
-                      <a class="dropdown-item" href="{% url 'lista_productos' %}">Productos</a>
                     </li>
                   </ul>
                 </li>
@@ -137,9 +136,8 @@
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'historial_compras' %}"><i class="fas fa-store"></i> Historial</a>
+                  <a class="nav-link" href="{% url 'historial_compras' %}"><i class="fas fa-store"></i> Mis Compras</a>
                 </li>
-                
               {% endif %}
             {% else %}
               <!-- Menú para usuarios no autenticados -->
@@ -197,8 +195,6 @@
     <footer class="footer text-white text-center py-3 mt-4">
       <p>&copy; 2025 Don Galletita. Todos los derechos reservados.</p>
     </footer>
-
-    
 
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 
