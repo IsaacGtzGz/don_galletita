@@ -28,6 +28,10 @@ class Venta(models.Model):
         return f"Venta {self.id} - {self.persona}"
 
     def save(self, *args, **kwargs):
+        # Validar que solo se procesen ventas con estatus 'Pagado'
+        if self.estatus_venta != 'Pagado':
+            raise ValueError("Solo se pueden procesar ventas con estatus 'Pagado'.")
+
         # Verificar si el estatus cambia a 'Pagado'
         if self.pk:  # Si la venta ya existe
             venta_anterior = Venta.objects.get(pk=self.pk)

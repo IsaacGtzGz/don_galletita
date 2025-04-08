@@ -26,6 +26,9 @@ class VentaForm(forms.ModelForm):
                     raise forms.ValidationError("No se puede cambiar el estatus de 'Pagado' a otro que no sea 'Cancelado'.")
                 if not venta_anterior.ticket:
                     raise forms.ValidationError("No se puede cambiar el estatus de 'Pagado' si el ticket no ha sido generado.")
+        # Asegurar que el formulario solo permita ventas con estatus 'Pagado'
+        if self.cleaned_data['estatus_venta'] != 'Pagado':
+            raise forms.ValidationError("Solo se pueden guardar ventas con estatus 'Pagado'.")
         return self.cleaned_data['estatus_venta']
 
     def save(self, commit=True):

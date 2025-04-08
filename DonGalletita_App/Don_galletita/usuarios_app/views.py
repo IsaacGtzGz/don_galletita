@@ -38,13 +38,24 @@ def lista_usuarios(request):
 def editar_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, pk=usuario_id)
     if request.method == 'POST':
-        form = UsuarioEditarForm(request.POST, instance=usuario)
+        form = UsuarioForm(request.POST, instance=usuario)
         if form.is_valid():
-            form.save(id=usuario_id)  # Pasamos el ID del usuario al método save
+            usuario = form.save(commit=False)
+            if form.cleaned_data['password1']:
+                usuario.set_password(form.cleaned_data['password1'])  # Actualizar contraseña si se proporciona
+            usuario.save()
+            messages.success(request, 'Usuario actualizado exitosamente.')
             return redirect('lista_usuarios')
     else:
-        form = UsuarioEditarForm(instance=usuario)
-    return render(request, 'editar_usuario.html', {'form': form})
+        # Cargar datos existentes del usuario en el formulario
+        form = UsuarioForm(instance=usuario, initial={
+            'nombre': usuario.nombre,
+            'apellido_paterno': usuario.apellido_paterno,
+            'apellido_materno': usuario.apellido_materno,
+            'telefono': usuario.telefono,
+            'direccion': usuario.direccion,
+        })
+    return render(request, 'editar_usuario.html', {'form': form, 'usuario': usuario})
 
 def eliminar_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, pk=usuario_id)

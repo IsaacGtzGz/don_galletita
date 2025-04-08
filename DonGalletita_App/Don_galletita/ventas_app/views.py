@@ -116,9 +116,10 @@ class ListaVentasView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # Asegurar que solo se consideren ventas con estatus 'Pagado'
         lista_pagadas = Venta.objects.filter(estatus_venta='Pagado').order_by('-id')
-        lista_pendientes = Venta.objects.filter(estatus_venta='Pendiente').order_by('-id')
-        lista_canceladas = Venta.objects.filter(estatus_venta='Cancelado').order_by('-id')
+        lista_pendientes = []  # Eliminar ventas pendientes de los cálculos
+        lista_canceladas = []  # Eliminar ventas canceladas de los cálculos
         context['lista_pagadas'] = lista_pagadas
         context['lista_pendientes'] = lista_pendientes
         context['lista_canceladas'] = lista_canceladas
@@ -329,12 +330,25 @@ class CorteVentasDiarioView(TemplateView):
         hoy_fin = localtime().replace(hour=23, minute=59, second=59, microsecond=999999)
         ventas_diarias = Venta.objects.filter(fecha_venta__range=(hoy_inicio, hoy_fin)).order_by('-id')
 
-        # Filtrar solo ventas pagadas para el total del día
         # Calcular el total de ventas solo para ventas pagadas
         total_ventas = sum(
             sum(detalle.cantidad * detalle.precio_unitario for detalle in venta.detalles.all())
             for venta in ventas_diarias.filter(estatus_venta='Pagado')
         )
+        total_ventas = round(total_ventas, 2)
+
+        # Calcular el total de ventas correctamente
+        total_ventas = 0
+        for venta in ventas_diarias.filter(estatus_venta='Pagado'):
+            for detalle in venta.detalles.all():
+                # Ajustar el cálculo del subtotal para ventas en gramos
+                if detalle.unidad_medida == 'g':
+                    subtotal = (detalle.precio_unitario / 1000) * detalle.cantidad
+                elif detalle.unidad_medida == '700gr':
+                    subtotal = (detalle.precio_unitario / 700) * detalle.cantidad
+                else:  # 'pz' o cualquier otra unidad
+                    subtotal = detalle.precio_unitario * detalle.cantidad
+                total_ventas += subtotal
         total_ventas = round(total_ventas, 2)
 
         total_transacciones = ventas_diarias.count()
@@ -364,17 +378,20 @@ class CorteVentasDiarioView(TemplateView):
         ventas_dia_anterior = Venta.objects.filter(fecha_venta__date=dia_anterior).order_by('-id')
         total_dia_anterior = ventas_dia_anterior.aggregate(total=Sum('detalles__precio_unitario'))['total'] or 0
 
+        # Calcular el total de cada venta correctamente en la tabla de "Ventas Pagadas"
         ventas_con_totales = []
         for venta in ventas_diarias:
             total_venta = sum(
-                detalle.cantidad * detalle.precio_unitario
+                (detalle.precio_unitario / 1000) * detalle.cantidad if detalle.unidad_medida == 'g' else
+                (detalle.precio_unitario / 700) * detalle.cantidad if detalle.unidad_medida == '700gr' else
+                detalle.precio_unitario * detalle.cantidad
                 for detalle in venta.detalles.all()
             )
             ventas_con_totales.append({
                 'id': venta.id,
                 'cliente': venta.persona,
                 'fecha': venta.fecha_venta,
-                'total': total_venta
+                'total': round(total_venta, 2)
             })
 
         ventas_pagadas = []
@@ -631,7 +648,17 @@ class ExportarReportePDFView(TemplateView):
         hoy_fin = localtime().replace(hour=23, minute=59, second=59, microsecond=999999)
         ventas_diarias = Venta.objects.filter(fecha_venta__range=(hoy_inicio, hoy_fin)).order_by('-id')
 
-        total_ventas = ventas_diarias.aggregate(total=Sum('detalles__precio_unitario'))['total'] or 0
+        # Calcular correctamente el total de ventas para el PDF considerando solo ventas pagadas
+        total_ventas = sum(
+            sum(
+                (detalle.precio_unitario / 1000) * detalle.cantidad if detalle.unidad_medida == 'g' else
+                (detalle.precio_unitario / 700) * detalle.cantidad if detalle.unidad_medida == '700gr' else
+                detalle.precio_unitario * detalle.cantidad
+                for detalle in venta.detalles.all()
+            )
+            for venta in ventas_diarias.filter(estatus_venta='Pagado')
+        )
+        total_ventas = round(total_ventas, 2)
         total_transacciones = ventas_diarias.count()
 
         buffer = io.BytesIO()
@@ -848,14 +875,30 @@ class DashboardMetricasVentasView(TemplateView):
         hoy_inicio = localtime().replace(hour=0, minute=0, second=0, microsecond=0)
         hoy_fin = localtime().replace(hour=23, minute=59, second=59, microsecond=999999)
 
-        # Ventas del día actual
-        ventas_hoy = Venta.objects.filter(fecha_venta__range=(hoy_inicio, hoy_fin)).order_by('-id')
-        total_ventas_hoy = ventas_hoy.aggregate(total=Sum('detalles__precio_unitario'))['total'] or 0
-        total_transacciones = ventas_hoy.count()
-        ticket_promedio = float(total_ventas_hoy) / total_transacciones if total_transacciones > 0 else 0
+        # Unificar el cálculo de ventas pagadas para ambas vistas
+        ventas_pagadas = Venta.objects.filter(
+            estatus_venta='Pagado',
+            fecha_venta__range=(hoy_inicio, hoy_fin)
+        )
+
+        # Calcular el total de ventas del día
+        total_ventas_hoy = sum(
+            sum(
+                (detalle.precio_unitario / 1000) * detalle.cantidad if detalle.unidad_medida == 'g' else
+                (detalle.precio_unitario / 700) * detalle.cantidad if detalle.unidad_medida == '700gr' else
+                detalle.precio_unitario * detalle.cantidad
+                for detalle in venta.detalles.all()
+            )
+            for venta in ventas_pagadas
+        )
+        context['total_ventas_hoy'] = round(total_ventas_hoy, 2)
+        context['total_ventas'] = context['total_ventas_hoy']
+
+        total_transacciones = Venta.objects.filter(fecha_venta__range=(hoy_inicio, hoy_fin)).count()
+        ticket_promedio = float(context['total_ventas_hoy']) / total_transacciones if total_transacciones > 0 else 0
 
         # Productos más vendidos
-        productos_vendidos = DetalleVenta.objects.filter(venta__in=ventas_hoy).values(
+        productos_vendidos = DetalleVenta.objects.filter(venta__in=Venta.objects.filter(fecha_venta__range=(hoy_inicio, hoy_fin))).values(
             'producto__nombre'
         ).annotate(
             cantidad_vendida=Sum('cantidad')
@@ -866,7 +909,7 @@ class DashboardMetricasVentasView(TemplateView):
         productos_data = [float(producto['cantidad_vendida']) for producto in productos_vendidos]
 
         # Preparar datos para el gráfico de progreso de ventas por hora
-        ventas_por_hora = ventas_hoy.annotate(hora=TruncDate('fecha_venta')).values('hora').annotate(
+        ventas_por_hora = Venta.objects.filter(fecha_venta__range=(hoy_inicio, hoy_fin)).annotate(hora=TruncDate('fecha_venta')).values('hora').annotate(
             total=Sum('detalles__precio_unitario')
         ).order_by('hora')
 
@@ -874,8 +917,43 @@ class DashboardMetricasVentasView(TemplateView):
         horas = [venta['hora'].strftime('%H:%M') if venta['hora'] else 'Sin datos' for venta in ventas_por_hora]
         montos = [float(venta['total']) for venta in ventas_por_hora]
 
+        # Ventas totales por galleta (unidades y montones)
+        ventas_por_galleta = DetalleVenta.objects.filter(venta__in=Venta.objects.filter(fecha_venta__range=(hoy_inicio, hoy_fin))).values(
+            'producto__nombre'
+        ).annotate(
+            cantidad_vendida=Sum('cantidad'),
+            total_venta=Sum(F('cantidad') * F('precio_unitario'))
+        ).order_by('-cantidad_vendida')
+
+        # Corrección del error de tipo de salida en las agregaciones
+        from django.db.models import FloatField
+
+        # Costo total del inventario (usando precio_unitario como referencia)
+        costo_total_inventario = Producto.objects.aggregate(
+            total_costo=Sum(F('cantidad_disponible') * F('precio_unitario'), output_field=FloatField())
+        )['total_costo'] or 0
+
+        # Ganancia esperada del inventario (asumiendo un margen de ganancia fijo del 30%)
+        porcentaje_ganancia = 0.30
+        ganancia_esperada_inventario = Producto.objects.aggregate(
+            ganancia_maxima=Sum(F('cantidad_disponible') * F('precio_unitario') * porcentaje_ganancia, output_field=FloatField())
+        )['ganancia_maxima'] or 0
+
+        # Galletas próximas a caducar
+        fecha_limite = timezone.now().date() + timedelta(days=2)
+        proximas_caducar = Producto.objects.filter(
+            fecha_caducidad__lte=fecha_limite,
+            fecha_caducidad__gte=timezone.now().date(),
+            cantidad_disponible__gt=0
+        ).order_by('fecha_caducidad')
+
+        # Preparar datos para el contexto
+        productos_labels = [producto['producto__nombre'] for producto in ventas_por_galleta]
+        productos_data = [float(producto['cantidad_vendida']) for producto in ventas_por_galleta]
+        montones_data = [float(producto['total_venta']) for producto in ventas_por_galleta]
+
         context.update({
-            'total_ventas_hoy': float(total_ventas_hoy),
+            'total_ventas_hoy': float(context['total_ventas_hoy']),
             'total_transacciones': total_transacciones,
             'ticket_promedio': ticket_promedio,
             'productos_vendidos': productos_vendidos,
@@ -883,5 +961,27 @@ class DashboardMetricasVentasView(TemplateView):
             'productos_data': json.dumps(productos_data),
             'horas': json.dumps(horas),
             'montos': json.dumps(montos),
+            'ventas_por_galleta': ventas_por_galleta,
+            'productos_labels': json.dumps(productos_labels),
+            'productos_data': json.dumps(productos_data),
+            'montones_data': json.dumps(montones_data),
+            'costo_total_inventario': float(costo_total_inventario),
+            'ganancia_esperada_inventario': float(ganancia_esperada_inventario),
+            'proximas_caducar': proximas_caducar,
         })
+
+        # Actualización del Dashboard de Métricas de Ventas para mostrar claramente las métricas solicitadas
+
+        # Títulos y métricas adicionales
+        context.update({
+            'titulo_dashboard': 'Dashboard de Métricas de Ventas - Resumen Detallado',
+            'ventas_totales_por_galleta': ventas_por_galleta,  # Ventas totales por galleta (unidades y montones)
+            'costo_total_inventario': float(costo_total_inventario),  # Costo total del inventario
+            'ganancia_esperada_inventario': float(ganancia_esperada_inventario),  # Ganancia esperada del inventario
+            'proximas_caducar': proximas_caducar,  # Galletas próximas a caducar
+        })
+
+        # Asegurar que el total de ventas del día se pase correctamente al contexto
+        context['total_ventas'] = context['total_ventas_hoy']
+
         return context
