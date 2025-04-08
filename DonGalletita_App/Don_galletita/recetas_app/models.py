@@ -32,4 +32,4 @@ class RecetaInsumo(models.Model):
     cantidad_necesaria = models.DecimalField(max_digits=10, decimal_places=3, default=0)
 
     def _str_(self):
-        return f"{self.recetasinsumo_id}-{self.receta.producto.nombre}-{self.insumo.nombre_insumo}-{self.cantidad_necesaria}-{self.insumo.unidad_medida}"
+        return f"{self.recetasinsumo_id}-{self.receta.producto.nombre}-{self.insumo.nombre_insumo}-{self.cantidad_necesaria}"

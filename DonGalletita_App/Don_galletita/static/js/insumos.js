@@ -1,11 +1,35 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Función para actualizar la unidad de medida
+    function updateUnidadMedida(selectElement) {
+        // Encuentra el contenedor del formulario actual
+        const formContainer = selectElement.closest('.card-insumo');
+        // Encuentra el campo de unidad de medida
+        const unidadInput = formContainer.querySelector('input[name$="-unidad_medida"]');
+        
+        // Obtiene la opción seleccionada
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        
+        // Actualiza el valor si hay una opción seleccionada
+        if (selectedOption && selectedOption.value) {
+            // Usamos dataset.unidad que viene del data-unidad en el option
+            unidadInput.value = selectedOption.dataset.unidad || '';
+        } else {
+            unidadInput.value = '';
+        }
+    }
+  
+    // Manejar cambios en los selects existentes
+    document.addEventListener('change', function(event) {
+        if (event.target.matches('select[name$="-insumo"]')) {
+            updateUnidadMedida(event.target);
+        }
+    });
+
     const container = document.getElementById('insumos-container');
     const addButton = document.querySelector('.btn-add-insumo');
     const totalForms = document.getElementById('id_insumos-TOTAL_FORMS');
     const emptyFormElement = document.getElementById('empty-insumo-form');
     
-
-    // Función para actualizar nombres e IDs de los campos
     // Verificar que todos los elementos requeridos existen
     if (!emptyFormElement || !container || !addButton || !totalForms) {
         console.warn('Elementos del formulario de insumos no encontrados');
