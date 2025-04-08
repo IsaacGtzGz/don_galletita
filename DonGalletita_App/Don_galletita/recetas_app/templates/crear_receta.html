@@ -86,6 +86,7 @@
                           {{ form.unidad_medida }}
                         </div>
                       </div>
+
                       {% if formset.can_delete and not forloop.first %}
                         <div class="col-md-1 d-flex align-items-end">
                           <button type="button" class="btn btn-sm btn-remove-insumo">
@@ -122,12 +123,8 @@
                     </div>
                     <div class="col-md-3">
                       <div class="form-group">
-                        <label for="id_insumos-__prefix__-unidad_medida">Unidad medida:</label>
-                        <select name="insumos-__prefix__-unidad_medida" class="form-control" id="id_insumos-__prefix__-unidad_medida">
-                          {% for option in formset.empty_form.unidad_medida.field.choices %}
-                            <option value="{{ option.0 }}">{{ option.1 }}</option>
-                          {% endfor %}
-                        </select>
+                        <label for="id_insumos-__prefix__-unidad_medida">Unidad de medida:</label>
+                        <input type="text" name="insumos-__prefix__-unidad_medida" class="form-control" id="id_insumos-__prefix__-unidad_medida" readonly>
                       </div>
                     </div>
                     <div class="col-md-1 d-flex align-items-end">
@@ -150,7 +147,29 @@
       </div>
     </div>
   </div>
-{% block scripts %}
-  <script src="{% static 'js/recetas.js' %}"></script>
-{% endblock %}
+
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Selecciona todos los select de insumo
+      const selects = document.querySelectorAll('select[name$="-insumo"]');
+    
+      selects.forEach(function (select) {
+        select.addEventListener('change', function () {
+          const selected = this.options[this.selectedIndex];
+          const unidad = selected.getAttribute('data-unidad');
+    
+          // Busca el campo unidad_medida dentro del mismo bloque de insumo
+          const cardBody = this.closest('.card-body');
+          const unidadInput = cardBody.querySelector('input[name$="-unidad_medida"]');
+    
+          if (unidadInput && unidad) {
+            unidadInput.value = unidad;
+          }
+        });
+      });
+    });
+    </script>
+
+
 {% endblock %}

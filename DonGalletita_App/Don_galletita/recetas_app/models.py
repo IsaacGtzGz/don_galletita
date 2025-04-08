@@ -3,14 +3,6 @@ from insumos_app.models import Insumos
 from productos_app.models import Producto
 from django.core.exceptions import ValidationError
 
-UNIDADES_CHOICES = (
-    ('kg', 'Kilogramos'),
-    ('g', 'Gramos'),
-    ('ml', 'Mililitros'),
-    ('l', 'Litros'),
-    ('pz', 'Piezas'),
-)
-
 def validate_image_extension(value):
     valid_extensions = ['.jpg', '.jpeg', '.png']
     if not any(value.name.endswith(ext) for ext in valid_extensions):
@@ -37,8 +29,7 @@ class RecetaInsumo(models.Model):
     recetasinsumo_id = models.AutoField(primary_key=True)
     receta = models.ForeignKey(Receta, on_delete=models.CASCADE)
     insumo = models.ForeignKey(Insumos, on_delete=models.CASCADE)
-    cantidad_necesaria = models.IntegerField(default=0)
-    unidad_medida = models.CharField(max_length=10, choices=Insumos.UNIDADES_CHOICES, null=True, blank=True)
+    cantidad_necesaria = models.DecimalField(max_digits=10, decimal_places=3, default=0)
 
     def _str_(self):
-        return f"{self.recetasinsumo_id}-{self.receta.producto.nombre}-{self.insumo.nombre_insumo}-{self.cantidad_necesaria}-{self.unidad_medida}"
+        return f"{self.recetasinsumo_id}-{self.receta.producto.nombre}-{self.insumo.nombre_insumo}-{self.cantidad_necesaria}-{self.insumo.unidad_medida}"
