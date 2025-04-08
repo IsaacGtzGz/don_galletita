@@ -1,11 +1,11 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
 from insumos_app.models import Insumos
 from django.views.generic.base import TemplateView
 from django.views.generic import FormView
 from django.views.generic.edit import DeleteView
 from . import forms
 from django.urls import reverse_lazy
-from datetime import date, timedelta
+# Removed unused imports
 
 # Create your views here.
 
@@ -33,7 +33,7 @@ class EditarInsumoView(FormView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        id = self.kwargs.get('id')
+        id = self.kwargs.get('insumo_id')
         insumos = get_object_or_404(Insumos, id=id)
         kwargs['instance'] = insumos
         return kwargs
@@ -57,3 +57,4 @@ class EliminarInsumoView(DeleteView):
     model = Insumos
     template_name = 'eliminar_insumo.html'
     success_url = reverse_lazy('lista_insumo')
+    pk_url_kwarg = 'id'

@@ -4,7 +4,6 @@
 {% block content %}
 <h1>Carrito de compras</h1>
 
-
 <!-- Tabla del carrito -->
 <table class="table">
     <thead>
@@ -12,43 +11,64 @@
             <th>Producto</th>
             <th>Precio Unitario</th>
             <th>Cantidad</th>
+            <th>Subtotal</th>
+            <th>Acciones</th>
         </tr>
     </thead>
     <tbody>
         {% for key, item in carrito.items %}
         <tr>
-            <td>{{ item.nombre }}</td>
+            <td>
+                {{ item.nombre }}
+                {% if item.producto.descripcion %}
+                <br><small class="text-muted">{{ item.producto.descripcion }}</small>
+                {% endif %}
+            </td>
             <td>${{ item.precio_unitario }}</td>
-            <td>{{ item.cantidad }}</td>
+            <td>
+                <form method="post" action="{% url 'actualizar_carrito' key %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="number" name="cantidad" value="{{ item.cantidad }}" min="1" 
+                           max="{{ item.producto.cantidad_disponible }}" class="form-control form-control-sm d-inline" style="width: 70px;">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Actualizar</button>
+                </form>
+            </td>
+            <td>${{ item.subtotal }}</td>
+            <td>
+                <a href="{% url 'eliminar_del_carrito' key %}" class="btn btn-sm btn-danger">Eliminar</a>
+            </td>
         </tr>
         {% empty %}
         <tr>
-            <td colspan="4">No hay productos en el carrito</td>
+            <td colspan="5">No hay productos en el carrito</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 
-<!-- Total del carrito -->
-<h3>Total a pagar: ${{ total }}</h3>
+<!-- Resumen del pedido -->
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Resumen del pedido</h5>
+        <p class="card-text">Total a pagar: <strong>${{ total }}</strong></p>
+        <p class="card-text">Fecha: {{ fecha_pedido }}</p>
+        
+        <div class="d-flex gap-2">
+            <form action="{% url 'limpiar_carrito' %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Vaciar carrito</button>
+            </form>
 
-<div class="d-flex gap-2">
-    <!-- Botón para vaciar el carrito -->
-    <form action="{% url 'limpiar_carrito' %}" method="POST">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Vaciar carrito</button>
-    </form>
+            <a href="{% url 'catalogo' %}" class="btn btn-info">Seguir comprando</a>
 
-    <!-- Botón para ir al catálogo -->
-    <form action="{% url 'catalogo' %}" method="GET">
-        <button type="submit" class="btn btn-info">Ir al catálogo</button>
-    </form>
-
-    <form action="{% url 'confirmar_compra' %}" method="POST">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-success">Confirmar Compra</button>
-    </form>
+            <form action="{% url 'confirmar_compra' %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success" {% if bloquear_compra %}disabled{% endif %}>
+                    Confirmar Compra
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
-
 
 {% endblock %}

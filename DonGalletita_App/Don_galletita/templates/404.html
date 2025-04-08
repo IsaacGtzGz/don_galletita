@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Errro 404</title>
-</head>
-<body>
-    Página no encontrada
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <h1 class="display-4" style="color: #A67C52; font-family: 'Arial', sans-serif;">Error 404</h1>
+    <p class="lead" style="color: #5C3D2E;">Lo sentimos, la página que buscas no existe.</p>
+    <a href="/" class="btn btn-primary mt-3" style="background-color: #A67C52; border-color: #A67C52;">Volver al inicio</a>
+</div>
+{% endblock %}

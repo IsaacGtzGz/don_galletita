@@ -56,8 +56,13 @@
             <td>${{ detalle.precio_unitario }}</td>
             <td>${{ detalle.subtotal|floatformat:2 }}</td>
             <td>
-              <a href="{% url 'editar_detalle_venta' detalle.id %}" class="btn btn-warning btn-sm">Editar</a>
-              <a href="{% url 'eliminar_detalle_venta' detalle.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+              {% if venta.estatus_venta != 'Cancelado' %}
+                <a href="{% url 'editar_detalle_venta' detalle.id %}" class="btn btn-warning btn-sm">Editar</a>
+                <a href="{% url 'eliminar_detalle_venta' detalle.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+              {% endif %}
+              {% if venta.estatus_venta != 'Pendiente' %}
+                <a href="{% url 'descargar_ticket' venta_id=venta.id %}" class="btn btn-primary">Ticket</a>
+              {% endif %}
             </td>
           </tr>
         {% endfor %}
@@ -67,7 +72,9 @@
     <h3>Total a Pagar: ${{ total_a_pagar|floatformat:2 }}</h3>
 
     {% if venta.estatus_venta != 'Pagado' %}
-      <a href="{% url 'crear_detalle_venta' venta.id %}" class="btn btn-primary">Agregar Producto</a>
+      {% if venta.estatus_venta != 'Cancelado' %}
+        <a href="{% url 'crear_detalle_venta' venta.id %}" class="btn btn-primary">Agregar Producto</a>
+      {% endif %}
     {% endif %}
     <a href="{% url 'editar_venta' id=venta.id %}" class="btn btn-warning">Editar Estatus</a>
     <a href="{% url 'lista_ventas' %}" class="btn btn-secondary">Regresar a Ventas</a>

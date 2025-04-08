@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
+{% load custom_tags %}
 {% load static %}
+
 
 {% block content %}
   <div class="container-fluid">
@@ -75,11 +77,13 @@
                         <td>{{ producto.fecha_caducidad|date:'SHORT_DATE_FORMAT' }}</td>
                         <td>{{ producto.cantidad_disponible }}</td>
                         <td>
-                          {% with dias=producto.fecha_caducidad|timeuntil:timezone.now.date %}
-                            {% if 'day' in dias %}
-                              {{ dias|slice:':9' }} {# Esto mostrará solo la parte de los días #}
-                            {% else %}
+                          {% with dias=producto.fecha_caducidad|dias_restantes %}
+                            {% if dias > 0 %}
+                              {{ dias }} días restantes
+                            {% elif dias == 0 %}
                               ¡Hoy!
+                            {% else %}
+                              Caducado
                             {% endif %}
                           {% endwith %}
                         </td>

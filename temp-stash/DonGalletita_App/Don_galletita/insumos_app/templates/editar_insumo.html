@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+  <div class="container mt-5">
+    <div class="card editar-insumo-card">
+      <div class="card-header text-center editar-insumo-header">Editar Insumo</div>
+      <div class="card-body editar-insumo-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-group mb-3">{{ form.as_p }}</div>
+          <div class="text-center mt-4">
+            <button type="submit" class="btn btn-success me-2 guardar-btn">Guardar</button>
+            <a href="{% url 'lista_insumo' %}" class="btn btn-secondary volver-btn">Volver a la lista</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

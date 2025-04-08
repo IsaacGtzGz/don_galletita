@@ -1,10 +1,72 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <h1>Editar Detalle de Venta</h1>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Guardar</button>
-  </form>
+  <div class="container mt-5">
+    <h1>Editar Detalle de Venta</h1>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.producto.label_tag }}
+      {{ form.producto }}
+
+      {{ form.unidad_medida.label_tag }}
+      {{ form.unidad_medida }}
+
+      <label for="cantidad">Cantidad:</label>
+      <select name="cantidad" id="cantidad" required>
+        <option value="">Seleccione una cantidad</option>
+      </select>
+      <br />
+      <br />
+      <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+    </form>
+    <div id="detalle-calculo" class="mt-3">
+      <p>
+        <strong>Resumen:</strong>
+      </p>
+      <p id="resumen-detalle">Seleccione un producto y unidad de medida para calcular el detalle.</p>
+    </div>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const productoSelect = document.querySelector('select[name="producto"]')
+      const unidadMedidaSelect = document.querySelector('select[name="unidad_medida"]')
+      const cantidadSelect = document.getElementById('cantidad')
+      const resumenDetalle = document.getElementById('resumen-detalle')
+    
+      function actualizarResumen() {
+        const productoId = productoSelect.value
+        const unidadMedida = unidadMedidaSelect.value
+    
+        if (productoId && unidadMedida) {
+          const url = `{% url 'obtener_detalle_producto' producto_id=0 unidad_medida='unidad' cantidad=1 %}`.replace('0', productoId).replace('unidad', unidadMedida)
+    
+          fetch(url)
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.detalle) {
+                cantidadSelect.innerHTML = '<option value="">Seleccione una cantidad</option>'
+                data.detalle.cantidades_disponibles.forEach((cantidad) => {
+                  const option = document.createElement('option')
+                  option.value = cantidad
+                  option.textContent = cantidad
+                  cantidadSelect.appendChild(option)
+                })
+                resumenDetalle.textContent = `Peso por unidad: ${data.detalle.peso_unidad}g, Cantidad disponible: ${data.detalle.cantidad_disponible}`
+              } else {
+                resumenDetalle.textContent = 'Error al calcular el detalle.'
+              }
+            })
+            .catch((error) => {
+              console.error('Error al obtener el detalle:', error)
+              resumenDetalle.textContent = 'Error al calcular el detalle.'
+            })
+        } else {
+          resumenDetalle.textContent = 'Seleccione un producto y unidad de medida.'
+        }
+      }
+    
+      productoSelect.addEventListener('change', actualizarResumen)
+      unidadMedidaSelect.addEventListener('change', actualizarResumen)
+    })
+  </script>
 {% endblock %}

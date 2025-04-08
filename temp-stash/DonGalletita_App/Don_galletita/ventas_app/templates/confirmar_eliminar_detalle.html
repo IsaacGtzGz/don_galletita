@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container mt-5">
+    <div class="card" style="max-width: 100%; margin: auto; border: 1px solid #D4A373; border-radius: 10px; padding: 20px; background-color: #FFF8DC;">
+      <div class="card-header text-center" style="background-color: #D4A373; font-size: 28px; font-weight: bold; color: #FFFFFF;">Eliminar Detalle de Venta</div>
+      <div class="card-body text-center" style="padding: 40px;">
+        <p style="font-size: 18px;">¿Estás seguro de que deseas eliminar este detalle de venta?</p>
+        <form method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger" style="margin-right: 10px; padding: 10px 20px; font-size: 18px; background-color: #8B5E3C; color: #FFFFFF; border: none;">Eliminar</button>
+          <a href="javascript:history.back()" class="btn btn-secondary" style="padding: 10px 20px; font-size: 18px; background-color: #C9A66B; color: #FFFFFF; border: none;">Cancelar</a>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -9,10 +9,10 @@ logger = logging.getLogger(__name__)
 # Create your models here.
 class Insumos(models.Model):
     UNIDADES_CHOICES = [
-        ('g', 'Gramos'),
         ('kg', 'Kilogramos'),
         ('litros', 'Litros'),
         ('bultos', 'Bultos'),
+        ('pz', 'Piezas'),
     ]
 
     nombre_insumo = models.CharField(max_length=200)

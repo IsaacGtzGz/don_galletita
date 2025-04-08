@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 {% block content %}
   <div class="container">
@@ -27,9 +27,6 @@
                       <input type="submit" value="Iniciar Sesión" class="btn mt-4" />
                       <input type="hidden" name="next" value="{{ next }}" />
                     </form>
-                    <p class="mb-0 mt-4 text-center">
-                      <a href="{% url 'password_reset' %}" class="link">¿Olvidaste tu contraseña?</a>
-                    </p>
                   </div>
                 </div>
               </div>

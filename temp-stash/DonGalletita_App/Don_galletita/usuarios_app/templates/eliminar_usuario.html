@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container mt-5">
+    <div class="card confirmar-eliminar-card">
+      <div class="card-header text-center confirmar-eliminar-header">Eliminar Usuario</div>
+      <div class="card-body text-center confirmar-eliminar-body">
+        <p>
+          ¿Estás seguro de que deseas eliminar al usuario <strong>{{ usuario.nombre_usuario }}</strong>?
+        </p>
+        <form method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger eliminar-btn">Eliminar</button>
+          <a href="{% url 'lista_usuarios' %}" class="btn btn-secondary cancelar-btn">Cancelar</a>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h2>Catálogo de Productos</h2>
+
+    <div class="row">
+        {% for producto in productos %}
+            <div class="col-md-4">
+                <div class="card" style="width: 18rem;">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ producto.nombre }}</h5>
+                        <p class="card-text">Precio: ${{ producto.precio_unitario }}</p>
+                        <form action="{% url 'agregar_al_carrito' producto_id=producto.producto_id %}" method="POST">
+                            {% csrf_token %}
+                            <label for="cantidad">Cantidad:</label>
+                            <input type="number" id="cantidad" name="cantidad" min="1" value="1" class="form-control">
+                            <button type="submit" class="btn btn-primary mt-2">Agregar al carrito</button>
+                        </form>                        
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

@@ -3,14 +3,32 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password
 from django.db import connection
-from .forms import UsuarioRegistrarForm, UsuarioEditarForm
+from .forms import UsuarioRegistrarForm, UsuarioEditarForm, UsuarioForm
 from .models import Usuario
 from django.contrib.auth.models import Group  # Importar el modelo Group
 import logging
 from django.utils.timezone import now
+from django.contrib.auth.decorators import login_required, user_passes_test
 
 # Configuración del logger
 logger = logging.getLogger('usuarios_app')
+
+# Verificar si el usuario es administrador
+def es_admin(user):
+    return user.is_authenticated and user.rol == 'admin'
+
+@login_required
+@user_passes_test(es_admin)
+def registrar_usuario(request):
+    if request.method == 'POST':
+        form = UsuarioForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Usuario registrado exitosamente.')
+            return redirect('lista_usuarios')
+    else:
+        form = UsuarioForm()
+    return render(request, 'registrar_usuario.html', {'form': form})
 
 # CRUD para usuarios
 def lista_usuarios(request):

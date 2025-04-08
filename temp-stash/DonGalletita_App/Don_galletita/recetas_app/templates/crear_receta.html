@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-5">
+  <div class="card" style="max-width: 100%; margin: auto; border: 1px solid #D4A373; border-radius: 10px; padding: 20px; background-color: #FFF8DC;">
+    <div class="card-header text-center" style="background-color: #D4A373; font-size: 28px; font-weight: bold; color: #FFFFFF;">Nueva Receta</div>
+    <div class="card-body" style="padding: 40px;">
+
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Datos principales de la receta -->
+        <div class="form-group mb-3">
+          {{ form.producto.label_tag }}
+          {{ form.producto }}
+          {% if form.producto.errors %}
+            <div class="text-danger">{{ form.producto.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+          {{ form.foto_receta.label_tag }}
+          {{ form.foto_receta }}
+          {% if form.foto_receta.errors %}
+            <div class="text-danger">{{ form.foto_receta.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+          {{ form.porciones_galletas.label_tag }}
+          {{ form.porciones_galletas }}
+          {% if form.porciones_galletas.errors %}
+            <div class="text-danger">{{ form.porciones_galletas.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+          {{ form.preparacion.label_tag }}
+          {{ form.preparacion }}
+          {% if form.preparacion.errors %}
+            <div class="text-danger">{{ form.preparacion.errors }}</div>
+          {% endif %}
+        </div>
+
+          <!-- Sección de Insumos -->
+          <div class="insumos-section">
+            <div class="d-flex align-items-center mb-3">
+              <h4 class="mb-0" style="color: #8B5E3C;">Insumos</h4>
+              <button type="button" class="btn btn-add-insumo">
+                <i class="fas fa-plus"></i>
+              </button>
+            </div>
+
+            {{ formset.management_form }}
+            
+            {% if formset.non_form_errors %}
+              <div class="alert alert-danger">{{ formset.non_form_errors }}</div>
+            {% endif %}
+
+            <div id="insumos-container">
+              {% for form in formset %}
+                <div class="card card-insumo mb-3" data-form-index="{{ forloop.counter0 }}">
+                  <div class="card-body">
+                    <div class="row g-3">
+                      {{ form.id }}
+                      {{ form.DELETE|default:"" }}
+                      <div class="col-md-5">
+                        <div class="form-group">
+                          {{ form.insumo.label_tag }}
+                          {{ form.insumo }}
+                        </div>
+                      </div>
+                      
+                      <div class="col-md-3">
+                        <div class="form-group">
+                          {{ form.cantidad_necesaria.label_tag }}
+                          {{ form.cantidad_necesaria }}
+                        </div>
+                      </div>
+
+                      <div class="col-md-3">
+                        <div class="form-group">
+                          {{ form.unidad_medida.label_tag }}
+                          {{ form.unidad_medida }}
+                        </div>
+                      </div>
+                      {% if formset.can_delete and not forloop.first %}
+                        <div class="col-md-1 d-flex align-items-end">
+                          <button type="button" class="btn btn-sm btn-remove-insumo">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+
+            <!-- Template oculto para nuevos insumos -->
+            <div id="empty-insumo-form" style="display:none;">
+              <div class="card card-insumo mb-3" data-form-index="__prefix__">
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-md-5">
+                      <div class="form-group">
+                        <label for="id_insumos-__prefix__-insumo">Insumo:</label>
+                        <select name="insumos-__prefix__-insumo" class="form-control" id="id_insumos-__prefix__-insumo">
+                          {% for insumo in formset.empty_form.insumo.field.queryset %}
+                            <option value="{{ insumo.id }}">{{ insumo.nombre_insumo }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="form-group">
+                        <label for="id_insumos-__prefix__-cantidad_necesaria">Cantidad necesaria:</label>
+                        <input type="number" name="insumos-__prefix__-cantidad_necesaria" step="0.001" class="form-control" id="id_insumos-__prefix__-cantidad_necesaria">
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="form-group">
+                        <label for="id_insumos-__prefix__-unidad_medida">Unidad medida:</label>
+                        <select name="insumos-__prefix__-unidad_medida" class="form-control" id="id_insumos-__prefix__-unidad_medida">
+                          {% for option in formset.empty_form.unidad_medida.field.choices %}
+                            <option value="{{ option.0 }}">{{ option.1 }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                      <button type="button" class="btn btn-sm btn-remove-insumo">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="text-center mt-4">
+            <button type="submit" class="btn btn-success me-2" style="background-color: #8B5E3C; color: #FFFFFF; border: none;">Registrar</button>
+            <a href="{% url 'lista_receta' %}" class="btn btn-secondary" style="background-color: #C9A66B; color: #FFFFFF; border: none;">Volver</a>
+          </div>
+        </form>
+  
+      </div>
+    </div>
+  </div>
+  {% endblock %}
