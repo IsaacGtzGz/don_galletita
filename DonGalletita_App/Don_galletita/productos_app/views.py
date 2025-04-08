@@ -5,6 +5,9 @@ from django.http import JsonResponse
 from .models import Producto
 from .forms import ProductoForm
 from datetime import timedelta
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ListaProductosView(ListView):
     model = Producto
@@ -44,6 +47,12 @@ class EditarProductoView(UpdateView):
     success_url = reverse_lazy('lista_productos')
     success_message = "Producto actualizado exitosamente"
     pk_url_kwarg = 'producto_id'
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        # ¡Forzar la carga de la instancia existente!
+        kwargs['instance'] = self.get_object()  
+        return kwargs
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

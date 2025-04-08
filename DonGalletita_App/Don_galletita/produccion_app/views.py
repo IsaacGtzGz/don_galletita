@@ -30,7 +30,6 @@ class CrearProduccionView(CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['recetas'] = Receta.objects.filter(producto__isnull=False).select_related('producto')
-        context['lote_form'] = LoteProduccionForm()  # Formulario para fecha de caducidad
         return context
 
     def form_valid(self, form):
@@ -40,9 +39,9 @@ class CrearProduccionView(CreateView):
                 receta_id = self.request.POST.get('receta_id')
                 cantidad_galletas = int(self.request.POST.get('porciones_galletas', 0))
                 fecha_finalizacion = form.cleaned_data['fecha_finalizacion']
-                
-                # 2. Obtener fecha de caducidad específica para el lote
                 fecha_caducidad_str = self.request.POST.get('fecha_caducidad')
+                
+                # 2. Validar fecha de caducidad
                 if not fecha_caducidad_str:
                     messages.error(self.request, "La fecha de caducidad es obligatoria")
                     return self.form_invalid(form)
@@ -156,7 +155,7 @@ class EliminarProduccionView(DeleteView):
 def crear_produccion_automatica(producto_id, cantidad_necesaria):
     try:
         producto = Producto.objects.get(producto_id=producto_id)
-        receta = producto.receta  # Asumimos que cada producto tiene una receta asociada
+        receta = Receta.objects.get(producto=producto)
 
         if not receta:
             raise ValueError("El producto no tiene una receta asociada.")
