@@ -8,6 +8,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 import logging
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.db.models import Q
+from datetime import datetime  # Importar datetime para manejar conversiones de fecha
+from django.utils import timezone  # Importar timezone para manejar zonas horarias
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +23,16 @@ class ListaComprasView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         query = self.request.GET.get('q', '')  # Obtén el parámetro de búsqueda
         if query:
-            # Filtra las compras cuya fecha_compra contiene el texto ingresado
-            context['lista'] = Compra.objects.filter(fecha_compra__icontains(query))
+            try:
+                # Convertir la cadena de fecha a un objeto de tipo datetime
+                fecha = datetime.strptime(query, '%Y-%m-%d')
+                # Hacer que el datetime sea "aware" con la zona horaria configurada
+                fecha_aware = timezone.make_aware(fecha)
+                # Filtrar las compras cuya fecha_compra coincide con la fecha ingresada
+                context['lista'] = Compra.objects.filter(fecha_compra__date=fecha_aware.date())
+            except ValueError:
+                # Si la fecha no es válida, no se filtra nada
+                context['lista'] = Compra.objects.none()
         else:
             # Muestra todas las compras si no hay búsqueda
             context['lista'] = Compra.objects.all()
