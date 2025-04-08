@@ -8,16 +8,12 @@ from django.core.validators import FileExtensionValidator
 class ProductoForm(forms.ModelForm):
     class Meta:
         model = Producto
-        fields = ['nombre', 'descripcion', 'unidad_medida', 'cantidad_disponible', 'precio_unitario', 'peso_unidad', 'fecha_caducidad', 'imagen_producto']
+        fields = ['nombre', 'descripcion', 'unidad_medida', 'cantidad_disponible', 'precio_unitario', 'peso_unidad', 'imagen_producto']
         widgets = {
             "nombre": forms.TextInput(attrs={"class": "form-control"}),
             "descripcion": forms.Textarea(attrs={"class": "form-control"}),
             "unidad_medida": forms.Select(attrs={"class": "form-control"}),
             "cantidad_disponible": forms.NumberInput(attrs={"class": "form-control"}),
-            "fecha_caducidad": forms.DateInput(attrs={"class": "form-control","type": "date",  # Esto activará el date picker nativo
-                    "min": timezone.now().date().isoformat()  # Fecha mínima hoy
-                }
-            ),
             "imagen_producto": forms.FileInput(attrs={"class": "form-control"}), 
                         "cantidad_disponible": forms.NumberInput(attrs={
                 "class": "form-control",
@@ -44,41 +40,6 @@ class ProductoForm(forms.ModelForm):
             if self.instance.pk is None:  # Solo validar si es una creación
                 raise ValidationError('Este nombre de producto ya existe')
         return nombre.strip().title()
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        
-        # Fuerza la fecha existente o calcula nueva
-        fecha = self.get_fecha_caducidad()
-        
-        self.fields['fecha_caducidad'].widget = forms.DateInput(
-            attrs={
-                'class': 'form-control',
-                'type': 'date',
-                'value': fecha.strftime('%Y-%m-%d'),  # ¡Clave absoluta!
-                'readonly': True,
-            }
-        )
-    
-    def get_fecha_caducidad(self):
-        """Obtiene fecha de la instancia o calcula 30 días futuros"""
-        if self.instance and self.instance.pk:
-            return self.instance.fecha_caducidad
-        return timezone.now().date() + timedelta(days=30)
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        fecha = cleaned_data.get('fecha_caducidad')
-        
-        # Solo validar si el campo tiene valor
-        if fecha:
-            fecha_requerida = timezone.now().date() + timedelta(days=30)
-            
-            if fecha != fecha_requerida:
-                # Eliminar errores previos para evitar duplicados
-                self.errors.pop('fecha_caducidad', None)
-        
-        return cleaned_data
     
     def clean_cantidad_disponible(self):
         cantidad = self.cleaned_data['cantidad_disponible']

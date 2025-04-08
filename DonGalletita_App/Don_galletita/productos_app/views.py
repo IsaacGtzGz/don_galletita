@@ -20,15 +20,27 @@ class ListaProductosView(ListView):
         context['titulo'] = 'Inventario de Productos'
         hoy = timezone.now().date()
         alerta_fecha = hoy + timedelta(days=2)
+
+        # Obtener productos con lotes próximos a caducar
+        from produccion_app.models import LoteProduccion
+        lotes_por_caducar = LoteProduccion.objects.filter(
+            fecha_caducidad__lte=alerta_fecha,
+            estado='disponible'
+        ).select_related('produccion__receta__producto')
+    
+        # Crear estructura para mostrar en template
+        productos_alerta = {}
+        for lote in lotes_por_caducar:
+            producto = lote.produccion.receta.producto
+            if producto not in productos_alerta:
+                productos_alerta[producto] = {
+                    'cantidad': 0,
+                    'fecha_caducidad': lote.fecha_caducidad
+                }
+            productos_alerta[producto]['cantidad'] += lote.cantidad_galletas
+        
+        context['productos_por_caducar'] = productos_alerta
         context['fecha_actual'] = hoy
-
-        # Filtrar productos que caducan entre hoy y alerta_fecha
-        productos_por_caducar = Producto.objects.filter(
-            fecha_caducidad__range=(hoy, alerta_fecha),
-            cantidad_disponible__gt=0  # Opcional: solo incluir productos con inventario
-        ).order_by('fecha_caducidad')
-
-        context['productos_proximos_caducar'] = productos_por_caducar
         return context
 
 class CrearProductoView(CreateView):

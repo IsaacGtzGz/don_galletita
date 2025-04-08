@@ -4,6 +4,7 @@ from insumos_app.models import Insumos
 from usuarios_app.models import Usuario
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
+from datetime import timedelta
 
 # Create your models here.
 class Produccion(models.Model):
@@ -41,6 +42,15 @@ class LoteProduccion(models.Model):
     cantidad_galletas = models.PositiveIntegerField()
     fecha_caducidad = models.DateField()
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='disponible')
+
+    def save(self, *args, **kwargs):
+        # Actualizar estado según fecha de caducidad
+        hoy = now().date()
+        if (self.fecha_caducidad - hoy) <= timedelta(days=2):
+            self.estado = 'por_caducar'
+        elif self.fecha_caducidad <= hoy:
+            self.estado = 'caducado'
+        super().save(*args, **kwargs)
     
     def __str__(self):
         return f"Lote {self.lote_id} - {self.produccion.receta.producto.nombre} (Cad: {self.fecha_caducidad})"
