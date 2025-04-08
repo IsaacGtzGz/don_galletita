@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
     <script src="{% static 'js/insumos.js' %}"></script>
-    <script src="{% static 'js/recetas.js' %}"></script
+    <script src="{% static 'js/recetas.js' %}"></script>
 
     <!-- Agrega este bloque de estilos en tu archivo base.html -->
     <style>
@@ -140,7 +140,6 @@
                 <li class="nav-item">
                   <a class="nav-link" href="{% url 'historial_compras' %}"><i class="fas fa-store"></i> Historial</a>
                 </li>
-                
               {% endif %}
             {% else %}
               <!-- Menú para usuarios no autenticados -->
@@ -198,8 +197,6 @@
     <footer class="footer text-white text-center py-3 mt-4">
       <p>&copy; 2025 Don Galletita. Todos los derechos reservados.</p>
     </footer>
-
-    
 
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 

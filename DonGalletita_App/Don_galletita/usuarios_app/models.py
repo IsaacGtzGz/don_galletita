@@ -25,6 +25,7 @@ class UsuarioManager(BaseUserManager):
 class Usuario(AbstractBaseUser, PermissionsMixin):
     usuario_id = models.AutoField(primary_key=True)
     nombre_usuario = models.CharField(max_length=255, unique=True)
+    email = models.EmailField(max_length=255, unique=True, null=True, blank=True)
     contrasenia = models.CharField(max_length=255)
     rol = models.CharField(
         max_length=10,
