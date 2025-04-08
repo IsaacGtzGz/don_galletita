@@ -1,0 +1,39 @@
+.insumos-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 8px 12px;
+    background-color: #F9F4E8;
+    border-radius: 5px;
+    border: 1px solid #D4A373;
+  }
+  
+  .insumos-header:hover {
+    background-color: #F0E5CC;
+  }
+  
+  .insumos-toggle {
+    display: none;
+  }
+  
+  .insumos-toggle + .insumos-header::before {
+    content: "+";
+    font-weight: bold;
+    color: #8B5E3C;
+  }
+  
+  .insumos-toggle:checked + .insumos-header::before {
+    content: "-";
+  }
+  
+  #insumos-container {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  
+  .insumos-toggle:checked ~ #insumos-container {
+    max-height: 2000px;
+    padding-top: 15px;
+  }

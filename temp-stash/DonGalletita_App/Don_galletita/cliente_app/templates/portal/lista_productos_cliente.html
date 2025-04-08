@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Productos Disponibles</h1>
+        <a href="{% url 'clientes:carrito_compras' %}" class="btn btn-success position-relative">
+            <i class="bi bi-cart"></i> Carrito
+            {% if request.session.carrito %}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ request.session.carrito|length }}
+            </span>
+            {% endif %}
+        </a>
+    </div>
+
+    <div class="row">
+        {% for producto in productos %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                {% if producto.imagen %}
+                <img src="{{ producto.imagen.url }}" class="card-img-top" alt="{{ producto.nombre }}" style="height: 200px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ producto.nombre }}</h5>
+                    <p class="card-text">{{ producto.descripcion|default:"Sin descripción" }}</p>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item">
+                            <strong>Precio:</strong> ${{ producto.precio_unitario }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Disponible:</strong> {{ producto.cantidad_disponible }} {{ producto.get_unidad_medida_display }}
+                        </li>
+                        {% if producto.fecha_caducidad %}
+                        <li class="list-group-item">
+                            <strong>Caducidad:</strong> {{ producto.fecha_caducidad|date:"d/m/Y" }}
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="card-footer bg-white">
+                    <form method="post" action="{% url 'clientes:agregar_al_carrito' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="producto_id" value="{{ producto.producto_id }}">
+                        <div class="input-group mb-2">
+                            <input type="number" name="cantidad" class="form-control" value="1" min="0.001" 
+                                   max="{{ producto.cantidad_disponible }}" step="0.001">
+                            <select name="unidad_medida" class="form-select">
+                                {% for unidad in producto.UNIDADES_MEDIDA %}
+                                <option value="{{ unidad.0 }}" {% if producto.unidad_medida == unidad.0 %}selected{% endif %}>
+                                    {{ unidad.1 }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-cart-plus"></i> Agregar al carrito
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">No hay productos disponibles en este momento.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

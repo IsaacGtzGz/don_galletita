@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card" style="max-width: 100%; margin: auto; border: 1px solid #D4A373; border-radius: 10px; padding: 20px; background-color: #FFF8DC;">
+        <div class="card-header text-center" style="background-color: #D4A373; font-size: 28px; font-weight: bold; color: #FFFFFF;">Registrar Nueva Compra</div>
+        <div class="card-body" style="padding: 40px;">
+            <form method="post" id="compraForm">
+                {% csrf_token %}
+
+                <!-- Información de la compra -->
+                <fieldset class="mb-4">
+                    <legend class="fw-bold text-secondary">Información de la Compra</legend>
+                    <div class="form-group mb-3">{{ form.as_p }}</div>
+                </fieldset>
+
+                <!-- Insumos -->
+                <fieldset>
+                    <legend class="fw-bold text-secondary">Insumos</legend>
+                    {{ detalle_formset.management_form }}
+                    <div id="formset-container" class="row">
+                        {% for form in detalle_formset %}
+                        <div class="col-md-6">
+                            <div class="formset-item card border-secondary mb-3 p-3 position-relative bg-white">
+                                <button type="button" class="btn-close position-absolute top-0 end-0 remove-insumo" aria-label="Eliminar"></button>
+                                <div class="card-body">
+                                    <h5 class="card-title text-secondary">Insumo {{ forloop.counter }}</h5>
+                                    {{ form.as_p }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" id="add-insumo" class="btn btn-outline-secondary mt-3" style="background-color: #C9A66B; color: #FFFFFF; border: none;">
+                         Agregar Insumo
+                    </button>
+                </fieldset>
+
+                <!-- Botones de acción -->
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-success me-2" style="background-color: #8B5E3C; color: #FFFFFF; border: none;">Confirmar Compra</button>
+                    <a href="{% url 'lista_compras' %}" class="btn btn-secondary" style="background-color: #C9A66B; color: #FFFFFF; border: none;">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript Mejorado -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const formsetContainer = document.getElementById('formset-container');
+        const addInsumoButton = document.getElementById('add-insumo');
+        const totalForms = document.querySelector('#id_detalle_formset-TOTAL_FORMS');
+
+        addInsumoButton.addEventListener('click', function () {
+            const currentFormCount = parseInt(totalForms.value);
+
+            // Crear un nuevo formulario
+            let newForm;
+            if (formsetContainer.children.length > 0) {
+                // Clonar el primer formulario si existe
+                newForm = formsetContainer.children[0].cloneNode(true);
+            } else {
+                // Crear un formulario vacío si no hay formularios en el contenedor
+                newForm = document.createElement('div');
+                newForm.classList.add('col-md-6');
+                newForm.innerHTML = `
+                    <div class="formset-item card border-secondary mb-3 p-3 position-relative bg-white">
+                        <button type="button" class="btn-close position-absolute top-0 end-0 remove-insumo" aria-label="Eliminar"></button>
+                        <div class="card-body">
+                            <h5 class="card-title text-secondary">Insumo ${currentFormCount + 1}</h5>
+                            <input type="text" name="detalle_formset-${currentFormCount}-insumo" id="id_detalle_formset-${currentFormCount}-insumo" class="form-control" placeholder="Insumo">
+                            <input type="number" name="detalle_formset-${currentFormCount}-cantidad" id="id_detalle_formset-${currentFormCount}-cantidad" class="form-control mt-2" placeholder="Cantidad">
+                            <input type="number" name="detalle_formset-${currentFormCount}-precio_unitario" id="id_detalle_formset-${currentFormCount}-precio_unitario" class="form-control mt-2" placeholder="Precio Unitario">
+                            <input type="text" name="detalle_formset-${currentFormCount}-unidad_medida" id="id_detalle_formset-${currentFormCount}-unidad_medida" class="form-control mt-2" placeholder="Unidad de Medida">
+                            <input type="date" name="detalle_formset-${currentFormCount}-fecha_caducidad" id="id_detalle_formset-${currentFormCount}-fecha_caducidad" class="form-control mt-2">
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Actualizar los índices de los campos en el nuevo formulario
+            newForm.innerHTML = newForm.innerHTML.replace(/-\d+-/g, `-${currentFormCount}-`).replace(/_\d+_/g, `_${currentFormCount}_`);
+
+            // Limpiar los valores de los campos en el nuevo formulario
+            Array.from(newForm.querySelectorAll('input, select')).forEach(input => {
+                input.value = '';
+                const name = input.name;
+                if (name) {
+                    input.name = name.replace(/-\d+-/g, `-${currentFormCount}-`);
+                    input.id = input.id.replace(/-\d+-/g, `-${currentFormCount}-`);
+                }
+            });
+
+            // Actualizar el título del formulario
+            const title = newForm.querySelector('.card-title');
+            title.textContent = `Insumo ${currentFormCount + 1}`;
+
+            // Agregar el nuevo formulario al contenedor
+            formsetContainer.appendChild(newForm);
+
+            // Incrementar el contador total de formularios
+            totalForms.value = currentFormCount + 1;
+        });
+
+        // Eliminar insumo con validación
+        formsetContainer.addEventListener('click', function (event) {
+            if (event.target.classList.contains('remove-insumo')) {
+                const formToRemove = event.target.closest('.formset-item');
+                const updatedForms = formsetContainer.querySelectorAll('.formset-item');
+
+                // No permitir eliminar si solo queda un formulario
+                if (updatedForms.length === 1) {
+                    alert("No puedes eliminar todos los insumos. Debe haber al menos uno.");
+                    return;
+                }
+
+                if (confirm("¿Seguro que deseas eliminar este insumo?")) {
+                    formToRemove.remove();
+
+                    // Actualizar el total de formularios
+                    const remainingForms = formsetContainer.querySelectorAll('.formset-item');
+                    totalForms.value = remainingForms.length;
+
+                    // Reindexar los formularios restantes
+                    remainingForms.forEach((form, index) => {
+                        form.querySelectorAll('input, select').forEach(input => {
+                            input.name = input.name.replace(/-\d+-/g, `-${index}-`).replace(/_\d+_/g, `_${index}_`);
+                            input.id = input.id.replace(/-\d+-/g, `-${index}-`);
+                        });
+
+                        // Actualizar el título del formulario
+                        const title = form.querySelector('.card-title');
+                        title.textContent = `Insumo ${index + 1}`;
+                    });
+                }
+            }
+        });
+
+        if (!detalle_formset.is_valid()) {
+            print(detalle_formset.errors)
+        }
+    });
+</script>
+{% endblock %}
