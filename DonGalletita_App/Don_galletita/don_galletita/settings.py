@@ -62,6 +62,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'don_galletita.middleware.DisableCacheMiddleware',  # Agrega tu middleware aquí
+
 ]
 
 ROOT_URLCONF = 'don_galletita.urls'
@@ -95,7 +97,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'don_galletita_bd',
         'USER': 'root',
-        'PASSWORD': 'cclab',
+        'PASSWORD': 'Veronicagalvan',
         'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {

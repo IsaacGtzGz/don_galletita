@@ -17,11 +17,15 @@ class ListaProductosView(ListView):
         context['titulo'] = 'Inventario de Productos'
         hoy = timezone.now().date()
         alerta_fecha = hoy + timedelta(days=2)
-        context['fecha_actual'] = timezone.now().date()
-    
-        productos_por_caducar = Producto.objects.filter(fecha_caducidad=alerta_fecha)
-        
-        context['productos_por_caducar'] = productos_por_caducar
+        context['fecha_actual'] = hoy
+
+        # Filtrar productos que caducan entre hoy y alerta_fecha
+        productos_por_caducar = Producto.objects.filter(
+            fecha_caducidad__range=(hoy, alerta_fecha),
+            cantidad_disponible__gt=0  # Opcional: solo incluir productos con inventario
+        ).order_by('fecha_caducidad')
+
+        context['productos_proximos_caducar'] = productos_por_caducar
         return context
 
 class CrearProductoView(CreateView):

@@ -6,10 +6,10 @@
     <p>Fecha actual: {{ fecha_actual }}</p>
     
     <a href="{% url 'crear_producto' %}" class="btn btn-primary">Registrar nuevo producto</a>
-
+    {% if user.is_authenticated %}
     {% if productos_proximos_caducar %}
       <div id="alerta-caducidad" class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
-        <strong>¡Atención!</strong> Los siguientes productos caducan en 2 días:
+        <strong>¡Atención!</strong> Los siguientes productos estan proximos a caducar:
         <ul>
           {% for producto in productos_proximos_caducar %}
             <li>{{ producto.nombre }} - Fecha de caducidad: {{ producto.fecha_caducidad }}</li>
@@ -17,7 +17,7 @@
         </ul>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
-    {% endif %}
+    {% endif %}{% endif %}
 
 
     <table class="table table-striped mt-3">
