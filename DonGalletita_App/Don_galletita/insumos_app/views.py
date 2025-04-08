@@ -57,3 +57,4 @@ class EliminarInsumoView(DeleteView):
     model = Insumos
     template_name = 'eliminar_insumo.html'
     success_url = reverse_lazy('lista_insumo')
+    pk_url_kwarg = 'id'

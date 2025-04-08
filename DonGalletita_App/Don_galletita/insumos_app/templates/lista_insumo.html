@@ -35,6 +35,7 @@
       <table class="table table-striped table-hover">
         <thead class="table-dark">
           <tr>
+            <th>No.insumos</th>
             <th>Nombre</th>
             <th>Unidad de Medida</th>
             <th>Cantidad Disponible</th>
@@ -44,6 +45,7 @@
         <tbody>
           {% for item in insumos %}
             <tr>
+              <td>{{ item.id }}</td>
               <td>{{ item.nombre_insumo }}</td>
               <td>{{ item.unidad_medida }}</td>
               <td>{{ item.cantidad_disponible }}</td>

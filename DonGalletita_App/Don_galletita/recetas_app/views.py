@@ -86,6 +86,7 @@ class EditarRecetaView(UpdateView):
         
         if formset.is_valid():
             self.object = form.save()
+            formset.instance = self.object
             
             # Guardar primero los objetos no marcados para borrar
             instances = formset.save(commit=False)
