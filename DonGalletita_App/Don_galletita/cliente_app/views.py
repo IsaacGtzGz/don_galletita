@@ -106,7 +106,7 @@ def registro_cliente(request):
                 )
 
                 login(request, usuario)
-                messages.success(request, f'¡Registro exitoso! Tu ID de cliente es {cliente.cliente_id}')
+                messages.success(request, f'¡Registro exitoso! Tu número de cliente es {cliente.cliente_id}')
 
                 return redirect('perfil_cliente')
     else:
@@ -120,7 +120,7 @@ def perfil_cliente(request):
         cliente = request.user.cliente
         return render(request, 'portal/perfil.html', {
             'cliente': cliente,
-            'cliente_id': cliente.cliente_id
+            'cliente_id': cliente.cliente_id,
         })
     except AttributeError:
         messages.error(request, 'No tienes un perfil de cliente asociado')
