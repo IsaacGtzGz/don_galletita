@@ -20,7 +20,7 @@ class ListaInsumoView(LoginRequiredMixin, TemplateView):
         query = escape(self.request.GET.get('q', ''))  # Obtén el parámetro de búsqueda
         if query:
             # Filtra los insumos cuyo nombre contiene el texto ingresado
-            context['insumos'] = Insumos.objects.filter(nombre__icontains=query)
+            context['insumos'] = Insumos.objects.filter(nombre_insumo__icontains=query)
         else:
             # Muestra todos los insumos si no hay búsqueda
             context['insumos'] = Insumos.objects.all()
