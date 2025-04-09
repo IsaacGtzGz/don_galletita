@@ -11,9 +11,9 @@
         <div class="card shadow mb-4" style="background-color: #E8F5E9;">
           <div class="card-body text-center">
             <h5 class="card-title text-success"><i class="fas fa-dollar-sign"></i> Ventas del Día</h5>
-            <h2 class="text-success">${{ total_ventas_hoy|floatformat:2 }} MXN</h2>
-            {% if total_ventas_hoy == 0 %}
-              <p class="text-muted">Comparación no disponible por falta de datos anteriores.</p>
+            <h2 class="text-success">${{ total_ventas|floatformat:2 }} MXN</h2>
+            {% if total_ventas == 0 %}
+              <p class="text-muted">No hay ventas pagadas registradas hoy.</p>
             {% endif %}
           </div>
         </div>
@@ -31,15 +31,15 @@
       </div>
     </div>
 
-    <!-- Gráfico de Progreso de Ventas -->
-    <div class="row">
-      <div class="col-lg-12">
+    <!-- Mejora del gráfico de Progreso de Ventas Durante el Día -->
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
         <div class="card shadow mb-4">
           <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-line"></i> Progreso de Ventas Durante el Día</h6>
           </div>
-          <div class="card-body">
-            <canvas id="ventasPorHoraChart"></canvas>
+          <div class="card-body text-center">
+            <canvas id="ventasPorDiaChart" style="max-height: 400px;"></canvas>
           </div>
         </div>
       </div>
@@ -76,36 +76,116 @@
         </div>
       </div>
     </div>
+
+    <!-- Ventas Totales por Galleta (Unidades y Montones) -->
+    <div class="row">
+      <!-- Ventas Totales por Galleta (Unidades) -->
+      <div class="col-lg-6">
+        <div class="card shadow mb-4">
+          <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-cookie"></i> Ventas Totales por Galleta (Unidades)</h6>
+          </div>
+          <div class="card-body">
+            <canvas id="ventasPorGalletaUnidadesChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ventas Totales por Galleta (Montones) -->
+      <div class="col-lg-6">
+        <div class="card shadow mb-4">
+          <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-cookie-bite"></i> Ventas Totales por Galleta (Montones)</h6>
+          </div>
+          <div class="card-body">
+            <canvas id="ventasPorGalletaMontonesChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Costo Total del Inventario -->
+    <div class="row">
+      <div class="col-lg-6">
+        <div class="card shadow mb-4">
+          <div class="card-body text-center">
+            <h5 class="card-title text-info"><i class="fas fa-box"></i> Costo Total del Inventario</h5>
+            <h2 class="text-info">${{ costo_total_inventario|floatformat:2 }} MXN</h2>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ganancia Esperada del Inventario -->
+      <div class="col-lg-6">
+        <div class="card shadow mb-4">
+          <div class="card-body text-center">
+            <h5 class="card-title text-success"><i class="fas fa-chart-line"></i> Ganancia Esperada del Inventario</h5>
+            <h2 class="text-success">${{ ganancia_esperada_inventario|floatformat:2 }} MXN</h2>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Galletas Próximas a Caducar -->
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card shadow mb-4">
+          <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-danger"><i class="fas fa-exclamation-triangle"></i> Galletas Próximas a Caducar</h6>
+          </div>
+          <div class="card-body">
+            <ul>
+              {% for producto in proximas_caducar %}
+                <li>{{ producto.nombre }} - Caduca el {{ producto.fecha_caducidad }}</li>
+              {% empty %}
+                <p class="text-muted">No hay galletas próximas a caducar.</p>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 {% endblock %}
 
 {% block scripts %}
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // Gráfico de Progreso de Ventas por Hora
-    const ventasPorHoraCtx = document.getElementById('ventasPorHoraChart').getContext('2d')
-    new Chart(ventasPorHoraCtx, {
+    // Gráfico de Progreso de Ventas por Día
+    const ventasPorDiaCtx = document.getElementById('ventasPorDiaChart').getContext('2d')
+    new Chart(ventasPorDiaCtx, {
       type: 'line',
       data: {
-        labels: JSON.parse('{{ horas|escapejs }}'),
+        labels: JSON.parse('{{ horas|escapejs }}'), // Cambiar a días si es necesario
         datasets: [
           {
-            label: 'Monto Acumulado',
+            label: 'Monto Acumulado (MXN)',
             data: JSON.parse('{{ montos|escapejs }}'),
             borderColor: '#4CAF50',
             backgroundColor: 'rgba(76, 175, 80, 0.2)',
-            fill: true
+            fill: true,
+            tension: 0.4 // Suavizar las líneas
           }
         ]
       },
       options: {
         responsive: true,
         plugins: {
-          legend: { display: false }
+          legend: { display: true, position: 'top' },
+          title: {
+            display: true,
+            text: 'Progreso de Ventas por Día'
+          }
         },
         scales: {
-          x: { title: { display: true, text: 'Hora' } },
-          y: { title: { display: true, text: 'Monto (MXN)' } }
+          x: {
+            title: { display: true, text: 'Día' },
+            grid: { display: false }
+          },
+          y: {
+            title: { display: true, text: 'Monto (MXN)' },
+            beginAtZero: true
+          }
         }
       }
     })
@@ -127,6 +207,58 @@
         responsive: true,
         plugins: {
           legend: { position: 'bottom' }
+        }
+      }
+    })
+    
+    // Gráfico de Ventas Totales por Galleta (Unidades)
+    const ventasPorGalletaUnidadesCtx = document.getElementById('ventasPorGalletaUnidadesChart').getContext('2d')
+    new Chart(ventasPorGalletaUnidadesCtx, {
+      type: 'bar',
+      data: {
+        labels: JSON.parse('{{ productos_labels|escapejs }}'),
+        datasets: [
+          {
+            label: 'Unidades Vendidas',
+            data: JSON.parse('{{ productos_data|escapejs }}'),
+            backgroundColor: '#4CAF50'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' }
+        },
+        scales: {
+          x: { title: { display: true, text: 'Galletas' } },
+          y: { title: { display: true, text: 'Unidades' } }
+        }
+      }
+    })
+    
+    // Gráfico de Ventas Totales por Galleta (Montones)
+    const ventasPorGalletaMontonesCtx = document.getElementById('ventasPorGalletaMontonesChart').getContext('2d')
+    new Chart(ventasPorGalletaMontonesCtx, {
+      type: 'bar',
+      data: {
+        labels: JSON.parse('{{ productos_labels|escapejs }}'),
+        datasets: [
+          {
+            label: 'Monto Total (MXN)',
+            data: JSON.parse('{{ montones_data|escapejs }}'),
+            backgroundColor: '#FF9800'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' }
+        },
+        scales: {
+          x: { title: { display: true, text: 'Galletas' } },
+          y: { title: { display: true, text: 'Monto (MXN)' } }
         }
       }
     })

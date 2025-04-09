@@ -116,6 +116,9 @@ def registro_cliente(request):
 
 @login_required
 def perfil_cliente(request):
+    if request.user.rol != 'cliente':
+        messages.error(request, 'No tienes acceso a esta página')
+        return redirect('home')
     try:
         cliente = request.user.cliente
         return render(request, 'portal/perfil.html', {

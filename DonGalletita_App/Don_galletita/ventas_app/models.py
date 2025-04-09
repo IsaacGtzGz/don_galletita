@@ -28,11 +28,15 @@ class Venta(models.Model):
         return f"Venta {self.id} - {self.persona}"
 
     def save(self, *args, **kwargs):
+        # Validar que solo se procesen ventas con estatus 'Pagado'
+        if self.estatus_venta != 'Pagado':
+            raise ValueError("Solo se pueden procesar ventas con estatus 'Pagado'.")
+
         # Verificar si el estatus cambia a 'Pagado'
         if self.pk:  # Si la venta ya existe
             venta_anterior = Venta.objects.get(pk=self.pk)
             if venta_anterior.estatus_venta != 'Pagado' and self.estatus_venta == 'Pagado':
-                # Reducir inventario solo cuando el estatus cambie a 'Pagado'
+                # Validar inventario antes de descontar
                 for detalle in self.detalles.all():
                     producto = detalle.producto
                     cantidad_a_descontar = detalle.cantidad
@@ -45,13 +49,31 @@ class Venta(models.Model):
                     elif detalle.unidad_medida == '700gr':
                         piezas_necesarias = (cantidad_a_descontar * 700) / producto.peso_unidad
                     elif detalle.unidad_medida == 'pz':
-                        piezas_necesarias = cantidad_a_descontar  # Ya está en piezas
+                        piezas_necesarias = cantidad_a_descontar
 
-                    if producto.cantidad_disponible >= piezas_necesarias:
-                        producto.cantidad_disponible -= piezas_necesarias
-                        producto.save()
-                    else:
-                        raise ValueError(f"Stock insuficiente para el producto {producto.nombre}.")
+                    if producto.cantidad_disponible < piezas_necesarias:
+                        raise ValueError(f"Stock insuficiente para el producto {producto.nombre}. No se puede completar la venta.")
+
+                # Descontar inventario solo si no hubo errores
+                for detalle in self.detalles.all():
+                    producto = detalle.producto
+                    cantidad_a_descontar = detalle.cantidad
+
+                    if detalle.unidad_medida == 'g':
+                        piezas_necesarias = cantidad_a_descontar / producto.peso_unidad
+                    elif detalle.unidad_medida == '1kg':
+                        piezas_necesarias = (cantidad_a_descontar * 1000) / producto.peso_unidad
+                    elif detalle.unidad_medida == '700gr':
+                        piezas_necesarias = (cantidad_a_descontar * 700) / producto.peso_unidad
+                    elif detalle.unidad_medida == 'pz':
+                        piezas_necesarias = cantidad_a_descontar
+
+                    # Validar nuevamente antes de descontar
+                    if producto.cantidad_disponible < piezas_necesarias:
+                        raise ValueError(f"Stock insuficiente para el producto {producto.nombre}. No se puede completar la venta.")
+
+                    producto.cantidad_disponible -= piezas_necesarias
+                    producto.save()
 
         super().save(*args, **kwargs)
 

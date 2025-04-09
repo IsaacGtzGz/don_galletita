@@ -30,7 +30,7 @@
         "fields": {
             "nombre": "Producto 1",
             "descripcion": "Descripción del producto 1",
-            "unidad_medida": "g",
+            "unidad_medida": "pz",
             "cantidad_disponible": 1000,
             "precio_unitario": "50.00",
             "peso_unidad": "40.00",
