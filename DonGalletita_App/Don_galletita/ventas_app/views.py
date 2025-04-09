@@ -136,7 +136,8 @@ class CrearVentaView(FormView):
     success_url = reverse_lazy('lista_ventas')
 
     def form_valid(self, form):
-        self.object = form.save()  # Asigna el objeto creado a self.object
+        self.object = form.save(commit=False)  # Guardar sin confirmar aún
+        self.object.save()  # Guardar la venta
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -821,7 +822,7 @@ class ExportarReporteExcelView(TemplateView):
         response['Content-Disposition'] = 'attachment; filename="reporte_diario.xlsx"'
         wb.save(response)
         return response
-    
+ 
 # Confirmar venta
 class ConfirmarVentaView(TemplateView):
     def post(self, request, *args, **kwargs):
@@ -883,11 +884,17 @@ class DashboardPresentacionesAlertasView(TemplateView):
          
         # --- Alertas de Caducidad ---
         fecha_limite = timezone.now().date() + timedelta(days=2)
-        context['productos_proximos_caducar'] = Producto.objects.filter(
-            fecha_caducidad__lte=fecha_limite,
-            fecha_caducidad__gte=timezone.now().date(),
-            cantidad_disponible__gt=0
-        ).order_by('fecha_caducidad')
+        context['productos_proximos_caducar'] = [
+            {
+                'nombre': producto.nombre,  # Asegurar que el nombre del producto se pase correctamente
+                'unidad_medida': producto.unidad_medida,
+                'fecha_caducidad': producto.fecha_caducidad_proxima(),
+                'cantidad_disponible': producto.cantidad_disponible,
+                'dias_restantes': (producto.fecha_caducidad_proxima() - timezone.now().date()).days if producto.fecha_caducidad_proxima() else None
+            }
+            for producto in Producto.objects.all()
+            if producto.fecha_caducidad_proxima() and producto.cantidad_por_caducar(dias=2) > 0
+        ]
         
         # Desglose por tipo de presentación
         desglose_presentaciones = detalles.values('unidad_medida').annotate(
@@ -982,13 +989,18 @@ class DashboardMetricasVentasView(TemplateView):
             ganancia_maxima=Sum(F('cantidad_disponible') * F('precio_unitario') * porcentaje_ganancia, output_field=FloatField())
         )['ganancia_maxima'] or 0
 
-        # Galletas próximas a caducar
+        # Galleta que se debe vender más pronto
         fecha_limite = timezone.now().date() + timedelta(days=2)
-        proximas_caducar = Producto.objects.filter(
-            fecha_caducidad__lte=fecha_limite,
-            fecha_caducidad__gte=timezone.now().date(),
-            cantidad_disponible__gt=0
-        ).order_by('fecha_caducidad')
+        proximas_caducar = [
+            {
+                'nombre': producto.nombre,  # Mostrar el nombre del producto
+                'fecha_caducidad': producto.fecha_caducidad_proxima(),
+                'cantidad_por_caducar': producto.cantidad_por_caducar(dias=2)
+            }
+            for producto in Producto.objects.all()
+            if producto.fecha_caducidad_proxima() and producto.cantidad_por_caducar(dias=2) > 0
+        ]
+        context['galleta_mas_pronto'] = proximas_caducar
 
         # Preparar datos para el contexto
         productos_labels = [producto['producto__nombre'] for producto in ventas_por_galleta]
