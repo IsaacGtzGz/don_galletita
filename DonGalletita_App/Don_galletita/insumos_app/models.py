@@ -11,7 +11,6 @@ class Insumos(models.Model):
     UNIDADES_CHOICES = [
         ('kg', 'Kilogramos'),
         ('litros', 'Litros'),
-        ('bultos', 'Bultos'),
         ('pz', 'Piezas'),
     ]
 
