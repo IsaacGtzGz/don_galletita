@@ -39,7 +39,7 @@ class ListaProductosView(ListView):
                 }
             productos_alerta[producto]['cantidad'] += lote.cantidad_galletas
         
-        context['productos_por_caducar'] = productos_alerta
+        context['productos_proximos_caducar'] = productos_alerta
         context['fecha_actual'] = hoy
         return context
 

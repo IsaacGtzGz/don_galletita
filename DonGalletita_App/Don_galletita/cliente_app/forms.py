@@ -65,7 +65,11 @@ class RegistroClienteForm(UserCreationForm):
             message='Solo números permitidos.'
         )
     ]
+<<<<<<< HEAD
 )
+=======
+    )
+>>>>>>> origin/Jasso
     direccion = forms.CharField(
         widget=forms.Textarea(attrs={
             'class': 'form-control',
