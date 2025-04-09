@@ -96,7 +96,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'don_galletita_bd',
-        'USER': 'root',
+        'USER': 'rayret',
         'PASSWORD': 'cclab',
         'HOST': 'localhost',
         'PORT': '3306',
