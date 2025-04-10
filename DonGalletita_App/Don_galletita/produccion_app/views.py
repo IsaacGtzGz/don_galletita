@@ -85,10 +85,10 @@ class CrearProduccionView(CreateView):
                     # Convertir a la unidad base del insumo
                     cantidad_necesaria = Decimal(str(ri.cantidad_necesaria))  # Cambio clave aquí
                     
-                    if ri.unidad_medida == 'g' and ri.insumo.unidad_medida == 'kg':
-                        cantidad_necesaria /= Decimal('1000')  # Usar Decimal para la división
-                    elif ri.unidad_medida == 'kg' and ri.insumo.unidad_medida == 'g':
-                        cantidad_necesaria *= Decimal('1000')  # Usar Decimal para la multiplicación
+                    if ri.insumo.unidad_medida == 'g' and ri.insumo.unidad_medida == 'kg':
+                        cantidad_necesaria /= Decimal('1000')
+                    elif ri.insumo.unidad_medida == 'kg' and ri.insumo.unidad_medida == 'g':
+                        cantidad_necesaria *= Decimal('1000')
                     
                     # Calcular merma exacta
                     cantidad_total_usada = round(cantidad_necesaria * Decimal('1.05'), 3)  # Cambio clave aquí
