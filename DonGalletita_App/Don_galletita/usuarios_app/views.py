@@ -9,6 +9,7 @@ from django.contrib.auth.models import Group  # Importar el modelo Group
 import logging
 from django.utils.timezone import now
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils.html import escape
 
 # Configuración del logger
 logger = logging.getLogger('usuarios_app')
@@ -32,7 +33,13 @@ def registrar_usuario(request):
 
 # CRUD para usuarios
 def lista_usuarios(request):
-    usuarios = Usuario.objects.all()
+    query = escape(request.GET.get('q', ''))  # Obtén el parámetro de búsqueda y escápalo
+    if query:
+        # Filtra los usuarios cuyo nombre de usuario contiene el texto ingresado
+        usuarios = Usuario.objects.filter(nombre_usuario__icontains=query)
+    else:
+        # Muestra todos los usuarios si no hay búsqueda
+        usuarios = Usuario.objects.all()
     return render(request, 'lista_usuarios.html', {'usuarios': usuarios})
 
 def editar_usuario(request, usuario_id):

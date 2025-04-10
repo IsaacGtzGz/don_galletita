@@ -28,7 +28,7 @@ class Venta(models.Model):
         return f"Venta {self.id} - {self.persona}"
 
     def save(self, *args, **kwargs):
-        # Verificar si el estatus cambia a 'Pagado'
+                # Verificar si el estatus cambia a 'Pagado'
         if self.pk:  # Si la venta ya existe
             venta_anterior = Venta.objects.get(pk=self.pk)
             if venta_anterior.estatus_venta != 'Pagado' and self.estatus_venta == 'Pagado':

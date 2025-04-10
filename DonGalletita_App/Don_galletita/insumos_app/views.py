@@ -1,60 +1,81 @@
 from django.shortcuts import get_object_or_404
-from insumos_app.models import Insumos
 from django.views.generic.base import TemplateView
-from django.views.generic import FormView
-from django.views.generic.edit import DeleteView
-from . import forms
+from django.views.generic import FormView, DeleteView
 from django.urls import reverse_lazy
-# Removed unused imports
+from insumos_app.models import Insumos
+from . import forms
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.utils.html import escape
+import logging
 
-# Create your views here.
+logger = logging.getLogger(__name__)
 
-class ListaInsumoView(TemplateView):
-    template_name = 'lista_insumo.html' 
-    def get_context_data(self):
-        insumos = Insumos.objects.all()
-        return {
-            'insumos': insumos
-        }
-    
-class CrearInsumoView(FormView):
+# Lista de insumos
+class ListaInsumoView(LoginRequiredMixin, TemplateView):
+    template_name = 'lista_insumo.html'
+    login_url = 'login'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        query = escape(self.request.GET.get('q', ''))  # Obtén el parámetro de búsqueda
+        if query:
+            # Filtra los insumos cuyo nombre contiene el texto ingresado
+            context['insumos'] = Insumos.objects.filter(nombre_insumo__icontains=query)
+        else:
+            # Muestra todos los insumos si no hay búsqueda
+            context['insumos'] = Insumos.objects.all()
+        return context
+
+# Crear un insumo
+class CrearInsumoView(LoginRequiredMixin, FormView):
     template_name = 'crear_insumo.html'
     form_class = forms.InsumosRegistrarForm
     success_url = reverse_lazy('lista_insumo')
-    def form_valid(self, form):
-        form.save()
-        return super().form_valid(form)
-    
+    login_url = 'login'
 
-class EditarInsumoView(FormView):
+    def form_valid(self, form):
+        form.save()  # Guarda el formulario sin pasar un id
+        return super().form_valid(form)
+
+# Editar un insumo
+class EditarInsumoView(LoginRequiredMixin, FormView):
     template_name = 'editar_insumo.html'
     form_class = forms.InsumosEditarForm
     success_url = reverse_lazy('lista_insumo')
+    login_url = 'login'
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        id = self.kwargs.get('insumo_id')
-        insumos = get_object_or_404(Insumos, id=id)
-        kwargs['instance'] = insumos
+        insumo_id = self.kwargs.get('insumo_id')
+        insumo = get_object_or_404(Insumos, id=insumo_id)
+        kwargs['instance'] = insumo  # Pasar la instancia al formulario
         return kwargs
-    
+
     def form_valid(self, form):
-        # Obtener el insumo del formulario y la unidad actual
-        insumo = form.instance
-        nueva_unidad = form.cleaned_data.get('unidad_medida')
-        print(f"Datos limpios: Cantidad: {insumo.cantidad_disponible}, Unidad: {insumo.unidad_medida}")
-        print(f"Cantidad antes de guardar: {insumo.cantidad_disponible} {insumo.unidad_medida}")
-        
-        # Convertir la unidad si es necesario
-        if insumo.unidad_medida != nueva_unidad:
-            insumo.convertir_unidad(nueva_unidad)
-        
-        insumo.save()
-        print(f"Cantidad después de guardar: {insumo.cantidad_disponible} {insumo.unidad_medida}")
+        form.save()  # Guarda los cambios en la instancia del modelo
         return super().form_valid(form)
 
-class EliminarInsumoView(DeleteView):
+# Eliminar un insumo
+class EliminarInsumoView(LoginRequiredMixin, DeleteView):
     model = Insumos
     template_name = 'eliminar_insumo.html'
     success_url = reverse_lazy('lista_insumo')
-    pk_url_kwarg = 'id'
+    login_url = 'login'
+
+    def get_object(self):
+        insumo_id = self.kwargs.get('insumo_id')
+        return get_object_or_404(Insumos, id=insumo_id)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        insumo = self.get_object()
+        context['titulo'] = 'Eliminar Insumo'
+        context['mensaje'] = '¿Estás seguro de que deseas eliminar este insumo?'
+        context['url_cancelar'] = reverse_lazy('lista_insumo')
+        return context
+
+    def form_valid(self, form):
+        insumo_id = self.kwargs.get('insumo_id')
+        insumo = get_object_or_404(Insumos, id=insumo_id)
+        logger.info(f'Insumo eliminado con ID: {insumo_id} por {self.request.user}')
+        return super().form_valid(form)

@@ -19,7 +19,7 @@ class RecetasInsumoForm(forms.ModelForm):
     )
     class Meta:
         model = RecetaInsumo
-        fields = ['insumo', 'cantidad_necesaria']
+        fields = ['insumo', 'cantidad_necesaria', 'unidad_medida']
         widgets = {
             'cantidad_necesaria': forms.NumberInput(attrs={
                 'class': 'form-control',

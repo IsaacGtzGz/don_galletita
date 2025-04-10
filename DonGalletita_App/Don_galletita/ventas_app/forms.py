@@ -12,8 +12,8 @@ class VentaForm(forms.ModelForm):
             'estatus_venta': forms.Select(attrs={'class': 'form-control'}),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def _init_(self, *args, **kwargs):
+        super()._init_(*args, **kwargs)
         if not self.instance.pk:  # Si es una nueva instancia (crear venta)
             self.fields['estatus_venta'].widget.attrs['disabled'] = True  # Deshabilitar el campo
             self.initial['estatus_venta'] = 'Pendiente'  # Establecer valor inicial
@@ -50,8 +50,8 @@ class DetalleVentaForm(forms.ModelForm):
         model = DetalleVenta
         fields = ['producto', 'unidad_medida']  # Eliminé el campo 'cantidad' de los campos visibles
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def _init_(self, *args, **kwargs):
+        super()._init_(*args, **kwargs)
         self.fields['producto'].queryset = Producto.objects.all()
         self.fields['unidad_medida'].choices = [
             ('pz', 'Piezas'),

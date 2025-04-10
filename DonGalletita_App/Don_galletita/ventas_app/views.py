@@ -136,7 +136,8 @@ class CrearVentaView(FormView):
     success_url = reverse_lazy('lista_ventas')
 
     def form_valid(self, form):
-        self.object = form.save()  # Asigna el objeto creado a self.object
+        self.object = form.save(commit=False)  # Guardar sin confirmar aún
+        self.object.save()  # Guardar la venta
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -821,7 +822,7 @@ class ExportarReporteExcelView(TemplateView):
         response['Content-Disposition'] = 'attachment; filename="reporte_diario.xlsx"'
         wb.save(response)
         return response
-    
+ 
 # Confirmar venta
 class ConfirmarVentaView(TemplateView):
     def post(self, request, *args, **kwargs):
