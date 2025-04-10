@@ -97,7 +97,11 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'don_galletita_bd',
         'USER': 'root',
+<<<<<<< HEAD
         'PASSWORD': 'root',
+=======
+        'PASSWORD': 'Veronicagalvan',
+>>>>>>> origin/Veronica
         'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {

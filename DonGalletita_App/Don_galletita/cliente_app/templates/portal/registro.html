@@ -18,6 +18,8 @@
               <label class="form-label">Teléfono*</label>
               {{ form.telefono }}
               {{ form.telefono.errors }}
+<<<<<<< HEAD
+=======
           </div>
           
           <script>
@@ -31,7 +33,20 @@
                   }
               });
           </script>
+>>>>>>> origin/Jasso
           </div>
+          
+          <script>
+              document.addEventListener('DOMContentLoaded', function () {
+                  const telefonoInput = document.querySelector('input[name="telefono"]');
+                  if (telefonoInput) {
+                      telefonoInput.addEventListener('input', function () {
+                          // Elimina cualquier carácter que no sea un número
+                          this.value = this.value.replace(/[^0-9]/g, '');
+                      });
+                  }
+              });
+          </script>
 
           <div class="row mb-3">
             <div class="col-md-4">
