@@ -6,7 +6,6 @@
     <form method="post">
       {% csrf_token %}
       {{ form.as_p }}
-
       <label for="cantidad">Cantidad:</label>
       <select name="cantidad" id="cantidad" required>
         <option value="">Seleccione una cantidad</option>

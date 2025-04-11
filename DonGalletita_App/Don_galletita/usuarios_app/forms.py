@@ -88,6 +88,35 @@ class UsuarioForm(UserCreationForm):
             usuario.save()
         return usuario
 
+    # Validación para el campo Teléfono
+    def clean_telefono(self):
+        telefono = self.cleaned_data.get('telefono')
+        if not telefono.isdigit():
+            raise ValidationError('El teléfono solo debe contener números.')
+        if len(telefono) != 10:
+            raise ValidationError('El teléfono debe tener exactamente 10 dígitos.')
+        return telefono
+
+    # Validación para los campos de texto (Nombre, Apellido Paterno, Apellido Materno)
+    def clean_nombre(self):
+        nombre = self.cleaned_data.get('nombre')
+        if not nombre.isalpha():
+            raise ValidationError('El nombre solo debe contener letras.')
+        return nombre
+
+    def clean_apellido_paterno(self):
+        apellido_paterno = self.cleaned_data.get('apellido_paterno')
+        if not apellido_paterno.isalpha():
+            raise ValidationError('El apellido paterno solo debe contener letras.')
+        return apellido_paterno
+
+    def clean_apellido_materno(self):
+        apellido_materno = self.cleaned_data.get('apellido_materno')
+        if not apellido_materno.isalpha():
+            raise ValidationError('El apellido materno solo debe contener letras.')
+        return apellido_materno
+
+    # Validación para la contraseña
     def clean_password2(self):
         password1 = self.cleaned_data.get('password1')
         password2 = self.cleaned_data.get('password2')
@@ -96,10 +125,20 @@ class UsuarioForm(UserCreationForm):
             if password1 != password2:
                 raise ValidationError("Las contraseñas no coinciden.")
 
-            try:
-                password_validation.validate_password(password2, self.instance)
-            except ValidationError as e:
-                self.add_error('password2', e.messages)
+            if len(password2) < 8:
+                raise ValidationError("La contraseña debe tener al menos 8 caracteres.")
+
+            if not any(char.isupper() for char in password2):
+                raise ValidationError("La contraseña debe contener al menos una letra mayúscula.")
+
+            if not any(char.islower() for char in password2):
+                raise ValidationError("La contraseña debe contener al menos una letra minúscula.")
+
+            if not any(char.isdigit() for char in password2):
+                raise ValidationError("La contraseña debe contener al menos un número.")
+
+            if not any(char in '!"#$%&/()=?¡¿' for char in password2):
+                raise ValidationError("La contraseña debe contener al menos un carácter especial (!\"#$%&/()=?¡¿).")
 
         return password2
 
@@ -155,7 +194,14 @@ class UsuarioEditarForm(forms.ModelForm):
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Teléfono'
-        })
+        }),
+        validators=[
+            MinLengthValidator(10),
+            RegexValidator(
+                regex='^[0-9]+$',
+                message='Solo números permitidos'
+            )
+        ]
     )
     direccion = forms.CharField(
         widget=forms.Textarea(attrs={
@@ -190,12 +236,14 @@ class UsuarioEditarForm(forms.ModelForm):
             })
         }
 
-    def save(self, id, commit=True):
-        usuario = models.Usuario.objects.filter(usuario_id=id).first()
-        usuario.nombre_usuario = self.cleaned_data["nombre_usuario"]
-        usuario.set_password(self.cleaned_data["contrasenia"])
-        usuario.rol = self.cleaned_data["rol"]
-        usuario.estatus_user = self.cleaned_data["estatus_user"]
+    def save(self, commit=True):
+        usuario = super().save(commit=False)
+        usuario.nombre = self.cleaned_data['nombre']
+        usuario.apellido_paterno = self.cleaned_data['apellido_paterno']
+        usuario.apellido_materno = self.cleaned_data['apellido_materno']
+        usuario.telefono = self.cleaned_data['telefono']
+        usuario.direccion = self.cleaned_data['direccion']
+        usuario.rol = self.cleaned_data['rol']
         if commit:
             usuario.save()
         return usuario

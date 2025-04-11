@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h2 class="my-4">Inventario de Lotes de Producción</h2>
+    
+    <!-- Sección de Lotes Caducados -->
+    <div class="card border-danger mb-4">
+        <div class="card-header bg-danger text-white">
+            <h4>🚨 Lotes Caducados (Merma)</h4>
+            <p class="mb-0">Total de galletas: {{ total_caducado }}</p>
+        </div>
+        <div class="card-body">
+            {% if lotes_caducados %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Lote ID</th>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Fecha Caducidad</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lote in lotes_caducados %}
+                        <tr class="table-danger">
+                            <td>{{ lote.lote_id }}</td>
+                            <td>{{ lote.produccion.receta.producto.nombre }}</td>
+                            <td>{{ lote.cantidad_galletas }}</td>
+                            <td>{{ lote.fecha_caducidad|date:"d/m/Y" }}</td>
+                            <td>
+                                <a href="{% url 'registrar_merma' lote.lote_id %}" class="btn btn-sm btn-danger">
+                                    Registrar Merma
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No hay lotes caducados</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Sección de Lotes por Caducar -->
+    <div class="card border-warning mb-4">
+        <div class="card-header bg-warning text-white">
+            <h4>⚠️ Lotes por Caducar (Próximos 2 días)</h4>
+            <p class="mb-0">Total de galletas: {{ total_por_caducar }}</p>
+        </div>
+        <div class="card-body">
+            {% if lotes_por_caducar %}
+            <table class="table table-striped">
+                <!-- Similar estructura a la tabla anterior -->
+            </table>
+            {% else %}
+            <p class="text-muted">No hay lotes por caducar</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Sección de Lotes Disponibles -->
+    <div class="card border-success">
+        <div class="card-header bg-success text-white">
+            <h4>✅ Lotes Disponibles</h4>
+            <p class="mb-0">Total de galletas: {{ total_disponible }}</p>
+        </div>
+        <div class="card-body">
+            {% if lotes_disponibles %}
+            <table class="table table-striped">
+                <!-- Similar estructura a las tablas anteriores -->
+            </table>
+            {% else %}
+            <p class="text-muted">No hay lotes disponibles</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

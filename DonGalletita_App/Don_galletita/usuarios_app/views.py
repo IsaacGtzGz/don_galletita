@@ -9,6 +9,7 @@ from django.contrib.auth.models import Group  # Importar el modelo Group
 import logging
 from django.utils.timezone import now
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils.html import escape
 
 # Configuración del logger
 logger = logging.getLogger('usuarios_app')
@@ -32,19 +33,36 @@ def registrar_usuario(request):
 
 # CRUD para usuarios
 def lista_usuarios(request):
-    usuarios = Usuario.objects.all()
+    query = escape(request.GET.get('q', ''))  # Obtén el parámetro de búsqueda y escápalo
+    if query:
+        # Filtra los usuarios cuyo nombre de usuario contiene el texto ingresado
+        usuarios = Usuario.objects.filter(nombre_usuario__icontains=query)
+    else:
+        # Muestra todos los usuarios si no hay búsqueda
+        usuarios = Usuario.objects.all()
     return render(request, 'lista_usuarios.html', {'usuarios': usuarios})
 
 def editar_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, pk=usuario_id)
     if request.method == 'POST':
-        form = UsuarioEditarForm(request.POST, instance=usuario)
+        form = UsuarioForm(request.POST, instance=usuario)
         if form.is_valid():
-            form.save(id=usuario_id)  # Pasamos el ID del usuario al método save
+            usuario = form.save(commit=False)
+            if form.cleaned_data['password1']:
+                usuario.set_password(form.cleaned_data['password1'])  # Actualizar contraseña si se proporciona
+            usuario.save()
+            messages.success(request, 'Usuario actualizado exitosamente.')
             return redirect('lista_usuarios')
     else:
-        form = UsuarioEditarForm(instance=usuario)
-    return render(request, 'editar_usuario.html', {'form': form})
+        # Cargar datos existentes del usuario en el formulario
+        form = UsuarioForm(instance=usuario, initial={
+            'nombre': usuario.nombre,
+            'apellido_paterno': usuario.apellido_paterno,
+            'apellido_materno': usuario.apellido_materno,
+            'telefono': usuario.telefono,
+            'direccion': usuario.direccion,
+        })
+    return render(request, 'editar_usuario.html', {'form': form, 'usuario': usuario})
 
 def eliminar_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, pk=usuario_id)

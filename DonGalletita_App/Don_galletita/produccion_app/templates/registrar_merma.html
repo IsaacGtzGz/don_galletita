@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-warning text-white">
+            <h4>Registrar Merma</h4>
+        </div>
+        <div class="card-body">
+            <p>¿Estás seguro que deseas registrar el Lote <strong>{{ object.lote_id }}</strong> como merma?</p>
+            <p>Producto: {{ object.produccion.receta.producto.nombre }}</p>
+            <p>Cantidad: {{ object.cantidad_galletas }} unidades</p>
+            <p>Fecha de caducidad: {{ object.fecha_caducidad|date:"d/m/Y" }}</p>
+            
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Confirmar Merma</button>
+                <a href="{% url 'inventario_lotes' %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

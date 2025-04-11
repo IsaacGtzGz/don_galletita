@@ -42,6 +42,7 @@ class LoteProduccion(models.Model):
     cantidad_galletas = models.PositiveIntegerField()
     fecha_caducidad = models.DateField()
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='disponible')
+    merma_registrada = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         # Actualizar estado según fecha de caducidad
@@ -54,6 +55,24 @@ class LoteProduccion(models.Model):
     
     def __str__(self):
         return f"Lote {self.lote_id} - {self.produccion.receta.producto.nombre} (Cad: {self.fecha_caducidad})"
+    
+    @property
+    def estado_actualizado(self):
+        """Actualiza el estado automáticamente al consultarlo"""
+        hoy = now().date()
+        if self.fecha_caducidad <= hoy:
+            self.estado = 'caducado'
+        elif (self.fecha_caducidad - hoy) <= timedelta(days=2):
+            self.estado = 'por_caducar'
+        else:
+            self.estado = 'disponible'
+        self.save()
+        return self.estado
+    
+    class Meta:
+        ordering = ['estado', 'fecha_caducidad']  # Ordenamos por estado y fecha
+        verbose_name = "Lote de Producción"
+        verbose_name_plural = "Lotes de Producción"
     
     class Meta:
         verbose_name = "Lote de Producción"

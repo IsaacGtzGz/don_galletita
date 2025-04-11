@@ -14,6 +14,8 @@ from django.utils.timezone import now, timedelta
 from productos_app.models import Producto
 from recetas_app.models import Receta
 from .models import Produccion
+from django.views.generic import TemplateView
+from django.views.generic import UpdateView
 
 class ListaProduccionView(ListView):
     model = Produccion
@@ -191,3 +193,88 @@ def crear_produccion_automatica(producto_id, cantidad_necesaria):
         raise ValueError("El producto especificado no existe.")
     except Exception as e:
         raise ValueError(f"Error al crear la producción automática: {str(e)}")
+    
+
+class InventarioLotesView(TemplateView):
+    template_name = 'inventario_lotes.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        hoy = timezone.now().date()
+        
+        # Lotes caducados (merma)
+        context['lotes_caducados'] = LoteProduccion.objects.filter(
+            fecha_caducidad__lte=hoy
+        ).select_related('produccion__receta__producto')
+        
+        # Lotes por caducar (en los próximos 2 días)
+        context['lotes_por_caducar'] = LoteProduccion.objects.filter(
+            fecha_caducidad__gt=hoy,
+            fecha_caducidad__lte=hoy + timedelta(days=2)
+        ).select_related('produccion__receta__producto')
+        
+        # Lotes disponibles
+        context['lotes_disponibles'] = LoteProduccion.objects.filter(
+            fecha_caducidad__gt=hoy + timedelta(days=2)
+        ).select_related('produccion__receta__producto')
+        
+        # Total de galletas en cada estado
+        context['total_caducado'] = sum(l.cantidad_galletas for l in context['lotes_caducados'])
+        context['total_por_caducar'] = sum(l.cantidad_galletas for l in context['lotes_por_caducar'])
+        context['total_disponible'] = sum(l.cantidad_galletas for l in context['lotes_disponibles'])
+        
+        return context
+    
+class RegistrarMermaView(UpdateView):
+    model = LoteProduccion
+    fields = []
+    template_name = 'registrar_merma.html'
+    success_url = reverse_lazy('inventario_lotes')
+    
+    def form_valid(self, form):
+        lote = self.object
+
+        # Validar si ya fue registrado como merma
+        if lote.merma_registrada:
+            messages.error(
+                self.request, 
+                f"⚠️ El Lote {lote.lote_id} ya fue registrado como merma anteriormente."
+            )
+            return redirect(self.success_url)
+        
+        # 1. Actualizar el estado del lote
+        lote.estado = 'caducado'
+        lote.merma_registrada = True
+        lote.save()
+        
+        # 2. Actualizar el inventario del producto
+        producto = lote.produccion.receta.producto
+        producto.cantidad_disponible -= lote.cantidad_galletas
+        producto.save()
+        
+        # 3. Opcional: Registrar en un modelo de Mermas si lo tienes
+        # Merma.objects.create(
+        #     lote=lote,
+        #     cantidad=lote.cantidad_galletas,
+        #     motivo='Caducidad'
+        # )
+
+        messages.success(
+            self.request, 
+            f"✅ Se registró merma del Lote {lote.lote_id}. "
+            f"Se descontaron {lote.cantidad_galletas} unidades de {producto.nombre}"
+        )
+        return super().form_valid(form)
+
+    def get(self, request, *args, **kwargs):
+        # Verificar antes de mostrar el formulario si ya es merma
+        self.object = self.get_object()
+        if self.object.merma_registrada:
+            messages.error(
+                request, 
+                f"El Lote {self.object.lote_id} ya fue registrado como merma anteriormente."
+            )
+            return redirect(self.success_url)
+        return super().get(request, *args, **kwargs)
+        
+        
