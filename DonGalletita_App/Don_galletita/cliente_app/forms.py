@@ -150,7 +150,7 @@ class RegistroClienteForm(UserCreationForm):
     def clean_telefono(self):
         telefono = self.cleaned_data['telefono']
         if not telefono.isdigit() or len(telefono) != 10:
-            raise forms.ValidationError("El teléfono debe tener 10 dígitos numéricos")
+            raise forms.ValidationError("El teléfono debe tener exactamente 10 dígitos numéricos.")
         return telefono
 
     def save(self, commit=True):

@@ -39,9 +39,9 @@
               <canvas id="distribucionChart"></canvas>
             </div>
             <div class="mt-4 text-center small">
-              <span class="mr-2"><i class="fas fa-circle" style="color: #F4A261;"></i> Bolsas 1kg</span>
-              <span class="mr-2"><i class="fas fa-circle" style="color: #2A9D8F;"></i> Granel</span>
-              <span class="mr-2"><i class="fas fa-circle" style="color: #E9C46A;"></i> Individuales</span>
+              <span class="mr-2"><i class="fas fa-circle" style="color: #F4A261;"></i> Gramos</span>
+              <span class="mr-2"><i class="fas fa-circle" style="color: #2A9D8F;"></i> Piezas</span>
+              <span class="mr-2"><i class="fas fa-circle" style="color: #E9C46A;"></i> Kilogramos</span>
             </div>
           </div>
         </div>
@@ -277,7 +277,8 @@
               },
               callbacks: {
                 label: function (context) {
-                  return context.parsed.y.toLocaleString() + ' unidades vendidas'
+                  const unidad = context.label.toLowerCase(); // Obtiene el tipo de unidad (gramos, piezas, etc.)
+                  return context.parsed.y.toLocaleString() + ' ' + unidad; // Muestra el valor con la unidad correspondiente
                 }
               }
             }

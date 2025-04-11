@@ -56,11 +56,13 @@ def editar_usuario(request, usuario_id):
     else:
         # Cargar datos existentes del usuario en el formulario
         form = UsuarioForm(instance=usuario, initial={
-            'nombre': usuario.nombre,
-            'apellido_paterno': usuario.apellido_paterno,
-            'apellido_materno': usuario.apellido_materno,
-            'telefono': usuario.telefono,
-            'direccion': usuario.direccion,
+            'nombre_usuario': usuario.nombre_usuario,
+            'email': usuario.email,
+            'telefono': getattr(usuario, 'telefono', ''),
+            'direccion': getattr(usuario, 'direccion', ''),
+            'nombre': getattr(usuario, 'nombre', ''),
+            'apellido_paterno': getattr(usuario, 'apellido_paterno', ''),
+            'apellido_materno': getattr(usuario, 'apellido_materno', ''),
         })
     return render(request, 'editar_usuario.html', {'form': form, 'usuario': usuario})
 

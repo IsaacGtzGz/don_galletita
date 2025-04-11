@@ -3,6 +3,11 @@ from django.views.generic.base import TemplateView
 from django.views.generic import FormView, DeleteView
 from django.urls import reverse_lazy
 from .models import Venta, DetalleVenta
+from django.http import HttpResponse
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
+from openpyxl.utils import get_column_letter
+from django.utils.timezone import localtime
 from .forms import VentaForm, DetalleVentaForm
 from reportlab.pdfgen import canvas
 from django.http import FileResponse, JsonResponse, HttpResponse
@@ -120,10 +125,10 @@ class ListaVentasView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Asegurar que solo se consideren ventas con estatus 'Pagado'
+        # Incluir ventas pendientes y canceladas
         lista_pagadas = Venta.objects.filter(estatus_venta='Pagado').order_by('-id')
-        lista_pendientes = []  # Eliminar ventas pendientes de los cálculos
-        lista_canceladas = []  # Eliminar ventas canceladas de los cálculos
+        lista_pendientes = Venta.objects.filter(estatus_venta='Pendiente').order_by('-id')
+        lista_canceladas = Venta.objects.filter(estatus_venta='Cancelado').order_by('-id')
         context['lista_pagadas'] = lista_pagadas
         context['lista_pendientes'] = lista_pendientes
         context['lista_canceladas'] = lista_canceladas
@@ -136,8 +141,11 @@ class CrearVentaView(FormView):
     success_url = reverse_lazy('lista_ventas')
 
     def form_valid(self, form):
-        self.object = form.save(commit=False)  # Guardar sin confirmar aún
-        self.object.save()  # Guardar la venta
+        self.object = form.save(commit=False)
+        # Asegurar que el estatus se respete
+        if not self.object.estatus_venta:
+            self.object.estatus_venta = 'Pendiente'
+        self.object.save()
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -853,41 +861,56 @@ class ConfirmarVentaView(TemplateView):
         return redirect('detalle_venta', venta_id=venta.id)
     
 
- # Dashboard de presentaciones y alertas
-
-#Dashboard de presentaciones y alertas
+# Dashboard de presentaciones y alertas
 class DashboardPresentacionesAlertasView(TemplateView):
     template_name = 'dashboard_presentaciones_alertas.html'
-     
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-         
+
         # --- Gráfico de Presentaciones Más Vendidas ---
         ventas_30_dias = Venta.objects.filter(
             fecha_venta__gte=timezone.now() - timedelta(days=30)
         ).order_by('-id')
-         
+
         detalles = DetalleVenta.objects.filter(venta__in=ventas_30_dias)
-         
+
         # Agrupar por tipo de presentación
         presentaciones_data = detalles.values('unidad_medida').annotate(
             total_vendido=Sum('cantidad'),
             total_ventas=Count('id')
         ).order_by('-total_vendido')
-         
-        # Preparar datos para el gráfico con nombres y colores para galletas
-        context['presentaciones_chart'] = {
-            'labels': json.dumps([self.get_presentation_name(p['unidad_medida']) for p in presentaciones_data]),
-            'data': json.dumps([float(p['total_vendido']) for p in presentaciones_data]),
-            'colors': json.dumps(['#F4A261', '#2A9D8F', '#E9C46A', '#E76F51', '#264653'])
+
+        # Mapeo de unidades de medida a nombres legibles
+        presentation_names = {
+            'kg': 'Kilogramos',
+            'g': 'Gramos',
+            'pz': 'Piezas',
+            '1kg': 'Kilogramos',
+            '700gr': '700 gramos'
         }
-         
+
+        # Validar si hay datos para la gráfica
+        if not presentaciones_data:
+            context['presentaciones_chart'] = {
+                'labels': json.dumps([]),
+                'data': json.dumps([]),
+                'colors': json.dumps([])
+            }
+        else:
+            # Preparar datos para el gráfico
+            context['presentaciones_chart'] = {
+                'labels': json.dumps([presentation_names.get(p['unidad_medida'], p['unidad_medida']) for p in presentaciones_data]),
+                'data': json.dumps([float(p['total_vendido']) for p in presentaciones_data]),
+                'colors': json.dumps(['#F4A261', '#2A9D8F', '#E9C46A', '#E76F51', '#264653'])
+            }
+
         # --- Alertas de Caducidad ---
         fecha_limite = timezone.now().date() + timedelta(days=2)
         context['productos_proximos_caducar'] = [
             {
-                'nombre': producto.nombre,  # Asegurar que el nombre del producto se pase correctamente
-                'unidad_medida': producto.unidad_medida,
+                'nombre': producto.nombre,
+                'unidad_medida': presentation_names.get(producto.unidad_medida, producto.unidad_medida),
                 'fecha_caducidad': producto.fecha_caducidad_proxima(),
                 'cantidad_disponible': producto.cantidad_disponible,
                 'dias_restantes': (producto.fecha_caducidad_proxima() - timezone.now().date()).days if producto.fecha_caducidad_proxima() else None
@@ -895,26 +918,22 @@ class DashboardPresentacionesAlertasView(TemplateView):
             for producto in Producto.objects.all()
             if producto.fecha_caducidad_proxima() and producto.cantidad_por_caducar(dias=2) > 0
         ]
-        
+
         # Desglose por tipo de presentación
         desglose_presentaciones = detalles.values('unidad_medida').annotate(
             total_vendido=Sum('cantidad')
         ).order_by('-total_vendido')
 
-        context['desglose_presentaciones'] = desglose_presentaciones
-         
+        # Agregar nombres legibles al desglose
+        context['desglose_presentaciones'] = [
+            {
+                'unidad_medida': presentation_names.get(p['unidad_medida'], p['unidad_medida']),
+                'total_vendido': p['total_vendido']
+            }
+            for p in desglose_presentaciones
+        ]
+
         return context
-     
-    def get_presentation_name(self, unidad_medida):
-        # Mapeo de códigos a nombres legibles para galletas
-        presentation_names = {
-            'kg': 'Bolsas 1kg',
-            'g': 'Granel (100g)',
-            'pz': 'Cajas Individuales',
-            '1kg': 'Paquetes Familiares',
-            '700g': 'Promo Especial'
-        }
-        return presentation_names.get(unidad_medida, unidad_medida)
 
 # Dashboard de métricas de ventas
 class DashboardMetricasVentasView(TemplateView):
